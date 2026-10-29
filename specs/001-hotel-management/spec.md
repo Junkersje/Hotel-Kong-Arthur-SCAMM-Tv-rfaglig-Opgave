@@ -8,6 +8,18 @@
 
 ---
 
+## Clarifications
+
+### Session 2026-10-29
+
+- Q: Hvilken detaljeringsgrad skal analysen "Hvilke værelser tjener Kong Arthur flest penge på?" vise i Tableau og REST API'et? (FR-012) → A: Kun de 8 værelsestyper (sidestiller "værelser" med de 8 officielle værelseskategorier).
+- Q: Hvordan skal "Kundetilfredshed" modelleres i databasen og præsenteres i Tableau-dashboardet? (FR-020) → A: Rating-score fra 1 til 5 stjerner pr. booking (viser gennemsnitlig score og antal besvarelser i dashboardet; viser "Ingen besvarelser", hvis data mangler).
+- Q: Hvilke præcise datointervaller skal definere de tre sæsoner i backenden og databasen? (FR-005) → A: Faste ikke-overlappende blokke: Lavsæson er 1. nov – 28./29. feb; Mellemsæson er 1. mar – 31. maj samt 1. sep – 31. okt; Højsæson er 1. jun – 31. aug.
+- Q: Hvilken slettesemantik skal anvendes, når en booking slettes via browseren og REST API'et? (FR-001) → A: Soft delete: Markeres som status 'cancelled' i MySQL (bevarer historik og forhindrer tab af data, men ekskluderes automatisk fra aktive lister, belægning og realiseret omsætning).
+- Q: Skal procentfordelingen mellem cocktails og kaffe for Helene Christine primært baseres på omsætning (DKK) eller antal solgte enheder (stk.)? (FR-019) → A: Begge dele understøttes i API og dashboard (omsætningsandel i DKK som standardvisning med mulighed for at skifte til antalsandel i stk.; nævneren udgøres udelukkende af de to kategorier).
+
+---
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Fremsøge og inspicere bookinger (Priority: P1)
@@ -56,9 +68,9 @@ Som receptionist ønsker jeg nemt og sikkert at kunne slette eller aflyse en boo
 - **Why this priority**: Nødvendig for at fuldføre CRUD-kravet og sikre, at sletninger håndteres ensartet i både databasen og de økonomiske analyser.
 - **Independent Test**: Kan testes ved at slette en reservation og kontrollere, at den forsvinder fra aktive lister og belægningsberegninger.
 - **Acceptance Scenarios**:
-  1. **Given** en aktiv booking i systemet, **When** receptionisten vælger slet og bekræfter handlingen i bekræftelsesdialogen, **Then** slettes/aflyses bookingen, og den fjernes fra oversigten over aktive reservationer.
-  2. **Given** en slettet/aflyst booking, **When** ledelsen inspicerer belægningsgraden eller omsætningen for den pågældende periode, **Then** indgår den pågældende booking ikke længere i de realiserede overnatnings- og indtægtstal.
-  3. **Given** et forsøg på at slette et allerede slettet eller ikke-eksisterende booking-ID, **When** handlingen udføres, **Then** håndterer systemet anmodningen uden databrud eller systemnedbrud.
+  1. **Given** en aktiv booking i systemet, **When** receptionisten klikker slet og bekræfter handlingen i bekræftelsesdialogen, **Then** udfører systemet en soft delete ved at opdatere bookingens status til `cancelled` i MySQL, og bookingen fjernes straks fra listen over aktive reservationer i browseren.
+  2. **Given** en aflyst booking med status `cancelled`, **When** ledelsen inspicerer belægningsgraden eller omsætningen for den pågældende periode, **Then** ekskluderes denne booking automatisk fra solgte værelsesnætter og realiseret omsætning.
+  3. **Given** et forsøg på at slette et ikke-eksisterende booking-ID, **When** handlingen udføres, **Then** returnerer systemet en forklarende fejl uden databrud eller systemnedbrud.
 
 ---
 
@@ -159,15 +171,15 @@ Som hoteladministrator ønsker jeg at se omsætningen pr. værelsestype opdelt p
 
 ---
 
-### User Story 13 — Mest indbringende værelser vs. værelsestyper [NEEDS CLARIFICATION: Specifikke værelsesnumre vs. værelsestyper] (Priority: P2)
+### User Story 13 — Mest indbringende værelsestyper (Priority: P2)
 
-Som hoteladministrator ønsker jeg at kunne identificere, hvilke specifikke værelser eller værelseskategorier der genererer størst indtjening, så jeg kan vurdere slid og rentabilitet på enkeltværelsesniveau såvel som kategoriniveau.
+Som hoteladministrator ønsker jeg at kunne identificere, hvilke af de 8 værelseskategorier der genererer størst samlet indtjening, så jeg kan vurdere porteføljen og rentabiliteten på kategoriniveau.
 
-- **Why this priority**: Besvarer opgavekravet: *"Hvilke værelser tjener Kong Arthur flest penge på?"*.
-- **Independent Test**: Kan testes ved at rangere enten de 214 specifikke værelsesnumre eller de 8 typer efter totalomsætning.
+- **Why this priority**: Besvarer opgavekravet: *"Hvilke værelser tjener Kong Arthur flest penge på?"*, hvor "værelser" opgøres på de 8 officielle værelsestyper.
+- **Independent Test**: Kan testes ved at rangere de 8 værelsestyper efter samlet omsætning og afstemme mod den totale værelsesomsætning.
 - **Acceptance Scenarios**:
-  1. **Given** data med værelsesnumre tilknyttet bookingerne, **When** visningen åbnes, **Then** kan administratoren se en rangering af de mest indbringende enheder med tydelig angivelse af, om der vises specifikke værelser (f.eks. Værelse 204) eller værelsestyper.
-  2. **Given** at visningen filtreres på en værelsestype, **When** filteret vælges, **Then** vises de enkelte værelsesnumre inden for den pågældende kategori rangeret efter omsætning.
+  1. **Given** data med værelsestyper tilknyttet bookingerne, **When** visningen åbnes, **Then** præsenteres en sorteret rangering over de 8 værelsestyper efter totalomsætning.
+  2. **Given** en værelsestype uden salg i perioden, **When** rangeringen vises, **Then** fremgår denne nederst med 0 DKK i omsætning.
 
 ---
 
@@ -254,14 +266,14 @@ Som hoteladministrator ønsker jeg at se den procentvise fordeling mellem salg a
 
 ---
 
-### User Story 21 — Kundetilfredshedsmåling [NEEDS CLARIFICATION: Datakilde og skala for kundetilfredshed] (Priority: P3)
+### User Story 21 — Kundetilfredshedsmåling (Priority: P3)
 
-Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kundetilfredshedsscore for en valgt periode, så jeg kan følge gæsternes tilfredshed i takt med belægnings- og prisændringer.
+Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kundetilfredshedsscore (1–5 stjerner) samt antallet af besvarelser for en valgt periode, så jeg kan følge gæsternes tilfredshed i relation til belægning og værelsespriser.
 
-- **Why this priority**: Nævnt i opgavens overordnede systemkrav; må ifølge roadmap ikke forsvinde stiltiende.
-- **Independent Test**: Kan testes ved at beregne gennemsnittet af registrerede tilfredshedsscorer og vise antal besvarelser.
+- **Why this priority**: Opfylder det overordnede systemkrav om kundetilfredshed; viser både gennemsnit og datagrundlagets omfang.
+- **Independent Test**: Kan testes ved at beregne gennemsnittet af registrerede 1–5 stjernede ratings samt tælle antallet af besvarelser.
 - **Acceptance Scenarios**:
-  1. **Given** et afklaret datagrundlag med tilfredshedsscorer (f.eks. skala 1–5 eller 1–10), **When** administratoren inspicerer tilfredshedskortet, **Then** vises gennemsnitsscoren samt det samlede antal besvarelser.
+  1. **Given** registrerede tilfredshedsscorer (skala 1–5 stjerner pr. booking), **When** administratoren inspicerer tilfredshedskortet i Tableau, **Then** vises gennemsnitsscoren samt det samlede antal besvarelser.
   2. **Given** en periode uden registrerede besvarelser, **When** visningen indlæses, **Then** viser kortet "Ingen besvarelser" frem for en opdigtet nul-rating.
 
 ---
@@ -293,10 +305,10 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
   7. Suite
   8. LOFT suite
 - **FR-004**: Systemet SKAL afvise bookinger, hvor antallet af gæster overstiger værelseskategoriens maksimale kapacitet (maks. 4 personer pr. værelse).
-- **FR-005**: Systemet SKAL opdele årets overnatninger i tre ikke-overlappende sæsoner:
-  - *Lavsæson* (vintermånederne)
-  - *Mellemsæson* (forår og efterår)
-  - *Højsæson* (sommer og juletid)
+- **FR-005**: Systemet SKAL opdele årets overnatninger i tre ikke-overlappende sæsoner med faste datointervaller:
+  - *Lavsæson*: 1. november – 28./29. februar (vintermånederne)
+  - *Mellemsæson*: 1. marts – 31. maj samt 1. september – 31. oktober (forår og efterår)
+  - *Højsæson*: 1. juni – 31. august (sommermånederne)
 - **FR-006**: Systemet SKAL fordele nætter og tilhørende omsætning korrekt til de respektive år og sæsoner ved ophold, der krydser kalenderårs- eller sæsongrænser.
 - **FR-007**: Systemet SKAL registrere og persistere alle transaktioner i MySQL-databasen, så data bevares over genstart.
 - **FR-008**: Systemet SKAL beregne den samlede realiserede hotelomsætning for et valgt år som summen af faktiske værelsesindtægter og faktiske barsalgslinjer.
@@ -304,7 +316,7 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
   $$\text{Belægningsgrad (\%)} = \frac{\text{Antal optagne værelsesnætter}}{\text{Antal tilgængelige værelsesnætter (214 pr. døgn)}} \times 100$$
 - **FR-010**: Systemet SKAL beregne og præsentere gæstefordelingen pr. land samt den samlede indtjening fordelt pr. gæsteland (med synlig angivelse af eventuelt ukendt land).
 - **FR-011**: Systemet SKAL beregne og præsentere indtjeningen fordelt pr. værelsestype og sæson uden overlap eller dobbelttælling.
-- **FR-012**: Systemet SKAL rangere de mest indbringende værelser [NEEDS CLARIFICATION: afklares om visningen dækker de 214 specifikke værelser eller de 8 værelsestyper].
+- **FR-012**: Systemet SKAL rangere de mest indbringende værelser defineret som de 8 officielle værelsestyper (sidestiller "værelser" med de 8 værelseskategorier).
 - **FR-013**: Systemet SKAL rangere de mest indbringende gæstelande efter årlig omsætning.
 - **FR-014**: Systemet SKAL beregne og præsentere det selvvalgte nøgletal ADR (Average Daily Rate):  
   $$\text{ADR} = \frac{\text{Realiseret værelsesomsætning}}{\text{Antal solgte værelsesnætter}}$$
@@ -312,8 +324,8 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
 - **FR-016**: Systemet SKAL kunne filtrere barens salg på medarbejder-ID og specifikt beregne Helene Christines samlede barsalg for et valgt år.
 - **FR-017**: Systemet SKAL beregne og rangere omsætningen pr. drink/produkt på drinksmenuen.
 - **FR-018**: Systemet SKAL beregne og rangere det samlede antal solgte enheder (volumen) pr. drink/produkt.
-- **FR-019**: Systemet SKAL beregne den procentvise fordeling mellem salg af cocktails og kaffe for Helene Christine i et valgt år, hvor nævneren udelukkende udgøres af summen af disse to kategorier.
-- **FR-020**: Systemet SKAL understøtte kundetilfredshedsmåling [NEEDS CLARIFICATION: datagrundlag og skala afklares med underviserne].
+- **FR-019**: Systemet SKAL beregne den procentvise fordeling mellem salg af cocktails og kaffe for Helene Christine i et valgt år, hvor nævneren udelukkende udgøres af summen af disse to kategorier, med omsætningsandel i DKK som standardvisning og mulighed for skift til antalsandel i stk.
+- **FR-020**: Systemet SKAL understøtte kundetilfredshedsmåling baseret på en rating-score fra 1 til 5 stjerner pr. booking, og præsentere både gennemsnitlig score og det samlede antal besvarelser i Tableau (eller "Ingen besvarelser" ved tomt datasæt).
 - **FR-021**: Systemet SKAL levere alle analyser via et interaktivt Tableau-dashboard med udgangspunkt i backendens dataadgang (uden brug af manuelle CSV-engangseksportfiler som løbende opdateringsvej).
 - **FR-022**: Systemet SKAL sikre, at dataændringer foretaget i browserfrontenden (opret, ret, slet booking) slår igennem i de underliggende analyser ved efterfølgende dataopdatering i Tableau.
 
@@ -325,11 +337,11 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
 - **Room**: Repræsenterer et af hotellets 214 fysiske værelser. Vigtige attributter: værelsesnummer, etage, tilknyttet værelsestype, aktuel status (tilgængelig, optaget, under rengøring/vedligeholdelse).
 - **RoomType**: Repræsenterer én af de 8 værelseskategorier. Vigtige attributter: type-ID, typenavn (f.eks. "Spa Executive"), standardkapacitet (1–4 personer), vejledende basispris.
 - **Booking**: Repræsenterer en reservation. Vigtige attributter: booking-ID, tilknyttet gæst, tilknyttet værelse/værelsestype, ankomstdato, afrejsedato, antal gæster, aftalt totalbeløb, reservationsstatus (`confirmed`, `cancelled`, `completed`), oprettelsestidspunkt.
-- **Season**: Repræsenterer de tre driftssæsoner (*Lavsæson*, *Mellemsæson*, *Højsæson*). Vigtige attributter: sæson-ID, navn, startdato, slutdato (dækker hele kalenderåret uden overlap).
+- **Season**: Repræsenterer de tre driftssæsoner (*Lavsæson*: 1. nov – 28./29. feb, *Mellemsæson*: 1. mar – 31. maj + 1. sep – 31. okt, *Højsæson*: 1. jun – 31. aug). Vigtige attributter: sæson-ID, navn, startdato, slutdato.
 - **Employee**: Repræsenterer hotellets personale (herunder receptionisten Helene Christine). Vigtige attributter: medarbejder-ID, navn, rolle/funktion.
 - **Product**: Repræsenterer varer på lobbybarens menukort (20 cocktails, 10 kaffetyper, vin, øl, snacks). Vigtige attributter: produkt-ID, varenavn, kategori (`cocktail`, `coffee`, `other`), stykpris.
 - **SaleLine**: Repræsenterer en solgt varelinje i baren. Vigtige attributter: salgslinje-ID, salgstidspunkt, tilknyttet medarbejder, tilknyttet produkt, antal, realiseret salgspris.
-- **SatisfactionRating**: Repræsenterer en gæstetilfredshedsmåling. Vigtige attributter: rating-ID, tilknyttet booking/ophold, score, dato.
+- **SatisfactionRating**: Repræsenterer en gæstetilfredshedsmåling tilknyttet et ophold (skala 1–5 stjerner med tilknyttet afgivelsestidspunkt).
 
 ---
 

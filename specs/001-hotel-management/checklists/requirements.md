@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain *(2 explicit Clarify markers retained for Clarify phase per project Constitution)*
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,7 +31,10 @@
 
 ## Notes
 
-- **Clarify Markers**: 
-  1. `[NEEDS CLARIFICATION: Specifikke værelsesnumre vs. værelsestyper]` in User Story 13 & FR-012.
-  2. `[NEEDS CLARIFICATION: Datakilde og skala for kundetilfredshed]` in User Story 21 & FR-020.
-  - Per project Constitution, these two points are explicitly designated to be resolved during the `/speckit-clarify` phase before the data model is finalized.
+- **Clarifications Resolved (2026-10-29)**:
+  1. Room analysis scope resolved to the 8 official room types.
+  2. Customer satisfaction resolved to 1–5 star ratings per booking with average and response count.
+  3. Season intervals resolved to 4-month blocks (Nov–Feb, Mar–May + Sep–Oct, Jun–Aug).
+  4. Deletion semantics resolved to soft delete (`status = 'cancelled'`).
+  5. Cocktail vs. coffee percentage resolved to support both revenue (DKK) and units (stk.).
+- All items in the checklist are now passing (16/16). The specification is fully ready for planning (`/speckit-plan`).
