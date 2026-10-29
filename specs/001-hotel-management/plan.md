@@ -1,6 +1,6 @@
 # Implementation Plan: Hotel Kong Arthur — Booking-CRUD og Analytics Platform
 
-**Branch**: `specify` | **Date**: 2026-10-29 | **Spec**: [spec.md](./spec.md)
+**Branch**: `specify` | **Date**: 2026-10-29 | **Spec**: [spec.md](./spec.md) | **Capability Map**: [capability-map.md](./capability-map.md)
 
 **Input**: Feature specification from `specs/001-hotel-management/spec.md`
 

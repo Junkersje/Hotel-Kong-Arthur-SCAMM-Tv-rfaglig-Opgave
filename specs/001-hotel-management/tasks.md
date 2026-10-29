@@ -1,6 +1,6 @@
 # Tasks: Hotel Kong Arthur — Booking-CRUD og Analytics Platform
 
-**Feature**: [spec.md](./spec.md) | **Plan**: [plan.md](./plan.md)  
+**Feature**: [spec.md](./spec.md) | **Plan**: [plan.md](./plan.md) | **Capability Map**: [capability-map.md](./capability-map.md)  
 **Branch**: `specify` | **Date**: 2026-10-29  
 **Status**: Ready for Implementation
 
