@@ -1,0 +1,687 @@
+[
+  {
+    "taskId": "T001",
+    "issueKey": "SH-1",
+    "title": "Opret projektmapper for backend, frontend og database",
+    "purpose": "Etablerer den fundamentale mappestruktur for hele Hotel Kong Arthur systemet i henhold til den 3-lags softwarearkitektur defineret i arkitekturplanen (backend, frontend, database). Sikrer at kodebasen er organiseret modulært og følger 'Separation of Concerns'.",
+    "actions": [
+      "Opret 'backend/' mappen med undermapperne 'src/' (indeholdende 'controllers/', 'services/', 'repositories/', 'routes/', 'config/') samt 'tests/' til enhedstests.",
+      "Opret 'frontend/' mappen med 'src/' (indeholdende 'components/', 'services/', 'assets/') samt 'public/'.",
+      "Opret 'database/' mappen beregnet til SQL DDL-skema og seed-data scripts."
+    ],
+    "dod": "Mappestrukturen eksisterer på filsystemet, matcher specifikationerne i plan.md, og er klar til modtagelse af kildekode og container-konfigurationer."
+  },
+  {
+    "taskId": "T002",
+    "issueKey": "SH-2",
+    "title": "Initialiser Node.js backend-projekt med package.json og dependencies",
+    "purpose": "Konfigurerer backend runtime-miljøet med Node.js (ES Modules), pakkehåndtering og alle nødvendige dependencies til REST API, databaseforbindelse, CORS, validering og dokumentation.",
+    "actions": [
+      "Opret 'backend/package.json' med 'type': 'module' og startscripts ('npm start', 'npm run dev', 'npm test').",
+      "Definer afhængigheder: 'express' (web-framework), 'mysql2' (MySQL driver med connection pool og async/await promise support), 'cors' (Cross-Origin Resource Sharing), 'dotenv' (miljøvariabler), 'zod' (datavalidering), 'yamljs' (parsing af OpenAPI specifikation) og 'swagger-ui-express' (interaktiv API-dokumentation).",
+      "Opret et minimalt 'backend/src/server.js' som entrypoint."
+    ],
+    "dod": "'npm install' afvikler fejlfrit i 'backend/', og serveren kan startes op lokalt på port 5000."
+  },
+  {
+    "taskId": "T003",
+    "issueKey": "SH-3",
+    "title": "Initialiser React SPA frontend-projekt med Vite og Tailwind CSS",
+    "purpose": "Etablerer Single Page Application (SPA) webapplikationen til hotellets receptionister og ledelse med hurtig tooling (Vite) og moderne utility-first styling (Tailwind CSS).",
+    "actions": [
+      "Opret 'frontend/package.json' med Vite, React 18 og Tailwind CSS plugins.",
+      "Konfigurer 'frontend/vite.config.js' med proxy mod backend (/api -> http://backend:5000 eller localhost:5000).",
+      "Konfigurer 'frontend/tailwind.config.js' og 'frontend/postcss.config.js' samt opret global CSS i 'frontend/src/index.css' med Tailwind direktiver (@tailwind base; @tailwind components; @tailwind utilities;).",
+      "Opret 'frontend/index.html' og grundlæggende 'frontend/src/App.jsx' og 'frontend/src/main.jsx'."
+    ],
+    "dod": "Frontend kan bygges med 'npm run build' uden advarsler/fejl, og Tailwind klasser renderes korrekt i browseren."
+  },
+  {
+    "taskId": "T004",
+    "issueKey": "SH-4",
+    "title": "Opret backend Dockerfile",
+    "purpose": "Containeriserer Node.js backenden for at sikre konsistent afvikling på tværs af udviklings- og produktionsmiljøer uafhængigt af værtens styresystem.",
+    "actions": [
+      "Opret 'backend/Dockerfile' baseret på en letvægts officiel 'node:20-alpine' image.",
+      "Konfigurer WORKDIR '/app', kopier 'package*.json' og installer kun nødvendige produktion dependencies via 'npm ci --omit=dev'.",
+      "Kopier applikationskildekoden ('src/'), eksponer port 5000 og definer CMD ['node', 'src/server.js']."
+    ],
+    "dod": "Docker-image kan bygges med 'docker build -t hotel-backend backend/' og starter op uden manglende filreferencer."
+  },
+  {
+    "taskId": "T005",
+    "issueKey": "SH-5",
+    "title": "Opret multi-stage frontend Dockerfile med Nginx Alpine og nginx.conf",
+    "purpose": "Optimerer frontend-leveringen ved at bruge multi-stage build: bygger React-bundlet i en Node container og serverer de statiske filer via en lynhurtig, sikker Nginx webserver med SPA-routing support.",
+    "actions": [
+      "Opret 'frontend/nginx.conf' der lytter på port 80 og indeholder 'try_files $uri $uri/ /index.html =404;' for at forhindre 404 fejl ved client-side routing.",
+      "Opret 'frontend/Dockerfile' med Stage 1 (node:20-alpine build) der kører 'npm run build'.",
+      "Stage 2 (nginx:alpine runtime) der kopierer build-outputtet '/app/dist' til '/usr/share/nginx/html' og injicerer 'nginx.conf'."
+    ],
+    "dod": "Image kan bygges og startes, lytter på port 80 og leverer index.html ved direkte URL-adgang uden routingfejl."
+  },
+  {
+    "taskId": "T006",
+    "issueKey": "SH-6",
+    "title": "Opret samlet docker-compose.yml med services for mysql, backend, frontend og swagger-ui",
+    "purpose": "Orkestrerer hele 3-lags systemet med et enkelt klik/kommando ('docker-compose up'), forbinder containere på et isoleret internt netværk, og håndterer opstartsrækkefølge (healthchecks) og persistent lagring.",
+    "actions": [
+      "Definer servicen 'mysql' (MySQL 8.0) med persistent volume 'mysql_data', miljøvariabler fra .env, og mounting af 'database/schema.sql' og 'database/seed.sql' i '/docker-entrypoint-initdb.d/'.",
+      "Definer healthcheck på MySQL servicen ('mysqladmin ping -h localhost').",
+      "Definer servicen 'backend' afhængig af MySQL (condition: service_healthy) med port-forwarding 5000:5000.",
+      "Definer servicen 'frontend' med port-forwarding 3000:80.",
+      "Definer servicen 'swagger-ui' med port-forwarding 8080:8080 og reference til OpenAPI kontrakten.",
+      "Opret et fælles bridge netværk 'hotel-network'."
+    ],
+    "dod": "Kommandoen 'docker-compose up -d' starter alle 4 services op, og services kan kommunikere internt uden forbindelsesfejl."
+  },
+  {
+    "taskId": "T007",
+    "issueKey": "SH-7",
+    "title": "Opret MySQL DDL-skema i database/schema.sql",
+    "purpose": "Etablerer det relationelle databaselayout med 3. normalform (3NF), dataintegritet, fremmednøgler (Foreign Keys) og indekser for høj forespørgselsydeevne.",
+    "actions": [
+      "Opret tabellen 'room_types' (id, name, description, capacity, base_price_dkk).",
+      "Opret tabellen 'rooms' (id, room_number, room_type_id FK, floor, is_active). Skal rumme alle 214 værelser.",
+      "Opret tabellen 'guests' (id, first_name, last_name, email, phone, country, created_at).",
+      "Opret tabellen 'bookings' (id, guest_id FK, room_id FK, check_in_date, check_out_date, num_guests, total_price_dkk, status ['confirmed','checked_in','checked_out','cancelled'], satisfaction_score, created_at, updated_at).",
+      "Opret tabellerne 'employees' (id, employee_code, first_name, last_name, role), 'products' (id, name, category ['cocktail','coffee','other'], unit_price_dkk), 'sales' (id, employee_id FK, sale_time, total_amount_dkk) og 'sale_lines' (id, sale_id FK, product_id FK, quantity, line_total_dkk).",
+      "Tilføj indekser på 'bookings(check_in_date, check_out_date)', 'bookings(status)', 'guests(country)' og 'sales(sale_time)'."
+    ],
+    "dod": "Skriptet eksekveres uden syntaksfejl i MySQL 8.0, og alle relationer og fremmednøgler håndhæves strengt."
+  },
+  {
+    "taskId": "T008",
+    "issueKey": "SH-8",
+    "title": "Opret MySQL seed-data i database/seed.sql",
+    "purpose": "Befolker databasen med initialdata, der afspejler Hotel Kong Arthurs faktiske drift: de 8 officielle værelsestyper, alle 214 værelser, Helene Christine (HC01), 20 cocktails, 10 kaffetyper og baseline-bookinger til analyse.",
+    "actions": [
+      "Indsæt de 8 værelsestyper (Standard Enkelt, Standard Dobbelt, Superior Dobbelt, Deluxe Dobbelt, Juniorsuite, Suite, Spa Suite, Familie Suite).",
+      "Indsæt samtlige 214 værelser fordelt på etagerne 1-5 og koblet til de korrekte værelsestyper.",
+      "Indsæt medarbejdere herunder bartender Helene Christine (kode 'HC01').",
+      "Indsæt mindst 20 cocktails og mindst 10 kaffetyper med realistiske stykpriser i DKK.",
+      "Indsæt et repræsentativt sæt af bookinger og barsalg fordelt på lav-, mellem- og højsæson med gæster fra forskellige lande og tilfredshedsscores (1-5 stjerner)."
+    ],
+    "dod": "Efter import indeholder databasen præcis 214 værelser, HC01 findes i employees, og analyseforespørgsler returnerer meningsfulde tal."
+  },
+  {
+    "taskId": "T009",
+    "issueKey": "SH-9",
+    "title": "Implementer MySQL connection pool og transaktionshjælper i backend/src/repositories/db.js",
+    "purpose": "Håndterer effektiv forbindelsesstyring mod databasen via connection pooling (genbrug af forbindelser) samt understøttelse af atomare transaktioner (BEGIN, COMMIT, ROLLBACK).",
+    "actions": [
+      "Initialiser 'mysql2/promise.createPool' med parametre fra miljøvariabler (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, connectionLimit: 10).",
+      "Implementer hjælpefunktionen 'query(sql, params)' til standardforespørgsler.",
+      "Implementer transaktionshjælper 'withTransaction(callback)' som automatisk reserverer en connection, starter transaktion, udfører callback og ruller tilbage ved exceptions."
+    ],
+    "dod": "Database-kald kan udføres asynkront via promises, og fejl ruller transaktioner sikkert tilbage uden connection-leaks."
+  },
+  {
+    "taskId": "T010",
+    "issueKey": "SH-10",
+    "title": "Implementer fælles middleware til JSON, CORS og centraliseret fejlhåndtering i backend/src/server.js",
+    "purpose": "Sikrer at alle indgående HTTP-anmodninger parses korrekt, beskyttes mod uautoriserede domæne-kald, og at uventede fejl fanges og returneres i et ensartet JSON-fejlformat.",
+    "actions": [
+      "Tilføj 'express.json()' og 'express.urlencoded({ extended: true })'.",
+      "Tilføj 'cors()' middleware konfigureret med tilladte origins fra miljøvariabler.",
+      "Implementer en global error-handling middleware '(err, req, res, next)' der logger fejlen internt og returnerer standardiseret JSON '{ success: false, error: { message, code } }' med passende HTTP statuskoder (400, 404, 500)."
+    ],
+    "dod": "Forkert formatterede anmodninger eller kaste fejl i ruter fanges af fejlhåndteringen uden at node-processen crasher."
+  },
+  {
+    "taskId": "T011",
+    "issueKey": "SH-11",
+    "title": "Kobl OpenAPI-specifikation til Swagger UI og tilføj /api-docs endpoint i backend/src/server.js",
+    "purpose": "Gør systemets API-kontrakt interaktivt tilgængelig for udviklere, testere og undervisere direkte i browseren, så alle endpoints kan inspiceres og afprøves visuelt.",
+    "actions": [
+      "Indlæs 'specs/001-hotel-management/contracts/openapi.yaml' ved hjælp af 'yamljs.load()'.",
+      "Monter 'swagger-ui-express' på endpointet '/api-docs' i backenden.",
+      "Sørg for at Swagger-dokumentationen viser korrekte eksempler for booking-CRUD og analyse-endpoints."
+    ],
+    "dod": "Åbning af 'http://localhost:5000/api-docs' i browseren viser den komplette Swagger UI med alle specificerede ruter og skemaer."
+  },
+  {
+    "taskId": "T012",
+    "issueKey": "SH-12",
+    "title": "Konfigurer frontend API-klient (fetch wrapper) i frontend/src/services/api.js",
+    "purpose": "Centraliserer al HTTP-kommunikation mellem React frontend og Express backend, håndterer Base URL dynamisk, og sikrer ensartet håndtering af HTTP fejl og JSON deserialisering.",
+    "actions": [
+      "Opret 'frontend/src/services/api.js' med base URL baseret på 'import.meta.env.VITE_API_BASE_URL || \"/api\"'.",
+      "Implementer hjælpefunktioner: 'apiGet(url)', 'apiPost(url, data)', 'apiPut(url, data)' og 'apiDelete(url)'.",
+      "Håndter automatisk HTTP statuskoder (f.eks. ved 400 Bad Request udtrækkes valideringsfejlbeskeder til frontend-komponenterne)."
+    ],
+    "dod": "Frontend kan foretage kald mod backenden gennem et rent og type-sikkert interface uden gentaget boilerplate-kode i komponenterne."
+  },
+  {
+    "taskId": "T013",
+    "issueKey": "SH-13",
+    "title": "[US1] Implementer RoomRepository.getAllTypes() og RoomRepository.getAll() i backend/src/repositories/roomRepository.js",
+    "purpose": "Giver dataadgang til værelsesinformationer og de 8 officielle værelsestyper fra databasen til brug i bookingformularer og filtrering.",
+    "actions": [
+      "Implementer 'RoomRepository.getAllTypes()' som henter alle rækker fra 'room_types' sorteret efter pris eller kapacitet.",
+      "Implementer 'RoomRepository.getAll()' som henter alle 214 værelser med join til 'room_types' for at inkludere type-navn.",
+      "Implementer 'RoomRepository.getAvailableRooms(roomTypeId, checkIn, checkOut)' der finder ledige værelser uden overlappende aktive reservationer."
+    ],
+    "dod": "Repository-funktionerne returnerer de korrekte data fra MySQL og filtrerer korrekt for overlappende bookinger."
+  },
+  {
+    "taskId": "T014",
+    "issueKey": "SH-14",
+    "title": "[US1] Implementer BookingRepository.searchBookings() i backend/src/repositories/bookingRepository.js",
+    "purpose": "Udfører dynamiske søgninger i reservationer baseret på booking-ID, gæstens for-/efternavn, email, bookingstatus eller datoperiode.",
+    "actions": [
+      "Opbyg parameteriseret SQL forespørgsel med JOIN mellem 'bookings', 'guests' og 'rooms'.",
+      "Understøt valgfrie filtre: søgetekst ('q') matchende gæstenavn eller booking ID, 'status' (confirmed, checked_in, etc.) og datointerval.",
+      "Sorter resultaterne med nyeste bookinger først og tilføj limit/offset til pagination."
+    ],
+    "dod": "Søgninger udføres sikkert mod SQL-injektion og returnerer matchende bookinger inkl. gæste- og værelsesdetaljer på under 100ms."
+  },
+  {
+    "taskId": "T015",
+    "issueKey": "SH-15",
+    "title": "[US1] Implementer BookingService.getBookings() og RoomService.getRoomTypes() i backend/src/services/bookingService.js",
+    "purpose": "Håndterer forretningslogik for søgning og udtræk af bookinger samt værelsestyper i servicelaget, adskilt fra HTTP-routing og rå SQL.",
+    "actions": [
+      "Implementer 'BookingService.getBookings(filterParams)' med sanitering af input og formatering af bookingdata (beregning af antal nætter, formatering af datoer til YYYY-MM-DD).",
+      "Implementer 'RoomService.getRoomTypes()' der cacher eller formaterer de 8 værelsestyper til frontend-forbrug."
+    ],
+    "dod": "Servicelaget returnerer rensede forretningsobjekter klar til REST-controlleren."
+  },
+  {
+    "taskId": "T016",
+    "issueKey": "SH-16",
+    "title": "[US1] Opret REST ruter GET /api/bookings og GET /api/room-types i backend/src/routes/bookingRoutes.js",
+    "purpose": "Udstiller HTTP GET endpoints til fremsøgning af bookinger og hentning af værelsestyper i overensstemmelse med OpenAPI kontrakten.",
+    "actions": [
+      "Opret Express router i 'backend/src/routes/bookingRoutes.js'.",
+      "Forbind 'GET /api/bookings' til servicemetoden med query parameters ('q', 'status', 'from', 'to').",
+      "Forbind 'GET /api/room-types' til returnering af listen over de 8 værelsestyper.",
+      "Monter routeren i 'backend/src/server.js' under '/api'."
+    ],
+    "dod": "Kald til 'GET /api/bookings' og 'GET /api/room-types' returnerer HTTP 200 OK med gyldig JSON og korrekte HTTP headers."
+  },
+  {
+    "taskId": "T017",
+    "issueKey": "SH-17",
+    "title": "[US2] Implementer Zod-validering for bookingoprettelse i backend/src/services/bookingService.js",
+    "purpose": "Validerer indkommende bookingdata før oprettelse for at garantere datakvalitet og forhindre ugyldige reservationer (f.eks. afrejse før ankomst eller ugyldigt gæsteantal).",
+    "actions": [
+      "Definer Zod skema 'createBookingSchema'.",
+      "Valider at 'check_out_date' er strengt efter 'check_in_date'.",
+      "Valider at 'num_guests' er et heltal mellem 1 og 4.",
+      "Valider gæstens oplysninger: fornavn, efternavn, gyldig email og gyldigt landekode/landenavn.",
+      "Kast valideringsfejl med præcise feltbeskeder ved manglende eller uoverensstemmende felter."
+    ],
+    "dod": "Ugyldigt payload afvises med HTTP 400 Bad Request og en detaljeret liste over fejlende felter."
+  },
+  {
+    "taskId": "T018",
+    "issueKey": "SH-18",
+    "title": "[US2] Implementer BookingRepository.createBooking() i backend/src/repositories/bookingRepository.js",
+    "purpose": "Persisterer en ny reservation i databasen under en atomar transaktion, inklusive oprettelse/opdatering af gæsteprofil og automatisk tildeling af et ledigt værelse af den ønskede type.",
+    "actions": [
+      "Start transaktion via 'withTransaction'.",
+      "Find eller opret gæsten i 'guests' tabellen (baseret på email).",
+      "Verificer værelsestilgængelighed for den valgte 'room_type_id' i den ønskede datoperiode.",
+      "Tildel et konkret ledigt værelse (værelses-ID) og indsæt rækken i 'bookings' tabellen med status 'confirmed' og beregnet totalpris.",
+      "Commit transaktionen og returner den oprettede booking med tildelt booking-ID."
+    ],
+    "dod": "Ny booking persisteres fuldstændigt i MySQL. Hvis værelse ikke er ledigt, rulles transaktionen tilbage uden delvise ændringer."
+  },
+  {
+    "taskId": "T019",
+    "issueKey": "SH-19",
+    "title": "[US2] Opret REST rute POST /api/bookings i backend/src/routes/bookingRoutes.js",
+    "purpose": "Udstiller HTTP POST endpoint til modtagelse af nye reservationsønsker fra frontenden, orkestrerer validering og returnerer passende statuskoder.",
+    "actions": [
+      "Tilføj 'POST /api/bookings' rute i 'bookingRoutes.js'.",
+      "Valider request body mod Zod-skemaet.",
+      "Kald 'BookingService.createBooking()' med de validerede data.",
+      "Returner HTTP 201 Created med JSON repræsentation af den oprettede booking og 'Location' header."
+    ],
+    "dod": "Gyldig POST anmodning opretter reservationen og returnerer HTTP 201; ugyldig anmodning returnerer HTTP 400."
+  },
+  {
+    "taskId": "T020",
+    "issueKey": "SH-20",
+    "title": "[US1] Byg BookingList React-komponent med søgefelt og filtrering i frontend/src/components/BookingList.jsx",
+    "purpose": "Giver receptionisten en overskuelig, interaktiv tabelvisning af eksisterende reservationer med realtids søgning på gæstenavn, ID og statusfiltrering.",
+    "actions": [
+      "Opret 'frontend/src/components/BookingList.jsx' med søge-inputfelt og dropdown for statusfilter ('confirmed', 'checked_in', 'checked_out', 'cancelled').",
+      "Implementer debounced API-kald mod 'GET /api/bookings?q=...' så søgningen opdateres glat under skrivning.",
+      "Vis tabel med kolonner: Booking ID, Gæstens navn, Værelsestype, Værelsesnr., Ankomst, Afrejse, Status og Handlingsknapper (Rediger, Slet).",
+      "Håndter loading-states og 'Ingen resultater fundet' visning."
+    ],
+    "dod": "Komponenten henter og viser bookinger fra backenden, og filtrering/søgning reagerer prompte i brugergrænsefladen."
+  },
+  {
+    "taskId": "T021",
+    "issueKey": "SH-21",
+    "title": "[US2] Byg BookingForm React-komponent med validering i frontend/src/components/BookingForm.jsx",
+    "purpose": "Gør det muligt for receptionisten at registrere en ny booking via en intuitiv modal- eller formularvisning med live feltvalidering og automatisk beregning af opholdslængde.",
+    "actions": [
+      "Opret 'frontend/src/components/BookingForm.jsx'.",
+      "Indsæt formularfelter: Fornavn, Efternavn, Email, Telefon, Land, Værelsestype (dropdown baseret på /api/room-types), Antal gæster (1-4), Ankomstdato og Afrejsedato.",
+      "Implementer client-side datovalidering (afrejse skal være efter ankomst, ankomst kan ikke være i fortiden).",
+      "Send POST anmodning via api.js ved submit og håndter eventuelle server-valideringsfejl visuelt ved felterne."
+    ],
+    "dod": "Formularen tillader problemfri oprettelse af nye bookinger og viser klare fejlmeddelelser ved ugyldige inputfelter."
+  },
+  {
+    "taskId": "T022",
+    "issueKey": "SH-22",
+    "title": "[US1] Integrer BookingList og BookingForm i hovedapplikationen i frontend/src/App.jsx",
+    "purpose": "Samler oversigten og oprettelsesformularen i en sammenhængende modtagelses-dashboard visning for hotellets receptionister (MVP milepæl).",
+    "actions": [
+      "Strukturer 'frontend/src/App.jsx' med hotel-branding (Hotel Kong Arthur logo/header og navigation).",
+      "Monter 'BookingForm' (f.eks. som modal eller øverste sektion) og 'BookingList' som hovedvisning.",
+      "Sørg for at listen over bookinger automatisk genindlæses ('refresh'), så snart en ny booking er oprettet i formularen."
+    ],
+    "dod": "MVP er komplet: En bruger kan åbne webapplikationen i en browser, oprette en booking og straks se den i oversigten."
+  },
+  {
+    "taskId": "T023",
+    "issueKey": "SH-23",
+    "title": "[US3] Implementer BookingRepository.getById() og updateBooking() i backend/src/repositories/bookingRepository.js",
+    "purpose": "Giver mulighed for at hente en specifik reservation frem på ID og opdatere dens gæstedata, værelsestype, datoer eller status i MySQL.",
+    "actions": [
+      "Implementer 'getById(id)' der returnerer fuld bookinginfo inkl. gæstedata.",
+      "Implementer 'updateBooking(id, updateData)' som opdaterer felterne i 'bookings' tabellen og gæsteoplysningerne i 'guests'.",
+      "Sørg for at opdateringen sker i en transaktion og verificerer, at et eventuelt nyt værelse/periode ikke skaber overlap med andre reservationer."
+    ],
+    "dod": "Eksisterende bookinger kan opdateres sikkert i databasen, og ugyldige dato-overlap forhindres."
+  },
+  {
+    "taskId": "T024",
+    "issueKey": "SH-24",
+    "title": "[US3] Implementer forretningsvalidering for bookingændringer i backend/src/services/bookingService.js",
+    "purpose": "Håndhæver regler for modifikation af reservationer (f.eks. at aflyste bookinger ikke må redigeres, og at nye datoer skal overholde forretningsreglerne).",
+    "actions": [
+      "Valider at reservationen eksisterer; returner 404 hvis den ikke findes.",
+      "Valider at reservationens nuværende status tillader redigering (f.eks. kan en 'cancelled' booking ikke redigeres uden genaktivering).",
+      "Genberegn totalpris hvis antallet af overnatninger eller værelsestypen ændres.",
+      "Valider at 'check_out_date > check_in_date'."
+    ],
+    "dod": "Ugyldige ændringer afvises med meningsfulde forretningsfejl, og gyldige ændringer genberegner automatisk totalprisen."
+  },
+  {
+    "taskId": "T025",
+    "issueKey": "SH-25",
+    "title": "[US3] Opret REST rute PUT /api/bookings/:id i backend/src/routes/bookingRoutes.js",
+    "purpose": "Udstiller HTTP PUT endpoint til opdatering af reservationer i henhold til REST standarden og OpenAPI specifikationen.",
+    "actions": [
+      "Tilføj 'PUT /api/bookings/:id' i 'bookingRoutes.js'.",
+      "Udpak booking ID fra URL params og valider data fra request body.",
+      "Kald 'BookingService.updateBooking(id, body)'.",
+      "Returner HTTP 200 OK med den opdaterede booking eller HTTP 404 hvis booking ID ikke findes."
+    ],
+    "dod": "PUT anmodning mod et eksisterende ID opdaterer data og returnerer HTTP 200 OK med opdateret JSON."
+  },
+  {
+    "taskId": "T026",
+    "issueKey": "SH-26",
+    "title": "[US3] Byg EditBookingModal React-komponent i frontend/src/components/EditBookingModal.jsx",
+    "purpose": "Præsenterer receptionisten for en brugervenlig dialogboks med de eksisterende bookingdata præ-udfyldt, så ændringer kan foretages hurtigt og præcist.",
+    "actions": [
+      "Opret 'frontend/src/components/EditBookingModal.jsx' som modtager den valgte booking som prop.",
+      "Præ-udfyld formularfelter (gæstens data, datoer, værelsestype, status).",
+      "Vis advarsel hvis datoerne forlænges og vis beregnet prisforskel.",
+      "Kald 'apiPut('/api/bookings/' + id, formData)' ved bekræftelse og luk modalen."
+    ],
+    "dod": "Modalen åbner med korrekte data, tillader redigering og gemmer ændringerne fejlfrit."
+  },
+  {
+    "taskId": "T027",
+    "issueKey": "SH-27",
+    "title": "[US3] Kobl redigerings-knap i BookingList til EditBookingModal i frontend/src/components/BookingList.jsx",
+    "purpose": "Forbinder brugergrænsefladens handlingsknapper i reservationsoversigten med redigeringsdialogen og sikrer øjeblikkelig UI-opdatering.",
+    "actions": [
+      "Tilføj en 'Rediger' (eller blyant-ikon) knap på hver række i 'BookingList'.",
+      "Opsæt lokal state i komponenten for 'selectedBookingForEdit'.",
+      "Åbn 'EditBookingModal' når knappen klikkes, og genindlæs bookinglisten automatisk ved succesfuld opdatering."
+    ],
+    "dod": "Et klik på 'Rediger' åbner modalen, og efter gemning fremgår de nye data straks i oversigten."
+  },
+  {
+    "taskId": "T028",
+    "issueKey": "SH-28",
+    "title": "[US4] Implementer soft delete SQL query i backend/src/repositories/bookingRepository.js",
+    "purpose": "Sikrer at annullerede/slettede reservationer ikke slettes fysisk fra databasen (hvilket ville ødelægge historiske revisionsspor og regnskabstal), men i stedet markeres med status 'cancelled'.",
+    "actions": [
+      "Implementer 'cancelBooking(id)' i 'bookingRepository.js'.",
+      "Udfør SQL: 'UPDATE bookings SET status = \"cancelled\", updated_at = NOW() WHERE id = ?'.",
+      "Sørg for at værelset i den pågældende periode automatisk frigives til nye bookinger."
+    ],
+    "dod": "SQL-kaldet opdaterer status til 'cancelled' uden at slette rækken fra MySQL."
+  },
+  {
+    "taskId": "T029",
+    "issueKey": "SH-29",
+    "title": "[US4] Implementer forretningslogik i BookingService.cancelBooking() i backend/src/services/bookingService.js",
+    "purpose": "Håndhæver regler for aflysning af en booking (sikrer at bookingen eksisterer, og at allerede aflyste bookinger håndteres hensigtsmæssigt).",
+    "actions": [
+      "Verificer at booking-ID findes; returner 404 hvis den ikke findes.",
+      "Tjek om bookingen allerede har status 'cancelled'; hvis ja, returner information herom uden fejl.",
+      "Kald 'BookingRepository.cancelBooking(id)' og returner opdateret bookingstatus."
+    ],
+    "dod": "Servicelaget håndterer aflysning korrekt og giver klar besked om resultatet."
+  },
+  {
+    "taskId": "T030",
+    "issueKey": "SH-30",
+    "title": "[US4] Opret REST rute DELETE /api/bookings/:id i backend/src/routes/bookingRoutes.js",
+    "purpose": "Udstiller HTTP DELETE endpoint i henhold til REST standarden for sletning/aflysning af en booking.",
+    "actions": [
+      "Tilføj 'DELETE /api/bookings/:id' i 'bookingRoutes.js'.",
+      "Kald 'BookingService.cancelBooking(req.params.id)'.",
+      "Returner HTTP 200 OK med bekræftelse eller HTTP 204 No Content samt passende fejlhåndtering ved ukendt ID (404)."
+    ],
+    "dod": "DELETE kald mod et gyldigt booking ID aflyser reservationen og returnerer HTTP 200/204."
+  },
+  {
+    "taskId": "T031",
+    "issueKey": "SH-31",
+    "title": "[US4] Byg DeleteDialog React-komponent med bekræftelsesadvarsel i frontend/src/components/DeleteDialog.jsx",
+    "purpose": "Forhindrer utilsigtede sletninger ved at præsentere receptionisten for en eksplicit bekræftelsesdialog ('Er du sikker på, at du vil aflyse denne reservation?').",
+    "actions": [
+      "Opret 'frontend/src/components/DeleteDialog.jsx' med tydelig advarselstekst og gæstens navn/booking-ID.",
+      "Tilbyd knapperne 'Annuller' (lukker uden handling) og 'Ja, aflys reservation' (rød advarselsfarve).",
+      "Send DELETE anmodning via api.js ved bekræftelse."
+    ],
+    "dod": "Dialogen forhindrer fejlagtige klik og udfører kun sletning efter aktiv bekræftelse fra brugeren."
+  },
+  {
+    "taskId": "T032",
+    "issueKey": "SH-32",
+    "title": "[US4] Kobl slet-knap i BookingList til DeleteDialog i frontend/src/components/BookingList.jsx",
+    "purpose": "Færdiggør fuld CRUD i frontenden ved at forbinde slet-knappen på hver reservation med bekræftelsesdialogen og opdatere oversigten.",
+    "actions": [
+      "Tilføj 'Slet / Aflys' knap på hver booking i 'BookingList'.",
+      "Åbn 'DeleteDialog' ved klik med den valgte booking som parameter.",
+      "Efter vellykket aflysning opdateres bookinglisten øjeblikkeligt (status vises som 'cancelled' eller rækken bortfiltreres afhængigt af aktivt filter)."
+    ],
+    "dod": "Fuld CRUD (Create, Read, Update, Delete) er nu 100% funktionel og brugervenlig i browserfrontenden."
+  },
+  {
+    "taskId": "T033",
+    "issueKey": "SH-33",
+    "title": "[US5] Implementer sæsontilhørsforhold og kalenderberegningshjælper i backend/src/services/seasonService.js",
+    "purpose": "Inddeler årets datoer i hotellets 3 officielle sæsoner (faste 4-måneders blokke) til brug for økonomiske analyser og sæsonrapportering.",
+    "actions": [
+      "Opret 'backend/src/services/seasonService.js'.",
+      "Implementer logik for de 3 sæsoner: Lavsæson (nov, dec, jan, feb), Mellemsæson (mar, apr, maj samt sep, okt), Højsæson (jun, jul, aug).",
+      "Implementer funktion til beregning af antal overnattede nætter pr. sæson for bookinger, der strækker sig over månedsskift."
+    ],
+    "dod": "Datoer klassificeres korrekt i henhold til de godkendte sæsongrænser, og overlap håndteres matematisk præcist."
+  },
+  {
+    "taskId": "T034",
+    "issueKey": "SH-34",
+    "title": "[US5] Implementer SQL-forespørgsler for samlet værelsesomsætning og barsalg i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Beregner hotellets samlede indtægter opdelt på værelsesudlejning (ekskl. aflyste reservationer) og lobbybarens salg.",
+    "actions": [
+      "Opret 'backend/src/repositories/analyticsRepository.js'.",
+      "Implementer SQL for værelsesomsætning: 'SELECT SUM(total_price_dkk) FROM bookings WHERE status != \"cancelled\" AND check_in_date BETWEEN ? AND ?'.",
+      "Implementer SQL for barsalg: 'SELECT SUM(total_amount_dkk) FROM sales WHERE sale_time BETWEEN ? AND ?'."
+    ],
+    "dod": "Forespørgslerne returnerer nøjagtige beløb i DKK og ekskluderer konsekvent aflyste bookinger."
+  },
+  {
+    "taskId": "T035",
+    "issueKey": "SH-35",
+    "title": "[US8] Implementer SQL-forespørgsel for belægningsgrad i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Beregner hotellets officielle kapacitetsudnyttelse baseret på de faste 214 værelser: (Optagne værelsesnætter / (214 * dage i perioden)) * 100.",
+    "actions": [
+      "Implementer beregning af samlet antal solgte værelsesnætter for en given periode.",
+      "Formuler formlen med konstant kapacitet på 214 værelser.",
+      "Sørg for division med nul-beskyttelse hvis der forespørges på et 0-dages interval.",
+      "Afrund resultatet til én decimal (f.eks. 78.4 %)."
+    ],
+    "dod": "Belægningsprocenten stemmer matematisk med hotellets samlede kapacitet på 214 værelser."
+  },
+  {
+    "taskId": "T036",
+    "issueKey": "SH-36",
+    "title": "[US5] Implementer AnalyticsService.getSummary() i backend/src/services/analyticsService.js",
+    "purpose": "Samler hotellets overordnede KPI'er i et samlet forretningsobjekt: Total omsætning, Værelsesomsætning, Baromsætning, Bar-andel i procent samt Belægningsgrad.",
+    "actions": [
+      "Opret 'backend/src/services/analyticsService.js'.",
+      "Kombiner resultaterne fra 'analyticsRepository.js' (værelser og bar).",
+      "Beregn barandel: (bar_revenue / total_revenue) * 100 med håndtering af 0 i totalomsætning.",
+      "Returner struktureret objekt med validerede tal og periodeangivelse."
+    ],
+    "dod": "Service-metoden samler alle 5 nøgletal i et konsistent format, hvor delkomponenterne summerer til totalen."
+  },
+  {
+    "taskId": "T037",
+    "issueKey": "SH-37",
+    "title": "[US5] Opret REST ruter GET /api/analytics/summary og GET /api/analytics/occupancy i backend/src/routes/analyticsRoutes.js",
+    "purpose": "Udstiller ledelsens primære analyse-endpoints til frontend dashboards, Tableau og eksterne BI-værktøjer via standardiseret JSON REST.",
+    "actions": [
+      "Opret 'backend/src/routes/analyticsRoutes.js'.",
+      "Udstil 'GET /api/analytics/summary?from=...&to=...'.",
+      "Udstil 'GET /api/analytics/occupancy?year=...&month=...'.",
+      "Monter ruterne i 'backend/src/server.js' under '/api/analytics'."
+    ],
+    "dod": "Endpoints returnerer HTTP 200 OK med korrekte JSON formater i overensstemmelse med OpenAPI kontrakten."
+  },
+  {
+    "taskId": "T038",
+    "issueKey": "SH-38",
+    "title": "[US5] Tilføj 'Hurtigt Nøgletalsoverblik' i browserfrontenden i frontend/src/components/AnalyticsOverview.jsx",
+    "purpose": "Giver hoteldirektøren og receptionisten et visuelt dashboard-kort med hotellets vigtigste nøgletal direkte i webapplikationen.",
+    "actions": [
+      "Opret 'frontend/src/components/AnalyticsOverview.jsx'.",
+      "Vis 4 stat-kort med pæne ikoner og Tailwind styling: Total Omsætning (DKK), Værelsesomsætning, Bar-andel (%) og Belægningsgrad (%).",
+      "Hent data asynkront fra '/api/analytics/summary' og opdater automatisk ved datovalg."
+    ],
+    "dod": "Dashboard-kortene vises pænt i browseren med korrekte dynamiske tal direkte fra MySQL."
+  },
+  {
+    "taskId": "T039",
+    "issueKey": "SH-39",
+    "title": "[US9] Implementer SQL-aggregering for omsætning og antal bookinger pr. land i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Analyserer gæsternes geografiske oprindelse, fordelt på samlet omsætning og antal bookinger pr. land, med robust håndtering af ufuldstændige gæsteprofiler.",
+    "actions": [
+      "Skriv SQL GROUP BY på 'guests.country'.",
+      "Håndter manglende eller NULL-lande ved at mappe dem til 'Ukendt' (COALESCE(country, 'Ukendt')).",
+      "Beregn samlet værelsesomsætning og antal gennemførte bookinger pr. land.",
+      "Sorter faldende efter omsætning, så de vigtigste markeder vises øverst."
+    ],
+    "dod": "Forespørgslen grupperer korrekt på lande, summerer omsætningen uden dubletter, og håndterer NULL-værdier yndefuldt."
+  },
+  {
+    "taskId": "T040",
+    "issueKey": "SH-40",
+    "title": "[US11] Implementer SQL-aggregering for omsætning fordelt på de 8 værelsestyper og 3 sæsoner i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Udstiller krydstabel-analyse over omsætning og efterspørgsel fordelt på de 8 officielle værelsestyper på tværs af lav-, mellem- og højsæson.",
+    "actions": [
+      "Implementer forespørgsel med JOIN mellem 'bookings', 'rooms' og 'room_types'.",
+      "Integrer sæsongruppering (faste 4-måneders blokke) via CASE-statements eller dato-filtrering.",
+      "Grupper på 'room_types.name' og 'season' og beregn summen af omsætning samt antal solgte nætter."
+    ],
+    "dod": "Summerne for alle 8 værelsestyper og de 3 sæsoner stemmer 100% overens med hotellets samlede værelsesomsætning."
+  },
+  {
+    "taskId": "T041",
+    "issueKey": "SH-41",
+    "title": "[US15] Implementer beregning af gennemsnitlig opholdslængde (ALOS) pr. land og pr. værelsestype i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Beregner ALOS (Average Length of Stay: DATEDIFF(check_out_date, check_in_date)) for at give ledelsen indsigt i gæsternes opholdsmønstre.",
+    "actions": [
+      "Implementer SQL: 'AVG(DATEDIFF(check_out_date, check_in_date))' grupperet pr. land.",
+      "Implementer tilsvarende beregning grupperet pr. værelsestype.",
+      "Ekskluder aflyste bookinger og afrund resultaterne til én decimal."
+    ],
+    "dod": "ALOS returneres som et gennemsnitligt antal nætter pr. kategori med korrekte decimaltal."
+  },
+  {
+    "taskId": "T042",
+    "issueKey": "SH-42",
+    "title": "[US16] Implementer beregning af ADR (Average Daily Rate) i backend/src/services/analyticsService.js",
+    "purpose": "Beregner hotelbranchens standardnøgletal ADR: Værelsesomsætning divideret med solgte værelsesnætter.",
+    "actions": [
+      "Hent total værelsesomsætning og totalt antal solgte værelsesnætter for den valgte periode.",
+      "Beregn ADR = room_revenue / total_room_nights.",
+      "Indbyg sikring mod division med 0 hvis antallet af solgte nætter er 0 (returner 0.00 DKK).",
+      "Understøt ADR opdelt pr. værelsestype og samlet for hotellet."
+    ],
+    "dod": "ADR beregnes præcist i DKK pr. solgt nat og kaster aldrig division med nul fejl."
+  },
+  {
+    "taskId": "T043",
+    "issueKey": "SH-43",
+    "title": "[US9] Implementer AnalyticsService.getRevenueByCountry() og getRevenueByRoomType() i backend/src/services/analyticsService.js",
+    "purpose": "Forretningslag der strukturerer og beriger data for geografisk fordeling, værelsestyper, sæsoner, ALOS og ADR til API-respons.",
+    "actions": [
+      "Kald de respektive repository-metoder.",
+      "Beregn procentvise andele pr. land og pr. værelsestype i forhold til totalen.",
+      "Formater tal og valutaer i henhold til API-kontrakten."
+    ],
+    "dod": "Servicelaget returnerer konsistente datasæt med procenter der summerer til 100%."
+  },
+  {
+    "taskId": "T044",
+    "issueKey": "SH-44",
+    "title": "[US9] Opret REST ruter for lande, værelsestyper og ADR i backend/src/routes/analyticsRoutes.js",
+    "purpose": "Udstiller de avancerede hotelanalyser via REST endpoints til brug i Tableau WDC og rapporter.",
+    "actions": [
+      "Opret 'GET /api/analytics/revenue-by-country'.",
+      "Opret 'GET /api/analytics/revenue-by-room-type'.",
+      "Opret 'GET /api/analytics/adr'.",
+      "Understøt query-parametre for årstal, startdato og slutdato."
+    ],
+    "dod": "Endpoints returnerer HTTP 200 OK med de specificerede analysefelter."
+  },
+  {
+    "taskId": "T045",
+    "issueKey": "SH-45",
+    "title": "[US17] Implementer SQL-forespørgsel for barsalg filtreret på medarbejder-ID i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Isolerer lobbybarens salg for en specifik medarbejder, specifikt Helene Christine (medarbejderkode 'HC01'), for at analysere individuel performance.",
+    "actions": [
+      "Skriv SQL JOIN mellem 'sales', 'employees', 'sale_lines' og 'products'.",
+      "Filtrer på 'employees.employee_code = ?' (f.eks. 'HC01').",
+      "Beregn samlet omsætning genereret af den pågældende medarbejder i den angivne periode."
+    ],
+    "dod": "Forespørgslen returnerer udelukkende salg foretaget af den specificerede medarbejder uden overlap til andre bartendere."
+  },
+  {
+    "taskId": "T046",
+    "issueKey": "SH-46",
+    "title": "[US18] Implementer SQL-aggregering for omsætning og solgte enheder pr. drink i backend/src/repositories/analyticsRepository.js",
+    "purpose": "Giver detaljeret indsigt i hvilke specifikke cocktails og kaffetyper der sælger bedst, målt på både omsætning i DKK og volumen i antal solgte enheder.",
+    "actions": [
+      "Grupper på 'products.id', 'products.name' og 'products.category'.",
+      "Beregn 'SUM(sale_lines.quantity)' som solgte enheder og 'SUM(sale_lines.line_total_dkk)' som omsætning.",
+      "Sorter faldende efter omsætning eller volumen."
+    ],
+    "dod": "Returnerer en komplet rangliste over baren produkter med korrekte enheder og omsætningstal."
+  },
+  {
+    "taskId": "T047",
+    "issueKey": "SH-47",
+    "title": "[US20] Implementer beregning af procentfordeling mellem cocktails og kaffe for Helene Christine i backend/src/services/analyticsService.js",
+    "purpose": "Belyser Helene Christines salgsprofil ved at beregne den relative fordeling mellem cocktails og kaffe i både økonomisk værdi (DKK) og fysisk volumen (stk.).",
+    "actions": [
+      "Hent Helene Christines salg opdelt på kategorierne 'cocktail' og 'coffee'.",
+      "Beregn omsætningsfordeling: (cocktail_dkk / total_dkk) * 100 og (coffee_dkk / total_dkk) * 100.",
+      "Beregn mængdefordeling: (cocktail_stk / total_stk) * 100 og (coffee_stk / total_stk) * 100.",
+      "Håndter division med nul hvis medarbejderen har 0 salg i perioden."
+    ],
+    "dod": "Returnerer præcise procenter for både DKK og stk., hvor cocktail + kaffe summerer til 100,0 %."
+  },
+  {
+    "taskId": "T048",
+    "issueKey": "SH-48",
+    "title": "[US21] Implementer beregning af gennemsnitlig kundetilfredshedsscore i backend/src/services/analyticsService.js",
+    "purpose": "Måler gæsternes tilfredshed på en skala fra 1 til 5 stjerner baseret på evalueringer registreret på gennemførte bookinger.",
+    "actions": [
+      "Udfør SQL: 'SELECT AVG(satisfaction_score) as avg_score, COUNT(satisfaction_score) as total_reviews FROM bookings WHERE satisfaction_score IS NOT NULL'.",
+      "Understøt filtrering pr. værelsestype, nationalitet eller tidsperiode.",
+      "Afrund gennemsnittet til én decimal (f.eks. 4.3 ud af 5.0)."
+    ],
+    "dod": "Returnerer gennemsnitlig rating og samlet antal besvarelser; ignorerer ubesvarede bookinger (NULL)."
+  },
+  {
+    "taskId": "T049",
+    "issueKey": "SH-49",
+    "title": "[US17] Opret REST ruter for barsalg, drinks-omsætning og Helene Christine i backend/src/routes/analyticsRoutes.js",
+    "purpose": "Udstiller bar- og personalespecifikke analyse-endpoints til Tableau WDC og rapportering.",
+    "actions": [
+      "Opret 'GET /api/analytics/bar-sales'.",
+      "Opret 'GET /api/analytics/drinks-revenue'.",
+      "Opret 'GET /api/analytics/helene-breakdown'.",
+      "Forbind ruterne til 'analyticsService.js' og håndter parametre."
+    ],
+    "dod": "Endpoints returnerer HTTP 200 OK med de beregnede bar- og medarbejderanalyser."
+  },
+  {
+    "taskId": "T050",
+    "issueKey": "SH-50",
+    "title": "Opret Tableau Web Data Connector (WDC) HTML/JS-fil i backend/src/public/tableau-wdc.html",
+    "purpose": "Gør det muligt for Tableau Desktop at forbinde direkte til systemets REST API via en WDC, hente JSON-analysedata og opdatere dashboards med frisk data på under 30 sekunder.",
+    "actions": [
+      "Opret 'backend/src/public/tableau-wdc.html' med Tableau WDC JavaScript biblioteket (version 2.3/2.4).",
+      "Definer skemaer til Tableau (kolonner, datatyper for sammendrag, værelsestyper, lande og bar-salg).",
+      "Implementer getData-funktionen der kalder '/api/analytics/summary' og de øvrige endpoints og mapper JSON til Tableaus tabelformat.",
+      "Server filen statisk via Express på 'http://localhost:5000/tableau-wdc.html'."
+    ],
+    "dod": "Tableau kan forbinde til WDC URL'en, indlæse tabellerne og bygge dashboards baseret på live API data."
+  },
+  {
+    "taskId": "T051",
+    "issueKey": "SH-51",
+    "title": "Opret README.md med systembeskrivelse, startvejledning og arkitekturdiagram",
+    "purpose": "Leverer komplet teknisk dokumentation over Hotel Kong Arthur-platformen til sensorer, undervisere og nye udviklere.",
+    "actions": [
+      "Dokumenter forudsætninger (Docker, Docker Compose, Git).",
+      "Beskriv den 3-lags softwarearkitektur med Mermaid diagrammer (React SPA frontend, Node.js/Express backend, MySQL 8.0 database).",
+      "Inkluder trin-for-trin startvejledning ('docker-compose up --build -d') samt links til frontend (port 3000), backend API (port 5000), Swagger UI (port 8080) og Tableau WDC.",
+      "Angiv standardportliste og oversigt over miljøvariabler."
+    ],
+    "dod": "README.md er velskrevet, letforståelig og gør det muligt for en ekstern part at starte og forstå systemet uden forudgående kendskab."
+  },
+  {
+    "taskId": "T052",
+    "issueKey": "SH-52",
+    "title": "Opret CONTRIBUTE.md med gruppens arbejds-, review- og PR-regler",
+    "purpose": "Formaliserer gruppens samarbejdsmodel, Git branch-strategi (development, feature-branches) og Definition of Done iht. den tværfaglige opgavebeskrivelse.",
+    "actions": [
+      "Opret filen 'CONTRIBUTE.md' (præcis dette filnavn som specificeret i opgavebeskrivelsen).",
+      "Beskriv branching-strategi (trunk-based/git-flow med main/development og navngivning af feature-branches som 'feat/us01-booking-crud').",
+      "Definer regler for Pull Requests, peer reviews (mindst 1 godkendelse før merge) og commit-konventioner (Conventional Commits).",
+      "Inkluder tjekliste for Definition of Done (testet, ingen lint-fejl, dokumenteret)."
+    ],
+    "dod": "Filen 'CONTRIBUTE.md' findes i roden af repositoryet og er i fuld overensstemmelse med opgavekravene."
+  },
+  {
+    "taskId": "T053",
+    "issueKey": "SH-53",
+    "title": "Udfør samlet gennemløb af alle 7 testscenarier i quickstart.md",
+    "purpose": "Verificerer systemets samlede funktionalitet, dataintegritet og robusthed gennem systematisk end-to-end afprøvning før aflevering.",
+    "actions": [
+      "Scenarie 1: Ren installation og container-start via docker-compose.",
+      "Scenarie 2: Fremsøg eksisterende bookinger i UI.",
+      "Scenarie 3: Opret en ny booking og verificer persistering i MySQL.",
+      "Scenarie 4: Rediger en eksisterende booking (forlæng ophold).",
+      "Scenarie 5: Soft delete / aflys en booking og verificer status='cancelled'.",
+      "Scenarie 6: Hent analyse-endpoints og verificer live opdatering i Tableau WDC.",
+      "Scenarie 7: Genstart af containere ('docker-compose restart') og verificer data-persistens på Docker volume."
+    ],
+    "dod": "Alle 7 testscenarier er gennemført med succes og dokumenteret uden udestående defekter."
+  },
+  {
+    "taskId": "T054",
+    "issueKey": "SH-54",
+    "title": "Gennemfør Converge-kontrol mod Constitution og generér statusrapport i converge.md",
+    "purpose": "Validerer at den endelige leverance overholder alle 5 grundprincipper i projektets forfatning (.specify/memory/constitution.md) og lever op til alle krav fra semesteropgaven.",
+    "actions": [
+      "Gennemgå overholdelse af Princip 1 (3-lags arkitektur & Separation of Concerns).",
+      "Gennemgå overholdelse af Princip 2 (Fuld booking-CRUD & Soft Delete).",
+      "Gennemgå overholdelse af Princip 3 (Kapacitet på 214 værelser, 8 værelsestyper & korrekte beregninger).",
+      "Gennemgå overholdelse af Princip 4 (Tableau WDC & live opdatering på under 30 sekunder).",
+      "Gennemgå overholdelse af Princip 5 (Docker orkestrering & dokumentation).",
+      "Udarbejd den endelige statusrapport 'specs/001-hotel-management/converge.md'."
+    ],
+    "dod": "Rapporten 'converge.md' er oprettet, og projektet er 100% godkendt mod Constitution."
+  }
+]
