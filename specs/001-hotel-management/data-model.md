@@ -88,7 +88,7 @@ erDiagram
         decimal subtotal
     }
 ```
-## Kocenptuel Domain Model
+## Konceptuel Domain Model
 ```mermaid
 classDiagram
     direction TB
