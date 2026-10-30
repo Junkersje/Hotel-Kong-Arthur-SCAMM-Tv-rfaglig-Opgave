@@ -1,0 +1,82 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hotel-mysql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT_FORWARD:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-hotel_kong_arthur}
+      MYSQL_USER: ${DB_USER:-hotel_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-hotel_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - hotel-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hotel-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-hotel_user}
+      DB_PASSWORD: ${DB_PASSWORD:-hotel_pass}
+      DB_NAME: ${DB_NAME:-hotel_kong_arthur}
+      NODE_ENV: production
+      OPENAPI_SPEC_PATH: /app/specs/openapi.yaml
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./specs/001-hotel-management/contracts/openapi.yaml:/app/specs/openapi.yaml:ro
+    networks:
+      - hotel-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hotel-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - hotel-network
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: hotel-swagger-ui
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SWAGGER_JSON: /spec/openapi.yaml
+    volumes:
+      - ./specs/001-hotel-management/contracts/openapi.yaml:/spec/openapi.yaml:ro
+    networks:
+      - hotel-network
+
+volumes:
+  mysql_data:
+
+networks:
+  hotel-network:
+    driver: bridge

@@ -12,12 +12,12 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 **Formål**: Initialisering af repository- og containerinfrastruktur for backend, frontend og database.
 
-- [ ] T001 Opret projektmapper for backend, frontend og database i henhold til arkitekturplanen (`backend/`, `frontend/`, `database/`)
-- [ ] T002 [P] Initialiser Node.js backend-projekt med `package.json` og afhængigheder (`express`, `mysql2`, `cors`, `dotenv`, `zod`, `yamljs`) i `backend/package.json`
-- [ ] T003 [P] Initialiser React SPA frontend-projekt med Vite og Tailwind CSS i `frontend/package.json`
-- [ ] T004 [P] Opret backend Dockerfile i `backend/Dockerfile`
-- [ ] T005 [P] Opret multi-stage frontend Dockerfile med Nginx Alpine i `frontend/Dockerfile` og tilhørende `frontend/nginx.conf`
-- [ ] T006 Opret samlet `docker-compose.yml` med services for `mysql`, `backend`, `frontend` og `swagger-ui` i `docker-compose.yml`
+- [x] T001 Opret projektmapper for backend, frontend og database i henhold til arkitekturplanen (`backend/`, `frontend/`, `database/`)
+- [x] T002 [P] Initialiser Node.js backend-projekt med `package.json` og afhængigheder (`express`, `mysql2`, `cors`, `dotenv`, `zod`, `yamljs`) i `backend/package.json`
+- [x] T003 [P] Initialiser React SPA frontend-projekt med Vite og Tailwind CSS i `frontend/package.json`
+- [x] T004 [P] Opret backend Dockerfile i `backend/Dockerfile`
+- [x] T005 [P] Opret multi-stage frontend Dockerfile med Nginx Alpine i `frontend/Dockerfile` og tilhørende `frontend/nginx.conf`
+- [x] T006 Opret samlet `docker-compose.yml` med services for `mysql`, `backend`, `frontend` og `swagger-ui` i `docker-compose.yml`
 
 ---
 
