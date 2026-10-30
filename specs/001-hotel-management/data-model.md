@@ -89,6 +89,71 @@ erDiagram
     }
 ```
 
+## Konceptuel Domain Model
+```mermaid
+classDiagram
+    direction TB
+
+    class Guest {
+        +String name
+        +String country
+        +String email
+        +String phone
+    }
+
+    class Booking {
+        +Date checkInDate
+        +Date checkOutDate
+        +Integer numGuests
+        +Decimal totalPrice
+        +String status
+        +Integer satisfactionRating
+    }
+
+    class Room {
+        +Integer roomNumber
+        +Integer floor
+        +String status
+    }
+
+    class RoomType {
+        +String name
+        +Integer capacity
+        +String description
+    }
+
+    class Employee {
+        +String name
+        +String role
+    }
+
+    class Sale {
+        +DateTime saleTime
+        +Decimal totalAmount
+    }
+
+    class SaleItem {
+        +Integer quantity
+        +Decimal unitPrice
+        +Decimal subtotal
+    }
+
+    class Product {
+        +String name
+        +String category
+        +Decimal price
+    }
+
+    RoomType "1" -- "1..*" Room : kategoriserer
+    Room "0..1" -- "0..*" Booking : tildeles
+    Guest "1" -- "0..*" Booking : foretager
+    RoomType "1" -- "0..*" Booking : specificerer
+
+    Employee "1" -- "0..*" Sale : registrerer
+    Sale "1" *-- "1..*" SaleItem : bestÃ¥r af
+    Product "1" -- "0..*" SaleItem : indgÃ¥r i
+```
+
 ---
 
 ## 2. Tabeldefinitioner & Integritetsregler
