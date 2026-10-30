@@ -144,8 +144,8 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Formål**: Forbinde Tableau til REST API'et, færdiggøre dokumentation og køre komplet end-to-end verifikation.
 
 - [ ] T050 [P] Opret en letvægts Tableau Web Data Connector (WDC) HTML/JS-fil i `backend/src/public/tableau-wdc.html`, der henter JSON fra `/api/analytics/summary` og de øvrige analyse-endpoints
-- [ ] T051 Opret `README.md` med systembeskrivelse, startvejledning (`docker-compose up`), portadresser og arkitekturdiagram over hele 3-lagssystemet i `README.md`
-- [ ] T052 [P] Opret `CONTRIBUTE.md` (præcis dette filnavn fra opgavebeskrivelsen) med gruppens arbejds-, review- og PR-regler i `CONTRIBUTE.md`
+- [x] T051 Opret `README.md` med systembeskrivelse, startvejledning (`docker-compose up`), portadresser og arkitekturdiagram over hele 3-lagssystemet i `README.md`
+- [x] T052 [P] Opret `CONTRIBUTE.md` (præcis dette filnavn fra opgavebeskrivelsen) med gruppens arbejds-, review- og PR-regler i `CONTRIBUTE.md`
 - [ ] T053 Udfør samlet gennemløb af alle 7 testscenarier i `quickstart.md` (opret, ret, soft delete, Tableau-opdatering, genstart af containere)
 - [ ] T054 Gennemfør Converge-kontrol mod Constitution og generér statusrapport i `converge.md`
 
