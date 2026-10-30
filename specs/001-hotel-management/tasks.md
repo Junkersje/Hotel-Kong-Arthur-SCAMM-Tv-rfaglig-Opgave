@@ -6,6 +6,17 @@
 
 Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implementering af Hotel Kong Arthur-platformen (SCAMM). Hver opgave følger Spec Kit-tjeklisteformatet med opgave-ID, parallelitetsmarkør `[P]`, user story-label `[USX]` og præcis filsti.
 
+### Team SCAMM — Ansvarsfordeling & Jira Tildeling
+
+| Medlem | Rolle & Fil-ejerskab | Jira Nøgler / Opgaver | Story Points |
+| :--- | :--- | :--- | :---: |
+| **Mathias** | **DevOps, Infrastruktur & Samlet QA** | `SH-1, SH-2, SH-4, SH-6, SH-9, SH-10, SH-11, SH-51, SH-52, SH-53, SH-54` (T001, T002, T004, T006, T009, T010, T011, T051-T054) | 35 SP |
+| **Simon** | **Hotel Finance & Belægningsanalyse** | `SH-7, SH-8, SH-33, SH-34, SH-35, SH-36, SH-37, SH-38, SH-41, SH-42` (T007, T008, T033-T038, T041, T042) | 35 SP |
+| **Amira** | **Receptionsskranke & Oprettelse (MVP)** | `SH-12, SH-13, SH-14, SH-15, SH-16, SH-17, SH-18, SH-19, SH-21` (T012, T013-T019, T021) | 28 SP |
+| **Christoffer** | **Booking Directory & Livscyklus (Søg, Ret, Slet)** | `SH-3, SH-5, SH-20, SH-22, SH-23, SH-24, SH-25, SH-26, SH-27, SH-28, SH-29, SH-30, SH-31, SH-32` (T003, T005, T020, T022-T032) | 38 SP |
+| **Maja** | **Lobby Bar Analytics, Geografi & Tableau WDC** | `SH-39, SH-40, SH-43, SH-44, SH-45, SH-46, SH-47, SH-48, SH-49, SH-50` (T039, T040, T043-T050) | 38 SP |
+| **TOTAL** | **5 uafhængige vertikale spor** | **54 tickets** | **174 SP** |
+
 ---
 
 ## Phase 1: Setup (Shared Infrastructure)
