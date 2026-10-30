@@ -121,21 +121,33 @@ Hotel-Kong-Arthur-SCAMM/
 │   │   └── utils/           # Fælles hjælpere (fejlhåndtering, formatering)
 │   └── tests/               # Integrationstests mod API og forretningslag
 │
-└── frontend/                # Browserfrontend til Booking-CRUD (React + Vite)
+└── frontend/                # Browserfrontend til Booking-CRUD (React 18 + Vite + Tailwind CSS i MVVM-mønster)
     ├── Dockerfile           # Multi-stage build (Node build -> Nginx Alpine)
     ├── nginx.conf           # Nginx konfiguration (port 3000 med reverse proxy / api pass)
     ├── package.json
     ├── vite.config.js
     ├── index.html
     └── src/
-        ├── App.jsx          # Hovedkomponent med faner/layout
-        ├── components/
-        │   ├── BookingList.jsx        # Søgning og tabelvisning over bookinger
-        │   ├── BookingForm.jsx        # Oprettelse af ny reservation
-        │   ├── EditBookingModal.jsx   # Modal til redigering
-        │   └── DeleteDialog.jsx       # Bekræftelsesdialog til soft delete
-        └── services/
-            └── api.js                 # HTTP klient mod backendens REST API
+        ├── App.jsx          # MVVM App Container
+        ├── models/          # 1. MODEL LAYER: Domænemodeller, valideringsregler og beregninger
+        │   ├── BookingModel.js
+        │   ├── RoomTypeModel.js
+        │   └── AnalyticsModel.js
+        ├── viewmodels/      # 2. VIEWMODEL LAYER: Custom hooks for reaktiv tilstand, filtre og handlinger
+        │   ├── useBookingListViewModel.js
+        │   ├── useBookingFormViewModel.js
+        │   ├── useEditBookingViewModel.js
+        │   ├── useDeleteBookingViewModel.js
+        │   └── useAnalyticsViewModel.js
+        ├── views/           # 3. VIEW LAYER: Præsentationskomponenter (UI) uden direkte forretningslogik
+        │   ├── BookingListView.jsx
+        │   ├── BookingFormView.jsx
+        │   ├── EditBookingModalView.jsx
+        │   ├── DeleteDialogView.jsx
+        │   └── AnalyticsOverviewView.jsx
+        ├── components/      # Kompatibilitets-aliasser der eksporterer respektive Views
+        └── services/        # Dataadgang: HTTP klient mod backendens REST API
+            └── api.js
 ```
 
 ---

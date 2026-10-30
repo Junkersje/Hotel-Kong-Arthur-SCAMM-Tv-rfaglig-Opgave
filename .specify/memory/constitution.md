@@ -65,6 +65,26 @@ Projektet SKAL gennemføres med **GitHub Spec Kit** efter det faste workflow:
 
 *Rationale*: Forhindrer uoverskuelig AI-genereret kode og sikrer sammenhæng mellem specifikation, implementering og dokumentation.
 
+### VII. Objektorienteret Programmering (OOP), Clean Code og SOLID-Principper (NON-NEGOTIABLE)
+
+Kildekoden for hele Hotel Kong Arthur-platformen SKAL følge anerkendte software engineering principper:
+- **Objektorienteret Programmering (OOP)**:
+  - Domæneentiteter (`Booking`, `Guest`, `Room`, `RoomType`, `Product`, `Sale`) modelleres som klasser med indkapsling, forretningsmetoder og dataintegritet.
+  - Repositories, Services og Controllers implementeres som sammenhængende klasser med veldefinerede ansvarsområder.
+- **SOLID-Principperne**:
+  - **S (Single Responsibility Principle)**: Hver klasse har ét entydigt ansvar (f.eks. Repositories håndterer SQL/persistens; Services håndterer forretningsregler og validering; Controllers håndterer HTTP request/response parsing).
+  - **O (Open/Closed Principle)**: Systemet er åbent for udvidelse (f.eks. nye sæsonformler, prisstrategier eller eksportformater), men lukket for modifikation af stabil kernekode.
+  - **L (Liskov Substitution Principle)**: Afledte klasser og udskiftelige repositories overholder de aftalte kontrakter og interfaces uden uventede sideeffekter.
+  - **I (Interface Segregation Principle)**: Smalle, fokuserede metoder frem for store 'god'-objekter; services modtager kun de specifikke dataadgangsmetoder, de har brug for.
+  - **D (Dependency Inversion Principle)**: Højere lag afhænger af abstraktioner; **Dependency Injection (Constructor Injection)** anvendes konsekvent, så Services modtager Repositories via constructoren, og Controllers modtager Services via constructoren. Dette muliggør uafhængig enhedstestning med mocks/stubs.
+- **Clean Code Standarder**:
+  - **Selvforklarende navngivning**: Funktioner og variabler navngives efter forretningsmæssig hensigt (f.eks. `calculateOccupancyPercentage`, `isDateRangeAvailable`, `cancelBooking`) uden kryptiske forkortelser.
+  - **Små funktioner**: Metoder udfører én veldefineret opgave (Single Level of Abstraction).
+  - **Ingen magiske værdier (Magic Numbers/Strings)**: Konstanter defineres centralt (f.eks. `TOTAL_HOTEL_ROOMS = 214`, `MAX_GUESTS = 4`, `LOW_SEASON_MONTHS = [11, 12, 1, 2]`).
+  - **Struktureret fejlhåndtering**: Fejl modelleres via et dedikeret hierarki af typed applikationsfejl (`ValidationError`, `NotFoundError`, `ConflictError`).
+
+*Rationale*: Sikrer høj kodekvalitet, forklarlighed til eksamen, robusthed og ubesværet testbarhed.
+
 ## Obligatoriske Case- og Analysekrav (Hotel Kong Arthur)
 
 Alle funktionelle og analytiske krav fra opgavebeskrivelsen for **Hotel Kong Arthur** er ufravigelige rammekrav for projektet:

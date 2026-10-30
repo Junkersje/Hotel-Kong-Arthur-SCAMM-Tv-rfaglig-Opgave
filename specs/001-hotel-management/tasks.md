@@ -26,12 +26,12 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Formål**: Database-skema, seed-data, database-forbindelse og 3-lags skelet i backenden.  
 ⚠️ **KRITISK**: Ingen user stories kan implementeres, før denne fase er 100 % gennemført og testet.
 
-- [ ] T007 Opret MySQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
-- [ ] T008 Opret MySQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
-- [ ] T009 [P] Implementer MySQL connection pool og transaktionshjælper med `mysql2/promise` i `backend/src/repositories/db.js`
-- [ ] T010 [P] Implementer fælles middleware til JSON-parsing, CORS og centraliseret fejlhåndtering i `backend/src/server.js`
-- [ ] T011 [P] Kobl OpenAPI-specifikationen `contracts/openapi.yaml` til Swagger UI containeren og tilføj `/api-docs` endpoint i `backend/src/server.js`
-- [ ] T012 [P] Konfigurer frontend API-klient (`fetch` wrapper) med base URL mod backend i `frontend/src/services/api.js`
+- [x] T007 Opret MySQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
+- [x] T008 Opret MySQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
+- [x] T009 [P] Implementer MySQL connection pool og transaktionshjælper med `mysql2/promise` i `backend/src/repositories/db.js`
+- [x] T010 [P] Implementer fælles middleware til JSON-parsing, CORS og centraliseret fejlhåndtering i `backend/src/server.js`
+- [x] T011 [P] Kobl OpenAPI-specifikationen `contracts/openapi.yaml` til Swagger UI containeren og tilføj `/api-docs` endpoint i `backend/src/server.js`
+- [x] T012 [P] Konfigurer frontend API-klient (`fetch` wrapper) med base URL mod backend i `frontend/src/services/api.js`
 
 **Checkpoint**: Kør `docker-compose up --build -d` og verificér, at alle 4 containere kører, MySQL er initialiseret med seed-data, og Swagger UI er tilgængelig på port 8080.
 
