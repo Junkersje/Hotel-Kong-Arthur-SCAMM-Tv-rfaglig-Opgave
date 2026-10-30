@@ -23,12 +23,12 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 **Formål**: Initialisering af repository- og containerinfrastruktur for backend, frontend og database.
 
-- [ ] T001 Opret projektmapper for backend, frontend og database i henhold til arkitekturplanen (`backend/`, `frontend/`, `database/`)
-- [ ] T002 [P] Initialiser Node.js backend-projekt med `package.json` og afhængigheder (`express`, `mysql2`, `cors`, `dotenv`, `zod`, `yamljs`) i `backend/package.json`
-- [ ] T003 [P] Initialiser React SPA frontend-projekt med Vite og Tailwind CSS i `frontend/package.json`
-- [ ] T004 [P] Opret backend Dockerfile i `backend/Dockerfile`
-- [ ] T005 [P] Opret multi-stage frontend Dockerfile med Nginx Alpine i `frontend/Dockerfile` og tilhørende `frontend/nginx.conf`
-- [ ] T006 Opret samlet `docker-compose.yml` med services for `mysql`, `backend`, `frontend` og `swagger-ui` i `docker-compose.yml`
+- [x] T001 Opret projektmapper for backend, frontend og database i henhold til arkitekturplanen (`backend/`, `frontend/`, `database/`)
+- [x] T002 [P] Initialiser Node.js backend-projekt med `package.json` og afhængigheder (`express`, `mysql2`, `cors`, `dotenv`, `zod`, `yamljs`) i `backend/package.json`
+- [x] T003 [P] Initialiser React SPA frontend-projekt med Vite og Tailwind CSS i `frontend/package.json`
+- [x] T004 [P] Opret backend Dockerfile i `backend/Dockerfile`
+- [x] T005 [P] Opret multi-stage frontend Dockerfile med Nginx Alpine i `frontend/Dockerfile` og tilhørende `frontend/nginx.conf`
+- [x] T006 Opret samlet `docker-compose.yml` med services for `mysql`, `backend`, `frontend` og `swagger-ui` i `docker-compose.yml`
 
 ---
 
@@ -37,12 +37,12 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Formål**: Database-skema, seed-data, database-forbindelse og 3-lags skelet i backenden.  
 ⚠️ **KRITISK**: Ingen user stories kan implementeres, før denne fase er 100 % gennemført og testet.
 
-- [ ] T007 Opret MySQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
-- [ ] T008 Opret MySQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
-- [ ] T009 [P] Implementer MySQL connection pool og transaktionshjælper med `mysql2/promise` i `backend/src/repositories/db.js`
-- [ ] T010 [P] Implementer fælles middleware til JSON-parsing, CORS og centraliseret fejlhåndtering i `backend/src/server.js`
-- [ ] T011 [P] Kobl OpenAPI-specifikationen `contracts/openapi.yaml` til Swagger UI containeren og tilføj `/api-docs` endpoint i `backend/src/server.js`
-- [ ] T012 [P] Konfigurer frontend API-klient (`fetch` wrapper) med base URL mod backend i `frontend/src/services/api.js`
+- [x] T007 Opret MySQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
+- [x] T008 Opret MySQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
+- [x] T009 [P] Implementer MySQL connection pool og transaktionshjælper med `mysql2/promise` i `backend/src/repositories/db.js`
+- [x] T010 [P] Implementer fælles middleware til JSON-parsing, CORS og centraliseret fejlhåndtering i `backend/src/server.js`
+- [x] T011 [P] Kobl OpenAPI-specifikationen `contracts/openapi.yaml` til Swagger UI containeren og tilføj `/api-docs` endpoint i `backend/src/server.js`
+- [x] T012 [P] Konfigurer frontend API-klient (`fetch` wrapper) med base URL mod backend i `frontend/src/services/api.js`
 
 **Checkpoint**: Kør `docker-compose up --build -d` og verificér, at alle 4 containere kører, MySQL er initialiseret med seed-data, og Swagger UI er tilgængelig på port 8080.
 

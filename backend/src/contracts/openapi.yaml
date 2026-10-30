@@ -1,0 +1,534 @@
+openapi: 3.0.3
+info:
+  title: Hotel Kong Arthur Management & Analytics API
+  description: REST API for booking-CRUD, 3-lags softwarearkitektur og forretningsanalyser til Tableau (SCAMM).
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Lokal Docker Compose backend service
+
+paths:
+  /api/bookings:
+    get:
+      summary: Hent og fremsøg bookinger
+      operationId: getBookings
+      parameters:
+        - name: search
+          in: query
+          description: Søgetekst (matcher gæstenavn eller booking-ID)
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filtrér på bookingstatus
+          schema:
+            type: string
+            enum: [confirmed, cancelled, completed]
+      responses:
+        '200':
+          description: Liste af bookinger
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+    post:
+      summary: Opret en ny booking
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: Booking oprettet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: Ugyldige data (f.eks. afrejse før ankomst eller for mange gæster)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/bookings/{id}:
+    get:
+      summary: Hent specifik booking ud fra ID
+      operationId: getBookingById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Booking fundet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: Booking ikke fundet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Opdatér eksisterende booking
+      operationId: updateBooking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookingRequest'
+      responses:
+        '200':
+          description: Booking opdateret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: Ugyldige ændringer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Booking ikke fundet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Slet eller aflys booking (soft delete til status cancelled)
+      operationId: deleteBooking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Booking aflyst/slettet (status sat til cancelled)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: Booking ikke fundet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/room-types:
+    get:
+      summary: Hent de 8 officielle værelsestyper
+      operationId: getRoomTypes
+      responses:
+        '200':
+          description: Liste af de 8 værelsestyper
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomType'
+
+  /api/analytics/summary:
+    get:
+      summary: Hent samlet KPI-overblik for hotellet (Tableau top-kort)
+      operationId: getAnalyticsSummary
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+            default: 2026
+      responses:
+        '200':
+          description: Nøgletalssummary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+
+  /api/analytics/revenue-by-room-type:
+    get:
+      summary: Omsætning fordelt på de 8 værelsestyper og 3 sæsoner
+      operationId: getRevenueByRoomType
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Værelsesomsætning grupperet på type og sæson
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomTypeRevenue'
+
+  /api/analytics/revenue-by-country:
+    get:
+      summary: Omsætning og gæstefordeling fordelt på gæstelande
+      operationId: getRevenueByCountry
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: season
+          in: query
+          schema:
+            type: string
+            enum: [Lavsæson, Mellemsæson, Højsæson]
+      responses:
+        '200':
+          description: Landeomsætning
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CountryRevenue'
+
+  /api/analytics/occupancy:
+    get:
+      summary: Belægningsgrad baseret på hotellets 214 værelser
+      operationId: getOccupancy
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Belægningsdata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OccupancyResponse'
+
+  /api/analytics/bar-sales:
+    get:
+      summary: Barsalg og omsætning pr. medarbejder (inkl. Helene Christine)
+      operationId: getBarSales
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: employee_id
+          in: query
+          description: Filter på f.eks. HC01 for Helene Christine
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Barsalgsresultater
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarSalesResponse'
+
+  /api/analytics/drinks-revenue:
+    get:
+      summary: Omsætning og salgsvolumen pr. drink på menukortet
+      operationId: getDrinksRevenue
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: employee_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sorteret liste over drinks efter omsætning og antal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DrinkMetric'
+
+  /api/analytics/helene-breakdown:
+    get:
+      summary: Procentfordeling af cocktails vs. kaffe for Helene Christine
+      operationId: getHeleneBreakdown
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+            default: 2026
+      responses:
+        '200':
+          description: Procentvis fordeling på omsætning og antal enheder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeleneBreakdownResponse'
+
+components:
+  schemas:
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        guest_name:
+          type: string
+        country:
+          type: string
+          nullable: true
+        room_type_id:
+          type: integer
+        room_type_name:
+          type: string
+        room_number:
+          type: integer
+          nullable: true
+        check_in_date:
+          type: string
+          format: date
+        check_out_date:
+          type: string
+          format: date
+        num_guests:
+          type: integer
+        total_price:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: [confirmed, cancelled, completed]
+        satisfaction_rating:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 5
+        created_at:
+          type: string
+          format: date-time
+
+    CreateBookingRequest:
+      type: object
+      required:
+        - guest_name
+        - room_type_id
+        - check_in_date
+        - check_out_date
+        - num_guests
+        - total_price
+      properties:
+        guest_name:
+          type: string
+        country:
+          type: string
+          default: Danmark
+        room_type_id:
+          type: integer
+        room_number:
+          type: integer
+          nullable: true
+        check_in_date:
+          type: string
+          format: date
+        check_out_date:
+          type: string
+          format: date
+        num_guests:
+          type: integer
+          minimum: 1
+          maximum: 4
+        total_price:
+          type: number
+          minimum: 0
+        satisfaction_rating:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 5
+
+    UpdateBookingRequest:
+      type: object
+      properties:
+        guest_name:
+          type: string
+        country:
+          type: string
+        room_type_id:
+          type: integer
+        room_number:
+          type: integer
+        check_in_date:
+          type: string
+          format: date
+        check_out_date:
+          type: string
+          format: date
+        num_guests:
+          type: integer
+        total_price:
+          type: number
+        status:
+          type: string
+          enum: [confirmed, cancelled, completed]
+        satisfaction_rating:
+          type: integer
+
+    RoomType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        capacity:
+          type: integer
+        base_price_indicative:
+          type: string
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        year:
+          type: integer
+        total_revenue_dkk:
+          type: number
+        room_revenue_dkk:
+          type: number
+        bar_revenue_dkk:
+          type: number
+        bar_share_percentage:
+          type: number
+        occupancy_rate_percentage:
+          type: number
+        adr_dkk:
+          type: number
+        average_satisfaction_score:
+          type: number
+          nullable: true
+        total_satisfaction_responses:
+          type: integer
+
+    RoomTypeRevenue:
+      type: object
+      properties:
+        room_type_name:
+          type: string
+        low_season_revenue:
+          type: number
+        mid_season_revenue:
+          type: number
+        high_season_revenue:
+          type: number
+        total_revenue:
+          type: number
+
+    CountryRevenue:
+      type: object
+      properties:
+        country:
+          type: string
+        total_revenue:
+          type: number
+        total_bookings:
+          type: integer
+        average_length_of_stay:
+          type: number
+
+    OccupancyResponse:
+      type: object
+      properties:
+        total_rooms:
+          type: integer
+          default: 214
+        available_room_nights:
+          type: integer
+        occupied_room_nights:
+          type: integer
+        occupancy_rate:
+          type: number
+
+    BarSalesResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        employee_id:
+          type: string
+          nullable: true
+        employee_name:
+          type: string
+          nullable: true
+        total_sales_dkk:
+          type: number
+        total_units_sold:
+          type: integer
+
+    DrinkMetric:
+      type: object
+      properties:
+        product_name:
+          type: string
+        category:
+          type: string
+        units_sold:
+          type: integer
+        total_revenue:
+          type: number
+
+    HeleneBreakdownResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        cocktail_revenue_dkk:
+          type: number
+        coffee_revenue_dkk:
+          type: number
+        cocktail_revenue_percentage:
+          type: number
+        coffee_revenue_percentage:
+          type: number
+        cocktail_units_sold:
+          type: integer
+        coffee_units_sold:
+          type: integer
+        cocktail_units_percentage:
+          type: number
+        coffee_units_percentage:
+          type: number
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        status_code:
+          type: integer

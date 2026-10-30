@@ -1,0 +1,76 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hotel-mysql
+    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret_password_here}
+      MYSQL_DATABASE: ${DB_NAME:-hotel_kong_arthur}
+      MYSQL_USER: ${DB_USER:-hotel_admin}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret_password_here}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD:-secret_password_here} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+    networks:
+      - hotel-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hotel-backend
+    environment:
+      PORT: 5000
+      NODE_ENV: ${NODE_ENV:-development}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-hotel_kong_arthur}
+      DB_USER: ${DB_USER:-hotel_admin}
+      DB_PASSWORD: ${DB_PASSWORD:-secret_password_here}
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - hotel-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hotel-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - hotel-network
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: hotel-swagger-ui
+    environment:
+      SWAGGER_JSON: /spec/openapi.yaml
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./specs/001-hotel-management/contracts/openapi.yaml:/spec/openapi.yaml:ro
+    networks:
+      - hotel-network
+
+networks:
+  hotel-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
