@@ -149,8 +149,8 @@ classDiagram
     RoomType "1" -- "0..*" Booking : specificerer
 
     Employee "1" -- "0..*" Sale : registrerer
-    Sale "1" *-- "1..*" SaleItem : bestÃ¥r af
-    Product "1" -- "0..*" SaleItem : indgÃ¥r i
+    Sale "1" *-- "1..*" SaleItem : består af
+    Product "1" -- "0..*" SaleItem : indgår i
 ```
 ---
 
