@@ -75,7 +75,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [x] T024 [US3] Implementer forretningsvalidering for bookingændringer i `BookingService.updateBooking()` i `backend/src/services/bookingService.js`
 - [x] T025 [US3] Opret REST rute `PUT /api/bookings/:id` med HTTP 200 OK og HTTP 404/400 fejlhåndtering i `backend/src/routes/bookingRoutes.js`
 - [x] T026 [P] [US3] Byg `EditBookingModal` React-komponent med præ-udfyldte felter og datovalidering i `frontend/src/components/EditBookingModal.jsx`
-- [ ] T027 [US3] Kobl redigerings-knap i `BookingList` til `EditBookingModal` med automatisk refresh af listen i `frontend/src/components/BookingList.jsx`
+- [x] T027 [US3] Kobl redigerings-knap i `BookingList` til `EditBookingModal` med automatisk refresh af listen i `frontend/src/components/BookingList.jsx`
 
 **Checkpoint**: Verificér, at en booking kan opdateres (f.eks. forlængelse af ophold), og at den nye afrejsedato straks reflekteres i databasen og UI.
 

@@ -27,6 +27,7 @@ import {
   getBookingTotalPrice
 } from '../models/BookingModel.js';
 import { useBookingListViewModel } from '../viewmodels/useBookingListViewModel.js';
+import EditBookingModal from '../components/EditBookingModal.jsx';
 
 export default function BookingListView({
   viewModel: externalViewModel,
@@ -48,11 +49,14 @@ export default function BookingListView({
     error,
     searchQuery,
     statusFilter,
+    editingBooking,
     setSearchQuery,
     setStatusFilter,
     clearFilters,
     openEditModal,
+    closeEditModal,
     openDeleteDialog,
+    onBookingUpdated,
     refreshBookings
   } = vm;
 
@@ -345,6 +349,15 @@ export default function BookingListView({
           </span>
         )}
       </div>
+
+      {/* EditBookingModal koblet til Rediger-knap med automatisk refresh (SH-27 / T027) */}
+      {editingBooking && (
+        <EditBookingModal
+          booking={editingBooking}
+          onSuccess={onBookingUpdated}
+          onCancel={closeEditModal}
+        />
+      )}
     </section>
   );
 }
