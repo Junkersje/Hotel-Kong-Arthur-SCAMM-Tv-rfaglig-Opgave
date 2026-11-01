@@ -435,6 +435,24 @@ export class BookingRepository {
   }
 
   /**
+   * Udfører soft delete af en reservation ved at sætte status = 'cancelled' (SH-28 / T028).
+   * Rækken bevares i MySQL af hensyn til historik, mens værelset i perioden straks frigives.
+   * @param {number|string} id
+   * @returns {Promise<object|null>}
+   */
+  async cancelBooking(id) {
+    const bookingId = Number(id);
+    const sql = `
+      UPDATE BOOKING
+      SET status = 'cancelled',
+          updated_at = NOW()
+      WHERE id = ?
+    `;
+    await this.db.query(sql, [bookingId]);
+    return await this.getById(bookingId);
+  }
+
+  /**
    * Fremsøger bookinger med valgfri filtrering på søgetekst (ID, navn, email) og status.
    * @param {object} [filters]
    * @returns {Promise<Array<object>>}
