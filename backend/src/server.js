@@ -7,6 +7,7 @@ import fs from 'fs';
 import yaml from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 import db from './repositories/db.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 
 dotenv.config();
 
@@ -81,6 +82,9 @@ app.get('/', (req, res) => {
     health: '/api/health'
   });
 });
+
+// REST API Routes
+app.use('/api', bookingRoutes);
 
 // 404 handler for unknown routes
 app.use((req, res) => {
