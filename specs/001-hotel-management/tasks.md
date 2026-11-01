@@ -59,7 +59,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [ ] T017 [US2] Implementer Zod-validering for bookingoprettelse (kræv `check_out_date > check_in_date` og `num_guests BETWEEN 1 AND 4`) i `backend/src/services/bookingService.js`
 - [ ] T018 [US2] Implementer `BookingRepository.createBooking()` med indsættelse i `guests` og `bookings` i `backend/src/repositories/bookingRepository.js`
 - [ ] T019 [US2] Opret REST rute `POST /api/bookings` med HTTP 201 Created og HTTP 400 Bad Request fejlrespons i `backend/src/routes/bookingRoutes.js`
-- [ ] T020 [P] [US1] Byg `BookingList` React-komponent med søgefelt og filtrering i `frontend/src/components/BookingList.jsx`
+- [x] T020 [P] [US1] Byg `BookingList` React-komponent med søgefelt og filtrering i `frontend/src/components/BookingList.jsx`
 - [ ] T021 [P] [US2] Byg `BookingForm` React-komponent med validering og dropdown for de 8 værelsestyper i `frontend/src/components/BookingForm.jsx`
 - [ ] T022 [US1] Integrer `BookingList` og `BookingForm` i hovedapplikationen i `frontend/src/App.jsx`
 
