@@ -28,6 +28,7 @@ import {
 } from '../models/BookingModel.js';
 import { useBookingListViewModel } from '../viewmodels/useBookingListViewModel.js';
 import EditBookingModal from '../components/EditBookingModal.jsx';
+import DeleteDialog from '../components/DeleteDialog.jsx';
 
 export default function BookingListView({
   viewModel: externalViewModel,
@@ -50,13 +51,16 @@ export default function BookingListView({
     searchQuery,
     statusFilter,
     editingBooking,
+    deletingBooking,
     setSearchQuery,
     setStatusFilter,
     clearFilters,
     openEditModal,
     closeEditModal,
     openDeleteDialog,
+    closeDeleteDialog,
     onBookingUpdated,
+    onBookingDeleted,
     refreshBookings
   } = vm;
 
@@ -356,6 +360,15 @@ export default function BookingListView({
           booking={editingBooking}
           onSuccess={onBookingUpdated}
           onCancel={closeEditModal}
+        />
+      )}
+
+      {/* DeleteDialog koblet til Slet-knap med øjeblikkelig fjernelse fra aktiv liste (SH-32 / T032) */}
+      {deletingBooking && (
+        <DeleteDialog
+          booking={deletingBooking}
+          onSuccess={onBookingDeleted}
+          onCancel={closeDeleteDialog}
         />
       )}
     </section>

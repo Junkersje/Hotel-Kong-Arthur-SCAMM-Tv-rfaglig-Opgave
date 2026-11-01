@@ -65,12 +65,18 @@ export function useBookingListViewModel(options = {}) {
     return () => clearTimeout(timer);
   }, [fetchBookings, refreshTrigger]);
 
-  // Sikrer at visningen altid matcher aktive filtre (også hvis backend returnerer ufiltreret liste)
+  // Sikrer at visningen altid matcher aktive filtre og ekskluderer 'cancelled' fra den aktive liste (medmindre 'cancelled' vælges i filteret)
   const bookings = useMemo(() => {
     return rawBookings.filter((booking) => {
-      if (statusFilter && booking.status !== statusFilter) {
+      if (statusFilter) {
+        if (booking.status !== statusFilter) {
+          return false;
+        }
+      } else if (booking.status === 'cancelled') {
+        // Fjernes fra den aktive liste ved soft delete (US4 / SH-32)
         return false;
       }
+
       const query = searchQuery.trim().toLowerCase();
       if (!query) {
         return true;
@@ -124,10 +130,23 @@ export function useBookingListViewModel(options = {}) {
     fetchBookings();
   }, [closeEditModal, fetchBookings]);
 
-  const onBookingDeleted = useCallback(() => {
-    closeDeleteDialog();
-    fetchBookings();
-  }, [closeDeleteDialog, fetchBookings]);
+  const onBookingDeleted = useCallback(
+    (cancelledBooking) => {
+      const targetId = cancelledBooking?.id ?? deletingBooking?.id;
+      if (targetId !== undefined) {
+        setRawBookings((prev) =>
+          prev.map((item) =>
+            item.id === targetId
+              ? new BookingModel({ ...item, status: 'cancelled' })
+              : item
+          )
+        );
+      }
+      closeDeleteDialog();
+      fetchBookings();
+    },
+    [closeDeleteDialog, deletingBooking, fetchBookings]
+  );
 
   return {
     // Observable State
