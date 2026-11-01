@@ -1,6 +1,7 @@
 /**
- * BookingList React-komponent (SH-20 / T020)
- * Kompatibilitets-entrypoint i components/ der eksporterer MVVM BookingListView.
+ * BookingList React-komponent (SH-20 / T020, SH-27 / T027)
+ * Kompatibilitets-entrypoint i components/ der eksporterer MVVM BookingListView
+ * med EditBookingModal koblet til redigeringsknappen og automatisk refresh af listen.
  */
 
 import BookingListView from '../views/BookingListView.jsx';
