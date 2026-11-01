@@ -89,7 +89,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [x] T029 [US4] Implementer forretningslogik i `BookingService.cancelBooking()` i `backend/src/services/bookingService.js`
 - [x] T030 [US4] Opret REST rute `DELETE /api/bookings/:id` i `backend/src/routes/bookingRoutes.js`
 - [x] T031 [P] [US4] Byg `DeleteDialog` React-komponent med bekræftelsesadvarsel ("Er du sikker?") i `frontend/src/components/DeleteDialog.jsx`
-- [ ] T032 [US4] Kobl slet-knap i `BookingList` til `DeleteDialog` med øjeblikkelig fjernelse fra den aktive liste i `frontend/src/components/BookingList.jsx`
+- [x] T032 [US4] Kobl slet-knap i `BookingList` til `DeleteDialog` med øjeblikkelig fjernelse fra den aktive liste i `frontend/src/components/BookingList.jsx`
 
 **Checkpoint**: Fuld CRUD er nu funktionel i browserfrontenden og backenden. Aflyste bookinger forbliver i MySQL med status `cancelled`.
 
