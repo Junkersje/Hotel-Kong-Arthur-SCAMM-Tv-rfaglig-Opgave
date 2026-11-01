@@ -72,7 +72,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Mål**: Receptionisten kan ændre datoer, gæsteoplysninger og værelsestype på en eksisterende booking.
 
 - [x] T023 [US3] Implementer `BookingRepository.getById()` og `BookingRepository.updateBooking()` i `backend/src/repositories/bookingRepository.js`
-- [ ] T024 [US3] Implementer forretningsvalidering for bookingændringer i `BookingService.updateBooking()` i `backend/src/services/bookingService.js`
+- [x] T024 [US3] Implementer forretningsvalidering for bookingændringer i `BookingService.updateBooking()` i `backend/src/services/bookingService.js`
 - [ ] T025 [US3] Opret REST rute `PUT /api/bookings/:id` med HTTP 200 OK og HTTP 404/400 fejlhåndtering i `backend/src/routes/bookingRoutes.js`
 - [ ] T026 [P] [US3] Byg `EditBookingModal` React-komponent med præ-udfyldte felter og datovalidering i `frontend/src/components/EditBookingModal.jsx`
 - [ ] T027 [US3] Kobl redigerings-knap i `BookingList` til `EditBookingModal` med automatisk refresh af listen i `frontend/src/components/BookingList.jsx`
