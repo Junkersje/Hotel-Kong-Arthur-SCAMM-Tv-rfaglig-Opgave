@@ -85,7 +85,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 **Mål**: Receptionisten kan slette/aflyse en booking via en bekræftelsesdialog (soft delete til status `cancelled`).
 
-- [ ] T028 [US4] Implementer soft delete SQL query (`UPDATE bookings SET status = 'cancelled' WHERE id = ?`) i `backend/src/repositories/bookingRepository.js`
+- [x] T028 [US4] Implementer soft delete SQL query (`UPDATE bookings SET status = 'cancelled' WHERE id = ?`) i `backend/src/repositories/bookingRepository.js`
 - [ ] T029 [US4] Implementer forretningslogik i `BookingService.cancelBooking()` i `backend/src/services/bookingService.js`
 - [ ] T030 [US4] Opret REST rute `DELETE /api/bookings/:id` i `backend/src/routes/bookingRoutes.js`
 - [ ] T031 [P] [US4] Byg `DeleteDialog` React-komponent med bekræftelsesadvarsel ("Er du sikker?") i `frontend/src/components/DeleteDialog.jsx`
