@@ -240,6 +240,38 @@ export class BookingService {
 
     return await this.bookingRepository.updateBooking(parsedId, updatePayload);
   }
+
+  /**
+   * Aflyser en eksisterende booking via soft delete til status 'cancelled' (SH-29 / T029).
+   * - Returnerer 404 hvis booking-ID ikke findes
+   * - Håndterer allerede annullerede bookinger idempotent uden fejl
+   * @param {number|string} id
+   * @returns {Promise<object>}
+   */
+  async cancelBooking(id) {
+    const parsedId = parseInt(id, 10);
+    if (Number.isNaN(parsedId) || parsedId <= 0) {
+      throw createAppError('Ugyldigt booking-ID.', 400, 'INVALID_BOOKING_ID');
+    }
+
+    const existing = await this.bookingRepository.getById(parsedId);
+    if (!existing) {
+      throw createAppError(`Booking #${parsedId} blev ikke fundet.`, 404, 'NOT_FOUND');
+    }
+
+    if (existing.status === 'cancelled') {
+      return {
+        ...existing,
+        message: 'Reservationen er allerede annulleret.'
+      };
+    }
+
+    const cancelledBooking = await this.bookingRepository.cancelBooking(parsedId);
+    return {
+      ...cancelledBooking,
+      message: 'Reservationen blev annulleret (soft delete).'
+    };
+  }
 }
 
 export default new BookingService();
