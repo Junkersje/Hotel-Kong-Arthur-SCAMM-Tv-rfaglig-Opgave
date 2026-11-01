@@ -61,4 +61,17 @@ router.put('/bookings/:id', async (req, res, next) => {
   }
 });
 
+/**
+ * DELETE /api/bookings/:id (SH-30 / T030)
+ * Aflyser/sletter en booking via soft delete (status = 'cancelled') og returnerer HTTP 200 OK eller HTTP 404 ved ukendt ID.
+ */
+router.delete('/bookings/:id', async (req, res, next) => {
+  try {
+    const cancelledBooking = await bookingService.cancelBooking(req.params.id);
+    res.status(200).json(cancelledBooking);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
