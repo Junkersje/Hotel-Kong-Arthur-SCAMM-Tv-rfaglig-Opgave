@@ -100,7 +100,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Mål**: Backenden udstiller nøgletal for samlet omsætning (værelser + bar), værelsesindtægt, barandel og belægningsgrad baseret på de 214 værelser.
 
 - [x] T033 [P] [US5] Implementer sæsontilhørsforhold og kalenderberegningshjælper (faste blokke: nov-feb, mar-maj+sep-okt, jun-aug) i `backend/src/services/seasonService.js`
-- [ ] T034 [P] [US5] Implementer SQL-forespørgsler for samlet værelsesomsætning (ekskl. aflyste) og barsalg i `backend/src/repositories/analyticsRepository.js`
+- [x] T034 [P] [US5] Implementer SQL-forespørgsler for samlet værelsesomsætning (ekskl. aflyste) og barsalg i `backend/src/repositories/analyticsRepository.js`
 - [ ] T035 [US8] Implementer SQL-forespørgsel for belægningsgrad: $\frac{\text{Optagne værelsesnætter}}{\text{214 værelser} \times \text{dage}} \times 100$ i `backend/src/repositories/analyticsRepository.js`
 - [ ] T036 [US5] Implementer `AnalyticsService.getSummary()` der samler total omsætning, værelsesomsætning, baromsætning, bar-procentdel og belægning i `backend/src/services/analyticsService.js`
 - [ ] T037 [US5] Opret REST ruter `GET /api/analytics/summary` og `GET /api/analytics/occupancy` i `backend/src/routes/analyticsRoutes.js`
