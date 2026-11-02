@@ -117,7 +117,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [ ] T039 [P] [US9] Implementer SQL-aggregering for omsætning og antal bookinger pr. land (med håndtering af "Ukendt" ved NULL) i `backend/src/repositories/analyticsRepository.js`
 - [ ] T040 [P] [US11] Implementer SQL-aggregering for omsætning fordelt på de 8 værelsestyper og de 3 sæsoner i `backend/src/repositories/analyticsRepository.js`
 - [x] T041 [P] [US15] Implementer beregning af gennemsnitlig opholdslængde (ALOS) pr. land og pr. værelsestype i `backend/src/repositories/analyticsRepository.js`
-- [ ] T042 [P] [US16] Implementer beregning af ADR ($\frac{\text{Værelsesomsætning}}{\text{Solgte værelsesnætter}}$) med division med nul-beskyttelse i `backend/src/services/analyticsService.js`
+- [x] T042 [P] [US16] Implementer beregning af ADR ($\frac{\text{Værelsesomsætning}}{\text{Solgte værelsesnætter}}$) med division med nul-beskyttelse i `backend/src/services/analyticsService.js`
 - [ ] T043 [US9] Implementer `AnalyticsService.getRevenueByCountry()` og `AnalyticsService.getRevenueByRoomType()` i `backend/src/services/analyticsService.js`
 - [ ] T044 [US9] Opret REST ruter `GET /api/analytics/revenue-by-country`, `GET /api/analytics/revenue-by-room-type` og `GET /api/analytics/adr` i `backend/src/routes/analyticsRoutes.js`
 
