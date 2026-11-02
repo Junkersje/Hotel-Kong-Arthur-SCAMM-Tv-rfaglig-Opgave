@@ -33,6 +33,7 @@ const analyticsRepository = {
         rt.id AS room_type_id,
         rt.name AS room_type_name,
         COUNT(b.id) AS total_bookings,
+        COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) AS total_nights_sold,
         COALESCE(SUM(b.total_price), 0) AS total_revenue
       FROM ROOM_TYPE rt
       LEFT JOIN BOOKING b ON rt.id = b.room_type_id AND b.status != 'cancelled'
@@ -300,6 +301,38 @@ const analyticsRepository = {
   },
 
   /**
+   * Henter månedlig værelsesomsætning og solgte værelsesnætter til ADR-analyse.
+   * @param {number} [year] - Valgfrit årstal til filtrering
+   */
+  async getMonthlyRevenue(year = null) {
+    let sql = `
+      SELECT 
+        YEAR(b.check_in_date) AS year,
+        MONTH(b.check_in_date) AS month,
+        COUNT(b.id) AS total_bookings,
+        COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) AS total_nights_sold,
+        COALESCE(SUM(b.total_price), 0) AS total_revenue
+      FROM BOOKING b
+      WHERE b.status != 'cancelled'
+    `;
+
+    const params = [];
+
+    if (year) {
+      sql += ` AND YEAR(b.check_in_date) = ?`;
+      params.push(year);
+    }
+
+    sql += `
+      GROUP BY YEAR(b.check_in_date), MONTH(b.check_in_date)
+      ORDER BY year DESC, month DESC
+    `;
+
+    const [rows] = await (this?.db || db).query(sql, params);
+    return rows;
+  },
+
+  /**
    * T041 [P] [US15]: Gennemsnitlig opholdslængde (ALOS) opdelt pr. land.
    */
   async getALOSByCountry() {
@@ -359,6 +392,7 @@ export const getTotalOccupancySummary = analyticsRepository.getTotalOccupancySum
 export const getMonthlyOccupancy = analyticsRepository.getMonthlyOccupancy.bind(analyticsRepository);
 export const getOccupancyBySeason = analyticsRepository.getOccupancyBySeason.bind(analyticsRepository);
 export const getSeasonalOccupancy = analyticsRepository.getSeasonalOccupancy.bind(analyticsRepository);
+export const getMonthlyRevenue = analyticsRepository.getMonthlyRevenue.bind(analyticsRepository);
 export const getALOSByCountry = analyticsRepository.getALOSByCountry.bind(analyticsRepository);
 export const getALOSByRoomType = analyticsRepository.getALOSByRoomType.bind(analyticsRepository);
 

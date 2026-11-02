@@ -2,11 +2,32 @@ import analyticsRepository from '../repositories/analyticsRepository.js';
 import seasonService from './seasonService.js';
 
 /**
+ * Hjælpefunktion til ADR-beregning med division med nul-beskyttelse (T042).
+ * ADR = Værelsesomsætning / Solgte værelsesnætter
+ *
+ * @param {number|string} roomRevenue - Samlet værelsesomsætning
+ * @param {number|string} soldRoomNights - Antal solgte værelsesnætter
+ * @returns {number} Beregnet ADR afrundet til 2 decimaler (eller 0 ved 0 solgte nætter)
+ */
+function calculateADR(roomRevenue, soldRoomNights) {
+  const revenue = Number(roomRevenue) || 0;
+  const nights = Number(soldRoomNights) || 0;
+
+  // Division med nul-beskyttelse
+  if (nights <= 0 || revenue <= 0) {
+    return 0;
+  }
+
+  return Number((revenue / nights).toFixed(2));
+}
+
+/**
  * Service-lag for Analytics og Forretningsnøgletal (Business Logic Layer)
  */
 const analyticsService = {
   analyticsRepository,
   seasonService,
+  calculateADR,
 
   /**
    * T036 [US5]: Samler total omsætning, værelsesomsætning, baromsætning,
@@ -27,6 +48,10 @@ const analyticsService = {
     const roomRevenue = Number(roomData?.total_room_revenue || 0);
     const barRevenue = Number(barData?.total_bar_revenue || 0);
     const totalRevenue = Number((roomRevenue + barRevenue).toFixed(2));
+    const occupiedNights = Number(occupancyData?.total_occupied_room_nights || 0);
+
+    // T042: Beregn ADR med division med nul-beskyttelse
+    const adr = calculateADR(roomRevenue, occupiedNights);
 
     // 2. Beregn barens procentdel af den samlede omsætning
     let barRevenuePercentage = 0;
@@ -47,10 +72,12 @@ const analyticsService = {
         barRevenue,
         roomRevenuePercentage,
         barRevenuePercentage,
+        adr,
+        averageDailyRate: adr,
         currency: 'DKK',
       },
       occupancy: {
-        occupiedRoomNights: Number(occupancyData?.total_occupied_room_nights || 0),
+        occupiedRoomNights: occupiedNights,
         estimatedOverallOccupancyPercent: Number(occupancyData?.estimated_overall_occupancy_percent || 0),
         totalRoomsCapacity: 214,
       },
@@ -130,7 +157,61 @@ const analyticsService = {
         alos: Number(item.average_length_of_stay)
       }))
     };
-  }
+  },
+
+  /**
+   * T042 [P] [US16]: Henter detaljeret ADR-analyse på tværs af hotellet og værelsestyper samt måned.
+   * @param {number} [year] - Valgfrit årstal til filtrering af månedlig ADR
+   */
+  async getADRAnalytics(year = null) {
+    const repo = this?.analyticsRepository || analyticsRepository;
+    const promises = [
+      this.getSummary(),
+      repo.getRevenueByRoomType(),
+    ];
+
+    const hasMonthlyMethod = typeof repo.getMonthlyRevenue === 'function';
+    if (hasMonthlyMethod) {
+      promises.push(repo.getMonthlyRevenue(year));
+    }
+
+    const [summary, roomTypeData, monthlyData] = await Promise.all(promises);
+
+    const roomTypesADR = (roomTypeData || []).map((rt) => {
+      const rev = Number(rt.total_revenue || 0);
+      const nights = Number(rt.total_nights_sold || rt.total_bookings || 0);
+      return {
+        roomTypeId: rt.room_type_id,
+        roomTypeName: rt.room_type_name,
+        revenue: rev,
+        soldNights: nights,
+        adr: calculateADR(rev, nights),
+      };
+    });
+
+    const result = {
+      overallADR: summary.financials.adr,
+      totalRoomRevenue: summary.financials.roomRevenue,
+      totalSoldNights: summary.occupancy.occupiedRoomNights,
+      byRoomType: roomTypesADR,
+    };
+
+    if (monthlyData) {
+      result.byMonth = monthlyData.map((m) => {
+        const rev = Number(m.total_revenue || 0);
+        const nights = Number(m.total_nights_sold || m.total_nights_booked || 0);
+        return {
+          year: m.year,
+          month: m.month,
+          revenue: rev,
+          soldNights: nights,
+          adr: calculateADR(rev, nights),
+        };
+      });
+    }
+
+    return result;
+  },
 };
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -142,6 +223,9 @@ export const getRoomTypeBreakdown = analyticsService.getRoomTypeBreakdown.bind(a
 export const getMonthlyOccupancy = analyticsService.getMonthlyOccupancy.bind(analyticsService);
 export const getBarPerformance = analyticsService.getBarPerformance.bind(analyticsService);
 export const getStayLengthAnalytics = analyticsService.getStayLengthAnalytics.bind(analyticsService);
+// calculateADR export
+export { calculateADR };
+export const getADRAnalytics = analyticsService.getADRAnalytics.bind(analyticsService);
 
 export { analyticsService };
 export default analyticsService;

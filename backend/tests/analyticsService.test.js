@@ -24,7 +24,9 @@ const {
   getSummary,
   getRoomTypeBreakdown,
   getMonthlyOccupancy,
-  getBarPerformance
+  getBarPerformance,
+  calculateADR,
+  getADRAnalytics
 } = await import('../src/services/analyticsService.js');
 
 test('T036: getSummary samler total omsætning, værelsesomsætning, baromsætning og belægning', async () => {
@@ -197,4 +199,160 @@ test('T036: Named exports fungerer og er bundet til analyticsService', () => {
   assert.equal(typeof getRoomTypeBreakdown, 'function');
   assert.equal(typeof getMonthlyOccupancy, 'function');
   assert.equal(typeof getBarPerformance, 'function');
+});
+
+test('T042: calculateADR beregner dagspris korrekt og runder til 2 decimaler', () => {
+  // 1.400.000 DKK / 1.000 nætter = 1.400,00 DKK
+  assert.equal(calculateADR(1400000, 1000), 1400);
+  assert.equal(calculateADR('1400000', '1000'), 1400);
+
+  // Afrunding til 2 decimaler: 1000 / 3 = 333.3333... -> 333.33
+  assert.equal(calculateADR(1000, 3), 333.33);
+
+  // 123456.78 / 500 = 246.91356 -> 246.91
+  assert.equal(calculateADR(123456.78, 500), 246.91);
+});
+
+test('T042: calculateADR beskytter mod division med 0 og ugyldige værdier', () => {
+  assert.equal(calculateADR(1400000, 0), 0);
+  assert.equal(calculateADR(0, 1000), 0);
+  assert.equal(calculateADR(0, 0), 0);
+  assert.equal(calculateADR(-5000, 10), 0);
+  assert.equal(calculateADR(5000, -10), 0);
+  assert.equal(calculateADR(null, undefined), 0);
+  assert.equal(calculateADR('ugyldig', 'ugyldig'), 0);
+});
+
+test('T042: getSummary inkluderer adr og averageDailyRate under financials', async () => {
+  const mockRepo = {
+    getTotalRoomRevenue: async () => ({
+      total_room_revenue: 800000,
+      total_valid_bookings: 500
+    }),
+    getTotalBarRevenue: async () => ({
+      total_bar_revenue: 200000,
+      total_sales_transactions: 1500
+    }),
+    getTotalOccupancySummary: async () => ({
+      total_occupied_room_nights: 12000,
+      estimated_overall_occupancy_percent: 72.45
+    })
+  };
+
+  const service = { ...analyticsService, analyticsRepository: mockRepo };
+  const summary = await service.getSummary();
+
+  // 800000 / 12000 = 66.666... -> 66.67
+  assert.equal(summary.financials.adr, 66.67);
+  assert.equal(summary.financials.averageDailyRate, 66.67);
+});
+
+test('T042: getSummary sætter adr til 0 ved 0 solgte overnatninger', async () => {
+  const mockRepo = {
+    getTotalRoomRevenue: async () => ({
+      total_room_revenue: 50000,
+      total_valid_bookings: 10
+    }),
+    getTotalBarRevenue: async () => ({
+      total_bar_revenue: 5000,
+      total_sales_transactions: 20
+    }),
+    getTotalOccupancySummary: async () => ({
+      total_occupied_room_nights: 0,
+      estimated_overall_occupancy_percent: 0
+    })
+  };
+
+  const service = { ...analyticsService, analyticsRepository: mockRepo };
+  const summary = await service.getSummary();
+
+  assert.equal(summary.financials.adr, 0);
+  assert.equal(summary.financials.averageDailyRate, 0);
+});
+
+test('T042: getADRAnalytics beregner samlet ADR og ADR opdelt pr. værelsestype', async () => {
+  const mockRoomTypeData = [
+    {
+      room_type_id: 1,
+      room_type_name: 'Single',
+      total_bookings: 50,
+      total_nights_sold: 100,
+      total_revenue: 120000
+    },
+    {
+      room_type_id: 2,
+      room_type_name: 'Suite',
+      total_bookings: 20,
+      total_nights_sold: 40,
+      total_revenue: 100000
+    },
+    {
+      room_type_id: 3,
+      room_type_name: 'Budget Room',
+      total_bookings: 0,
+      total_nights_sold: 0,
+      total_revenue: 0
+    }
+  ];
+
+  const mockRepo = {
+    getTotalRoomRevenue: async () => ({ total_room_revenue: 220000, total_valid_bookings: 70 }),
+    getTotalBarRevenue: async () => ({ total_bar_revenue: 0, total_sales_transactions: 0 }),
+    getTotalOccupancySummary: async () => ({ total_occupied_room_nights: 140, estimated_overall_occupancy_percent: 50 }),
+    getRevenueByRoomType: async () => mockRoomTypeData
+  };
+
+  const service = { ...analyticsService, analyticsRepository: mockRepo };
+  const adrResult = await service.getADRAnalytics();
+
+  // 220000 / 140 = 1571.4285... -> 1571.43
+  assert.equal(adrResult.overallADR, 1571.43);
+  assert.equal(adrResult.totalRoomRevenue, 220000);
+  assert.equal(adrResult.totalSoldNights, 140);
+  assert.equal(adrResult.byRoomType.length, 3);
+
+  // Single: 120000 / 100 = 1200
+  assert.equal(adrResult.byRoomType[0].roomTypeName, 'Single');
+  assert.equal(adrResult.byRoomType[0].soldNights, 100);
+  assert.equal(adrResult.byRoomType[0].adr, 1200);
+
+  // Suite: 100000 / 40 = 2500
+  assert.equal(adrResult.byRoomType[1].roomTypeName, 'Suite');
+  assert.equal(adrResult.byRoomType[1].soldNights, 40);
+  assert.equal(adrResult.byRoomType[1].adr, 2500);
+
+  // Budget Room: 0 / 0 = 0 (nul-beskyttelse)
+  assert.equal(adrResult.byRoomType[2].roomTypeName, 'Budget Room');
+  assert.equal(adrResult.byRoomType[2].soldNights, 0);
+  assert.equal(adrResult.byRoomType[2].adr, 0);
+});
+
+test('T042: getADRAnalytics inkluderer månedlig fordeling hvis tilgængelig', async () => {
+  const mockRepo = {
+    getTotalRoomRevenue: async () => ({ total_room_revenue: 100000, total_valid_bookings: 50 }),
+    getTotalBarRevenue: async () => ({ total_bar_revenue: 0, total_sales_transactions: 0 }),
+    getTotalOccupancySummary: async () => ({ total_occupied_room_nights: 100, estimated_overall_occupancy_percent: 50 }),
+    getRevenueByRoomType: async () => [
+      { room_type_id: 1, room_type_name: 'Single', total_nights_sold: 100, total_revenue: 100000 }
+    ],
+    getMonthlyRevenue: async () => [
+      { year: 2026, month: 7, total_nights_sold: 60, total_revenue: 66000 },
+      { year: 2026, month: 8, total_nights_sold: 40, total_revenue: 34000 }
+    ]
+  };
+
+  const service = { ...analyticsService, analyticsRepository: mockRepo };
+  const adrResult = await service.getADRAnalytics();
+
+  assert.ok(Array.isArray(adrResult.byMonth));
+  assert.equal(adrResult.byMonth.length, 2);
+  assert.equal(adrResult.byMonth[0].month, 7);
+  assert.equal(adrResult.byMonth[0].adr, 1100); // 66000 / 60
+  assert.equal(adrResult.byMonth[1].month, 8);
+  assert.equal(adrResult.byMonth[1].adr, 850);  // 34000 / 40
+});
+
+test('T042: Named exports for calculateADR og getADRAnalytics fungerer', () => {
+  assert.equal(typeof calculateADR, 'function');
+  assert.equal(typeof getADRAnalytics, 'function');
 });
