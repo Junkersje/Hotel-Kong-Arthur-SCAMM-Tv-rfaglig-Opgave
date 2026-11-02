@@ -2,7 +2,7 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-// Vi erstatter MySQL med en falsk databasefunktion.
+// Vi erstatter PostgreSQL med en falsk databasefunktion.
 const queryMock = mock.fn(async () => []);
 
 mock.module('../src/repositories/db.js', {

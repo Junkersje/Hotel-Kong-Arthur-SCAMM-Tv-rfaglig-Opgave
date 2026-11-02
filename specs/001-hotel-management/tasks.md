@@ -24,11 +24,11 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Formål**: Initialisering af repository- og containerinfrastruktur for backend, frontend og database.
 
 - [x] T001 Opret projektmapper for backend, frontend og database i henhold til arkitekturplanen (`backend/`, `frontend/`, `database/`)
-- [x] T002 [P] Initialiser Node.js backend-projekt med `package.json` og afhængigheder (`express`, `mysql2`, `cors`, `dotenv`, `zod`, `yamljs`) i `backend/package.json`
+- [x] T002 [P] Initialiser Node.js backend-projekt med `package.json` og afhængigheder (`express`, `pg`, `cors`, `dotenv`, `zod`, `yamljs`) i `backend/package.json`
 - [x] T003 [P] Initialiser React SPA frontend-projekt med Vite og Tailwind CSS i `frontend/package.json`
 - [x] T004 [P] Opret backend Dockerfile i `backend/Dockerfile`
 - [x] T005 [P] Opret multi-stage frontend Dockerfile med Nginx Alpine i `frontend/Dockerfile` og tilhørende `frontend/nginx.conf`
-- [x] T006 Opret samlet `docker-compose.yml` med services for `mysql`, `backend`, `frontend` og `swagger-ui` i `docker-compose.yml`
+- [x] T006 Opret samlet `docker-compose.yml` med services for `db`, `backend`, `frontend` og `swagger-ui` i `docker-compose.yml`
 
 ---
 
@@ -37,14 +37,14 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Formål**: Database-skema, seed-data, database-forbindelse og 3-lags skelet i backenden.  
 ⚠️ **KRITISK**: Ingen user stories kan implementeres, før denne fase er 100 % gennemført og testet.
 
-- [x] T007 Opret MySQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
-- [x] T008 Opret MySQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
-- [x] T009 [P] Implementer MySQL connection pool og transaktionshjælper med `mysql2/promise` i `backend/src/repositories/db.js`
+- [x] T007 Opret PostgreSQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
+- [x] T008 Opret PostgreSQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
+- [x] T009 [P] Implementer PostgreSQL connection pool og transaktionshjælper med `pg` i `backend/src/repositories/db.js`
 - [x] T010 [P] Implementer fælles middleware til JSON-parsing, CORS og centraliseret fejlhåndtering i `backend/src/server.js`
 - [x] T011 [P] Kobl OpenAPI-specifikationen `contracts/openapi.yaml` til Swagger UI containeren og tilføj `/api-docs` endpoint i `backend/src/server.js`
 - [x] T012 [P] Konfigurer frontend API-klient (`fetch` wrapper) med base URL mod backend i `frontend/src/services/api.js`
 
-**Checkpoint**: Kør `docker-compose up --build -d` og verificér, at alle 4 containere kører, MySQL er initialiseret med seed-data, og Swagger UI er tilgængelig på port 8080.
+**Checkpoint**: Kør `docker-compose up --build -d` og verificér, at alle 4 containere kører, PostgreSQL er initialiseret med seed-data, og Swagger UI er tilgængelig på port 8080.
 
 ---
 
@@ -63,7 +63,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [ ] T021 [P] [US2] Byg `BookingForm` React-komponent med validering og dropdown for de 8 værelsestyper i `frontend/src/components/BookingForm.jsx`
 - [ ] T022 [US1] Integrer `BookingList` og `BookingForm` i hovedapplikationen i `frontend/src/App.jsx`
 
-**Checkpoint (MVP)**: Verificér, at en receptionist kan søge i bookinger og oprette en ny gyldig booking, som straks vises i oversigten og persisteres i MySQL.
+**Checkpoint (MVP)**: Verificér, at en receptionist kan søge i bookinger og oprette en ny gyldig booking, som straks vises i oversigten og persisteres i PostgreSQL.
 
 ---
 
@@ -91,7 +91,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [ ] T031 [P] [US4] Byg `DeleteDialog` React-komponent med bekræftelsesadvarsel ("Er du sikker?") i `frontend/src/components/DeleteDialog.jsx`
 - [ ] T032 [US4] Kobl slet-knap i `BookingList` til `DeleteDialog` med øjeblikkelig fjernelse fra den aktive liste i `frontend/src/components/BookingList.jsx`
 
-**Checkpoint**: Fuld CRUD er nu funktionel i browserfrontenden og backenden. Aflyste bookinger forbliver i MySQL med status `cancelled`.
+**Checkpoint**: Fuld CRUD er nu funktionel i browserfrontenden og backenden. Aflyste bookinger forbliver i PostgreSQL med status `cancelled`.
 
 ---
 
@@ -172,7 +172,7 @@ graph TD
 ## Implementation Strategy (MVP First)
 
 1. **Trin 1 (Foundation)**: Gennemfør Phase 1 og Phase 2. Databasen starter med 214 værelser og seed-data, og Swagger UI viser OpenAPI-kontrakten.
-2. **Trin 2 (MVP Delivery)**: Gennemfør Phase 3 (US 1 & 2). Receptionisten kan oprette og søge bookinger i browseren mod MySQL.
+2. **Trin 2 (MVP Delivery)**: Gennemfør Phase 3 (US 1 & 2). Receptionisten kan oprette og søge bookinger i browseren mod PostgreSQL.
 3. **Trin 3 (Fuld CRUD)**: Gennemfør Phase 4 og Phase 5. Receptionisten kan redigere og soft-delete reservationer.
 4. **Trin 4 (Analytics API & Tableau)**: Gennemfør Phase 6, 7 og 8. Samtlige 10 analysevisninger samt belægningsgrad og kundetilfredshed er tilgængelige som JSON REST endpoints.
 5. **Trin 5 (Converge)**: Gennemfør Phase 9. Forbind Tableau via WDC, test live-opdatering på under 30 sekunder, og afslut dokumentationen.

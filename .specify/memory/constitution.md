@@ -7,7 +7,7 @@
 Backenden SKAL opbygges efter en strikt tre-lagsarkitektur med tydelig kodeopdeling mellem lagene:
 - **Præsentationslag (Presentation Layer)**: Håndterer REST-ruter, JSON-serialisering, syntaktisk inputformat, HTTP-statuskoder og svar. Laget MÅ IKKE indeholde skjulte SQL-forespørgsler eller forretningslogik.
 - **Forretningslag (Business Logic Layer)**: Håndterer bookingregler (herunder dato- og statusvalidering), periode- og sæsonfortolkning samt koordinering af KPI-beregninger. Laget MÅ IKKE være koblet til browserens skærmopbygning eller direkte SQL-syntaks.
-- **Dataadgangslag (Data Access Layer)**: Håndterer MySQL-forespørgsler, transaktioner, datapersistens og nødvendige databaseaggregeringer. SQL MÅ gerne udføre aggregering effektivt, men beregningsreglerne SKAL være fastlagt i specifikationen og styret af forretningslaget. Laget MÅ IKKE bestemme UI eller API'ets præsentationsformat.
+- **Dataadgangslag (Data Access Layer)**: Håndterer PostgreSQL-forespørgsler, transaktioner, datapersistens og nødvendige databaseaggregeringer. SQL MÅ gerne udføre aggregering effektivt, men beregningsreglerne SKAL være fastlagt i specifikationen og styret af forretningslaget. Laget MÅ IKKE bestemme UI eller API'ets præsentationsformat.
 
 *Rationale*: Sikrer vedligeholdelsesvenlig arkitektur, testbarhed på tværs af lag og fuld opfyldelse af softwarearkitekturkravene i opgavebeskrivelsen.
 
@@ -21,20 +21,20 @@ Systemets præsentationslag SKAL udstille et REST API med JSON som udvekslingsfo
 
 *Rationale*: Kontrakten binder browserfrontend, backend og Tableau-integration sammen og forhindrer integrationsfejl mellem gruppens komponenter.
 
-### III. MySQL-Persistens, Booking-CRUD og Løbende Dataopdatering (NON-NEGOTIABLE)
+### III. PostgreSQL-Persistens, Booking-CRUD og Løbende Dataopdatering (NON-NEGOTIABLE)
 
 Systemet SKAL fungere som en levende prototype med løbende ("live") dataopdatering — ikke blot en statisk analyse af historiske CSV-filer:
-- **Database**: Systemets database SKAL være **MySQL** med versionsstyret schema/migrationer, fremmednøgler, præcise decimaltyper til beløb samt gentagelig seed-/importkode med dubletbeskyttelse baseret på eksempeldata fra `ITAKEA/hoteldata`.
+- **Database**: Systemets database SKAL være **PostgreSQL** med versionsstyret schema/migrationer, fremmednøgler, præcise decimaltyper til beløb samt gentagelig seed-/importkode med dubletbeskyttelse baseret på eksempeldata fra `ITAKEA/hoteldata`.
 - **Browserfrontend til Booking-CRUD**: Der SKAL leveres en simpel browserbaseret frontend (som prototype-erstatning for hotellets nuværende bookingsystem), hvori brugere kan læse (`GET`), oprette (`POST`), redigere (`PUT`) og slette/aflyse (`DELETE`) bookinger gennem backendens REST API.
 - **Hotellets bookingsystem som ekstern klient**: I systemarkitekturen indgår hotellets eksisterende bookingsystem som en fremtidig/ekstern API-klient, der skriver til samme REST API.
 - **Datavalidering**: Ugyldige datoer (f.eks. afrejsedato før eller lig ankomstdato) og ugyldige formater SKAL afvises i backenden uden at gemme halve registreringer. Semantik for sletning/aflysning SKAL være ensartet på tværs af frontend, REST API, database og KPI-beregninger.
 
-*Rationale*: Opfylder hovedkravet om et dynamisk system, hvor ændringer foretaget i en browser lagres i MySQL og slår igennem i analyserne.
+*Rationale*: Opfylder hovedkravet om et dynamisk system, hvor ændringer foretaget i en browser lagres i PostgreSQL og slår igennem i analyserne.
 
 ### IV. API-Drevet Tableau Analytics og Entydige KPI'er (NON-NEGOTIABLE)
 
 Alle analyser og visualiseringer til beslutningstagere SKAL samles i et interaktivt **Tableau-dashboard med udgangspunkt i backendens REST API**:
-- **Ingen skjult genvej**: Direkte Tableau-forbindelse til MySQL eller en manuel engangseksport til CSV opfylder IKKE kravet om en løsning med udgangspunkt i REST API'et og løbende opdatering. Den valgte connector-/adaptervej og opdateringsmekanisme (`API → Tableau`) SKAL afprøves tidligt og dokumenteres.
+- **Ingen skjult genvej**: Direkte Tableau-forbindelse til PostgreSQL eller en manuel engangseksport til CSV opfylder IKKE kravet om en løsning med udgangspunkt i REST API'et og løbende opdatering. Den valgte connector-/adaptervej og opdateringsmekanisme (`API → Tableau`) SKAL afprøves tidligt og dokumenteres.
 - **Én sandhedskilde for KPI'er**: Hvert nøgletal SKAL defineres præcist én gang i specifikation/plan og beregnes efter backendens dokumenterede regler. Tableau MÅ IKKE indføre konkurrerende KPI-formler eller ukritiske gennemsnit af daglige procentsatser.
 - **Økonomisk redelighed**: Uden omkostningsdata dokumenteres og navngives *omsætning* (baseret på faktiske registrerede beløb, aldrig vejledende prisintervaller fra opgaveteksten). Ved nul i nævneren SKAL systemet og dashboardet vise `"ikke beregnelig"` eller en eksplicit tom værdi — aldrig en opdigtet `0 %`. Manglende land eller tomme kategorier SKAL være synlige frem for skjult som nul.
 
@@ -45,7 +45,7 @@ Alle analyser og visualiseringer til beslutningstagere SKAL samles i et interakt
 Hele det udviklede tekniske system SKAL være containeriseret med Docker og orkestreret via Docker Compose:
 - **Single-command opstart**: Alle systemets containerbaserede services SKAL kunne bygges og startes samlet med én enkelt `docker-compose up`-kommando.
 - **Fast service- og portstruktur**: `docker-compose.yml` SKAL definere en klar struktur med dedikerede services og faste, dokumenterede porte for:
-  1. `mysql` (MySQL-database med persistent Docker volume, så data overlever genstart)
+  1. `db` (PostgreSQL-database med persistent Docker volume, så data overlever genstart)
   2. `backend` (3-lags REST API-applikation)
   3. `frontend` (Simpel browserfrontend til booking-CRUD)
   4. `swagger-ui` (Containeriseret Swagger UI bundet til OpenAPI-specifikationen)
@@ -131,7 +131,7 @@ Med udgangspunkt i backendens REST API SKAL løsningen og det interaktive Tablea
 
 ### 2. Sprog- og Navngivningskonventioner
 
-- **Engelsk i kode og tekniske kontrakter**: Al kildekode, variabel-/funktionsnavne, MySQL-tabel- og kolonnenavne (`bookings`, `room_types`, `sale_lines` osv.), REST API-ruter (`/bookings`, `/analytics/...`) samt JSON-nøgler SKAL skrives på **engelsk**.
+- **Engelsk i kode og tekniske kontrakter**: Al kildekode, variabel-/funktionsnavne, PostgreSQL-tabel- og kolonnenavne (`bookings`, `room_types`, `sale_lines` osv.), REST API-ruter (`/bookings`, `/analytics/...`) samt JSON-nøgler SKAL skrives på **engelsk**.
 - **Dansk i dokumentation og dashboard**: Alle Spec Kit-artefakter (`.specify/memory/constitution.md` samt `spec.md`, `plan.md`, `tasks.md`, `checklists/` og `converge.md` under `specs/<feature>/`), `README.md`, `CONTRIBUTE.md` samt overskrifter og forklaringer i Tableau-dashboardet SKAL skrives på **dansk**.
 
 ### 3. Bevidste Fravalg (Out of Scope)
@@ -162,7 +162,7 @@ For at sikre en fuldt sammenhængende og gennemtestet prototype inden for det 2-
 Ved projektets afslutning SKAL følgende tekniske og analytiske leverancer foreligge og være fuldt afstemt:
 - **GitHub-repository**:
   - Spec Kit-artefakter: `.specify/memory/constitution.md` (linket fra `README.md`) samt `spec.md`, `plan.md`, `tasks.md`, `checklists/` og sidste `Converge`-resultat i `specs/<feature>/`-mappen.
-  - Kildekode til backend med tydelig 3-lagsopdeling, browserfrontend til booking-CRUD, MySQL-schema/migrationer og seed-/importkode.
+  - Kildekode til backend med tydelig 3-lagsopdeling, browserfrontend til booking-CRUD, PostgreSQL-schema/migrationer og seed-/importkode.
   - OpenAPI-specifikation og Swagger UI i Docker-container.
   - `Dockerfile`(s) og `docker-compose.yml`, der starter hele løsningen med `docker-compose up`.
   - `README.md` med opsætning, opstart, porte/adresser, datagrundlag, opdateringsvej, link til Constitution og **ét samlet arkitekturdiagram** over hele løsningen.

@@ -10,7 +10,7 @@
 
 Dette projekt leverer en fuldt integreret, forklarlig prototype for Hotel Kong Arthur i henhold til kravene for 3. semesters tværfaglige opgave (SCAMM). Systemet består af:
 1. En **Node.js (Express.js) backend** opbygget efter en strikt 3-lagsarkitektur (*Præsentationslag*, *Forretningslag*, *Dataadgangslag*), der udstiller et REST API med JSON.
-2. En **MySQL 8.0 database** med 214 værelser, 8 værelsestyper, 3 sæsoner, bookinghistorik og lobbybarens salgstransaktioner.
+2. En **PostgreSQL 15 database** med 214 værelser, 8 værelsestyper, 3 sæsoner, bookinghistorik og lobbybarens salgstransaktioner.
 3. En **React (Vite) Single Page Application** browserfrontend, der giver receptionister mulighed for at fremsøge, oprette, redigere og aflyse/slette bookinger.
 4. En **OpenAPI 3.0 specifikation** serveret via en containeriseret **Swagger UI**.
 5. Et interaktivt **Tableau-dashboard**, der forbinder til backendens REST API via en **Web Data Connector (WDC)** til dynamiske ledelsesanalyser.
@@ -23,17 +23,17 @@ Dette projekt leverer en fuldt integreret, forklarlig prototype for Hotel Kong A
 **Language/Version**: Node.js v20 LTS (Backend), JavaScript ES6+ / JSX (Frontend)
 
 **Primary Dependencies**:
-- *Backend*: Express.js, `mysql2/promise`, `cors`, `dotenv`, `zod` (inputvalidering), `yamljs`
+- *Backend*: Express.js, `pg`, `cors`, `dotenv`, `zod` (inputvalidering), `yamljs`
 - *Frontend*: React 18/19, Vite, Lucide-React (ikoner), Tailwind CSS
 - *Webserver*: Nginx Alpine (til frontend-containeren)
 
-**Storage**: MySQL 8.0 Community Server med persistent Docker volume (`mysql_data`)
+**Storage**: PostgreSQL 15 Community Server med persistent Docker volume (`postgres_data`)
 
 **Testing**: Jest og Supertest (til integrationstest af API-endpoints og forretningslag), manuelle verifikationsscenarier i `quickstart.md`
 
 **Target Platform**: Multi-container Docker Compose miljø (Linux container runtime, afviklet på Windows/macOS/Linux)
 
-**Project Type**: Web application bestående af 3-lags REST API backend, browserbaseret SPA frontend, MySQL database og Swagger UI dokumentation
+**Project Type**: Web application bestående af 3-lags REST API backend, browserbaseret SPA frontend, PostgreSQL database og Swagger UI dokumentation
 
 **Performance Goals**:
 - Tableau data-refresh reflekterer ændringer på **< 30 sekunder**.
@@ -43,7 +43,7 @@ Dette projekt leverer en fuldt integreret, forklarlig prototype for Hotel Kong A
 **Constraints**:
 - Ufravigelig tre-lagsarkitektur i backenden (ingen SQL i præsentationslaget, ingen UI-afhængighed i forretningslaget).
 - Udelukkende OpenAPI 3.0 til API-dokumentation.
-- Ingen direkte MySQL-databaseforbindelse fra Tableau (al Tableau-adgang sker med udgangspunkt i REST API'et).
+- Ingen direkte PostgreSQL-databaseforbindelse fra Tableau (al Tableau-adgang sker med udgangspunkt i REST API'et).
 - Ingen parallelle rapportpakker eller overflødige microservices (alt holdes simpelt og veldokumenteret inden for rammerne).
 
 **Scale/Scope**:
@@ -62,9 +62,9 @@ Dette projekt leverer en fuldt integreret, forklarlig prototype for Hotel Kong A
 | :--- | :--- | :--- |
 | **I. Tre-lagsarkitektur (NON-NEGOTIABLE)** | ✅ **PASS** | Tydeligt adskilt kodebase i backenden: `routes/` (Præsentation), `services/` (Forretning), `repositories/` (Dataadgang). |
 | **II. Kontraktdrevet REST API & Swagger (NON-NEGOTIABLE)** | ✅ **PASS** | Kontrakt formaliseret i `contracts/openapi.yaml` før kodeimplementering; Swagger UI tilgængelig i container på port 8080. |
-| **III. MySQL-Persistens & Booking-CRUD (NON-NEGOTIABLE)** | ✅ **PASS** | MySQL 8.0 med persistent volume, versionsstyret schema og seeddata. Browserfrontend leverer fuld CRUD med soft delete. |
+| **III. PostgreSQL-Persistens & Booking-CRUD (NON-NEGOTIABLE)** | ✅ **PASS** | PostgreSQL 15 med persistent volume, versionsstyret schema og seeddata. Browserfrontend leverer fuld CRUD med soft delete. |
 | **IV. API-Drevet Tableau Analytics & Entydige KPI'er (NON-NEGOTIABLE)** | ✅ **PASS** | Tableau integrerer via Web Data Connector mod `/api/analytics` endpoints i JSON. Én sandhedskilde for nøgletal i forretningslaget. |
-| **V. Containerisering med Docker Compose (NON-NEGOTIABLE)** | ✅ **PASS** | Fast struktur med 4 services (`mysql`, `backend`, `frontend`, `swagger-ui`), der starter samlet via én enkelt `docker-compose up`-kommando. |
+| **V. Containerisering med Docker Compose (NON-NEGOTIABLE)** | ✅ **PASS** | Fast struktur med 4 services (`db`, `backend`, `frontend`, `swagger-ui`), der starter samlet via én enkelt `docker-compose up`-kommando. |
 | **VI. Spec-Drevet Udvikling & Kvalitetskontrol (NON-NEGOTIABLE)** | ✅ **PASS** | Fuld sporbarhed fra Constitution $\rightarrow$ Spec $\rightarrow$ Clarify $\rightarrow$ Plan $\rightarrow$ Tasks. Checklists og acceptkriterier styrende. |
 
 ---
@@ -113,7 +113,7 @@ Hotel-Kong-Arthur-SCAMM/
 │   │   │   ├── bookingService.js
 │   │   │   ├── seasonService.js
 │   │   │   └── analyticsService.js
-│   │   ├── repositories/    # 3. DATAADGANGSLAG: MySQL queries, transaktioner og connection pool
+│   │   ├── repositories/    # 3. DATAADGANGSLAG: PostgreSQL queries, transaktioner og connection pool
 │   │   │   ├── db.js
 │   │   │   ├── bookingRepository.js
 │   │   │   ├── roomRepository.js

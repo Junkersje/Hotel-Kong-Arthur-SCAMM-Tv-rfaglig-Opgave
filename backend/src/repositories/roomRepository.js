@@ -42,15 +42,15 @@ export async function getAvailableRooms(roomTypeId, checkIn, checkOut) {
             rt.name AS room_type_name
         FROM ROOM r
         JOIN ROOM_TYPE rt ON r.room_type_id = rt.id
-        WHERE r.room_type_id = ?
+        WHERE r.room_type_id = $1
           AND r.status = 'available'
           AND NOT EXISTS (
               SELECT 1
               FROM BOOKING b
               WHERE b.room_number = r.room_number
                 AND b.status IN ('confirmed', 'checked_in')
-                AND b.check_in_date < ?
-                AND b.check_out_date > ?
+                AND b.check_in_date < $2
+                AND b.check_out_date > $3
           )
         ORDER BY r.room_number ASC
     `;

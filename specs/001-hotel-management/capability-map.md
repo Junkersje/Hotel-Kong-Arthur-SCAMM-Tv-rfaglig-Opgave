@@ -87,11 +87,11 @@ graph TB
 | Capability | Hvordan prototypen kan understøtte den |
 | :--- | :--- |
 | **Bookinghåndtering** | Browserfrontend med opret, redigér og slet via REST API |
-| **Dataopdatering og datakvalitet** | Validering i backend og lagring i MySQL |
+| **Dataopdatering og datakvalitet** | Validering i backend og lagring i PostgreSQL |
 | **Hoteløkonomi og barindsigt** | Definerede beregninger og data tilgængelige via API |
 | **Rapportering og visualisering** | Tableau-dashboard med udgangspunkt i backendens REST API |
 
-*Backend, MySQL, API og Tableau er tekniske understøttelser – ikke capabilities i sig selv. Løsningen skal demonstrere et sammenhængende flow fra ændrede data til opdateret visning.*
+*Backend, PostgreSQL, API og Tableau er tekniske understøttelser – ikke capabilities i sig selv. Løsningen skal demonstrere et sammenhængende flow fra ændrede data til opdateret visning.*
 
 ---
 

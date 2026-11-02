@@ -24,9 +24,9 @@ test('T014: Søgning efter gæstenavn, email og booking-ID', async () => {
   const { sql, params } = calls[0];
 
   assert.equal(results.length, 1);
-  assert.match(sql, /CAST\(b\.id AS CHAR\) LIKE \?/);
-  assert.match(sql, /g\.name LIKE \?/);
-  assert.match(sql, /g\.email LIKE \?/);
+  assert.match(sql, /CAST\(b\.id AS TEXT\) ILIKE \$1/);
+  assert.match(sql, /g\.name ILIKE \$2/);
+  assert.match(sql, /g\.email ILIKE \$3/);
   assert.deepEqual(params, ['%Anna%', '%Anna%', '%Anna%']);
 });
 
@@ -41,9 +41,9 @@ test('T014: Filtrering efter status og datoer', async () => {
 
   const { sql, params } = calls[0];
 
-  assert.match(sql, /b\.status = \?/);
-  assert.match(sql, /b\.check_in_date >= \?/);
-  assert.match(sql, /b\.check_in_date <= \?/);
+  assert.match(sql, /b\.status = \$1/);
+  assert.match(sql, /b\.check_in_date >= \$2/);
+  assert.match(sql, /b\.check_in_date <= \$3/);
 
   assert.deepEqual(params, [
     'confirmed',

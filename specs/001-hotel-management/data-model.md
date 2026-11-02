@@ -2,7 +2,7 @@
 
 **Feature**: [spec.md](./spec.md) | **Feature Directory**: `specs/001-hotel-management`  
 **Date**: 2026-10-29  
-**Database**: MySQL 8.0  
+**Database**: PostgreSQL 15
 **Status**: Completed
 
 Dette dokument definerer den relationelle datamodel, tabeller, fremmednøgler, forretningsregler og seed-strategi for Hotel Kong Arthur-systemet (SCAMM).
@@ -159,7 +159,7 @@ classDiagram
 ### 2.1 `room_types` (De 8 officielle værelseskategorier)
 - **Formål**: Indeholder hotellets 8 faste værelsestyper.
 - **Felter**:
-  - `id` (INT, PK, AUTO_INCREMENT)
+  - `id` (SERIAL, PK)
   - `name` (VARCHAR(100), NOT NULL, UNIQUE)
   - `capacity` (INT, NOT NULL, DEFAULT 2) — Maksimal personkapacitet (1–4)
   - `base_price_indicative` (VARCHAR(100), NULL) — Vejledende prisinterval fra opgaven (kun information)
@@ -182,7 +182,7 @@ classDiagram
   - `room_number` (INT, PK) — Værelsesnumre (f.eks. 101–425)
   - `room_type_id` (INT, NOT NULL, FK $\rightarrow$ `room_types.id`)
   - `floor` (INT, NOT NULL) — 1. til 4. etage
-  - `status` (ENUM('available', 'occupied', 'maintenance'), NOT NULL, DEFAULT 'available')
+  - `status` (VARCHAR(50), NOT NULL, DEFAULT 'available', CHECK `status IN ('available', 'occupied', 'maintenance')`)
 
 **Integritetsregel**: Der skal være præcis **214 værelser** oprettet i seed-data for at sikre, at kapacitetsberegninger til enhver tid er retvisende.
 
@@ -191,19 +191,19 @@ classDiagram
 ### 2.3 `guests` (Gæster og lande)
 - **Formål**: Registrering af gæstens oplysninger og bopælsland/nationalitet.
 - **Felter**:
-  - `id` (INT, PK, AUTO_INCREMENT)
+  - `id` (SERIAL, PK)
   - `name` (VARCHAR(150), NOT NULL)
   - `country` (VARCHAR(100), NULL) — Gæstens kontaktland (hvis NULL, grupperes under "Ukendt")
   - `email` (VARCHAR(150), NULL)
   - `phone` (VARCHAR(50), NULL)
-  - `created_at` (DATETIME, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+  - `created_at` (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
 
 ---
 
 ### 2.4 `bookings` (Reservationer og ophold)
 - **Formål**: Kerneenhed for overnatninger, CRUD-håndtering og omsætningsberegninger.
 - **Felter**:
-  - `id` (INT, PK, AUTO_INCREMENT)
+  - `id` (SERIAL, PK)
   - `guest_id` (INT, NOT NULL, FK $\rightarrow$ `guests.id`)
   - `room_type_id` (INT, NOT NULL, FK $\rightarrow$ `room_types.id`)
   - `room_number` (INT, NULL, FK $\rightarrow$ `rooms.room_number`) — Valgfrit tildelt værelse
@@ -211,15 +211,15 @@ classDiagram
   - `check_out_date` (DATE, NOT NULL)
   - `num_guests` (INT, NOT NULL, CHECK `num_guests >= 1 AND num_guests <= 4`)
   - `total_price` (DECIMAL(10,2), NOT NULL, CHECK `total_price >= 0`) — Faktisk aftalt totalbeløb i DKK
-  - `status` (ENUM('confirmed', 'cancelled', 'completed'), NOT NULL, DEFAULT 'confirmed')
-  - `satisfaction_rating` (TINYINT, NULL, CHECK `satisfaction_rating BETWEEN 1 AND 5`)
-  - `created_at` (DATETIME, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
-  - `updated_at` (DATETIME, NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  - `status` (VARCHAR(20), NOT NULL, DEFAULT 'confirmed', CHECK `status IN ('confirmed', 'cancelled', 'completed')`)
+  - `satisfaction_rating` (SMALLINT, NULL, CHECK `satisfaction_rating BETWEEN 1 AND 5`)
+  - `created_at` (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+  - `updated_at` (TIMESTAMP, NOT NULL; updated by the application)
 
 **Validerings- og Forretningsregler**:
 1. `check_out_date > check_in_date` (afvises ellers af database constraint / service-lag).
-2. Sletning udføres som **Soft Delete**: `UPDATE bookings SET status = 'cancelled' WHERE id = ?`.
-3. Beregning af overnatninger: $\text{Nætter} = \text{DATEDIFF}(check\_out\_date, check\_in\_date)$. Check-out dagen tæller **ikke** som en overnatning.
+2. Sletning udføres som **Soft Delete**: `UPDATE bookings SET status = 'cancelled' WHERE id = $1`.
+3. Beregning af overnatninger: $\text{Nætter} = \text{check\_out\_date} - \text{check\_in\_date}$. Check-out dagen tæller **ikke** som en overnatning.
 
 ---
 
@@ -240,9 +240,9 @@ classDiagram
 ### 2.6 `products` (Lobbybarens menukort)
 - **Formål**: Registrering af menukortet i lobbybaren.
 - **Felter**:
-  - `id` (INT, PK, AUTO_INCREMENT)
+  - `id` (SERIAL, PK)
   - `name` (VARCHAR(100), NOT NULL, UNIQUE)
-  - `category` (ENUM('cocktail', 'coffee', 'wine', 'beer', 'snack'), NOT NULL)
+  - `category` (VARCHAR(20), NOT NULL, CHECK `category IN ('cocktail', 'coffee', 'wine', 'beer', 'snack')`)
   - `price` (DECIMAL(10,2), NOT NULL, CHECK `price >= 0`)
 
 **Dataomfang**:
@@ -255,12 +255,12 @@ classDiagram
 ### 2.7 `sales` og `sale_lines` (Barsalgstransaktioner)
 - **Formål**: Fintmasket transaktionsdata for baren, der muliggør både medarbejder-, volumen- og produktanalyser.
 - **`sales` Felter**:
-  - `id` (INT, PK, AUTO_INCREMENT)
+  - `id` (SERIAL, PK)
   - `employee_id` (VARCHAR(20), NOT NULL, FK $\rightarrow$ `employees.id`)
-  - `sale_time` (DATETIME, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+  - `sale_time` (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
   - `total_amount` (DECIMAL(10,2), NOT NULL, DEFAULT 0.00)
 - **`sale_lines` Felter**:
-  - `id` (INT, PK, AUTO_INCREMENT)
+  - `id` (SERIAL, PK)
   - `sale_id` (INT, NOT NULL, FK $\rightarrow$ `sales.id` ON DELETE CASCADE)
   - `product_id` (INT, NOT NULL, FK $\rightarrow$ `products.id`)
   - `quantity` (INT, NOT NULL, CHECK `quantity >= 1`)
@@ -275,9 +275,9 @@ For at fordele overnatninger på sæsoner anvender forretningslaget og databasef
 
 ```sql
 CASE 
-    WHEN MONTH(D) IN (11, 12, 1, 2) THEN 'Lavsæson'
-    WHEN MONTH(D) IN (3, 4, 5, 9, 10) THEN 'Mellemsæson'
-    WHEN MONTH(D) IN (6, 7, 8) THEN 'Højsæson'
+    WHEN EXTRACT(MONTH FROM D) IN (11, 12, 1, 2) THEN 'Lavsæson'
+    WHEN EXTRACT(MONTH FROM D) IN (3, 4, 5, 9, 10) THEN 'Mellemsæson'
+    WHEN EXTRACT(MONTH FROM D) IN (6, 7, 8) THEN 'Højsæson'
 END AS season_name
 ```
 

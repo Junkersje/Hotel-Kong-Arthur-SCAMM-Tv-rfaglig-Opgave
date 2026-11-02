@@ -32,7 +32,7 @@ docker-compose up --build -d
 | **Frontend** | `3000` | React (Vite) Single Page Application (Nginx) | [http://localhost:3000](http://localhost:3000) |
 | **Backend** | `5000` | Node.js Express 3-lags REST API | [http://localhost:5000/api](http://localhost:5000/api) |
 | **Swagger UI** | `8080` | Containeriseret OpenAPI 3.0 dokumentation | [http://localhost:8080](http://localhost:8080) |
-| **MySQL Database**| `3306` | MySQL 8.0 med persistent Docker volume | `localhost:3306` |
+| **PostgreSQL Database**| `5432` | PostgreSQL 15 med persistent Docker volume | `localhost:5432` |
 
 ---
 
@@ -46,7 +46,7 @@ docker-compose up --build -d
 
 ### Testscenarie 2: Browserfrontend & Bookingliste
 1. Åbn [http://localhost:3000](http://localhost:3000).
-2. Verificér, at bookingoversigten viser de seedede bookinger fra MySQL med gæstenavn, land, værelsestype, datoer og beløb.
+2. Verificér, at bookingoversigten viser de seedede bookinger fra PostgreSQL med gæstenavn, land, værelsestype, datoer og beløb.
 3. Test søgebaren ved at skrive et navn (f.eks. "Hansen"):
    - **Forventet resultat**: Listen filtreres øjeblikkeligt uden genindlæsning af siden.
 
@@ -63,13 +63,13 @@ docker-compose up --build -d
 
 ### Testscenarie 4: Valideringsafvisning (Negativ test)
 1. Forsøg at oprette en booking, hvor afrejsedato er før ankomstdato (f.eks. 2026-11-15 til 2026-11-12).
-   - **Forventet resultat**: Forretningslaget afviser anmodningen med HTTP 400 Bad Request, en rød fejlmeddelelse vises i interfacet, og ingen halve rækker gemmes i MySQL.
+   - **Forventet resultat**: Forretningslaget afviser anmodningen med HTTP 400 Bad Request, en rød fejlmeddelelse vises i interfacet, og ingen halve rækker gemmes i PostgreSQL.
 
 ### Testscenarie 5: Ret og Slet/Aflys (Soft Delete)
 1. Klik "Redigér" på den nyoprettede booking, forlæng opholdet med 1 nat, og gem:
-   - **Forventet resultat**: Afrejsedato opdateres i oversigten og i MySQL.
+   - **Forventet resultat**: Afrejsedato opdateres i oversigten og i PostgreSQL.
 2. Klik "Slet" på bookingen og bekræft dialogen:
-   - **Forventet resultat**: Bookingen markeres som `cancelled` i MySQL og fjernes straks fra den aktive liste.
+   - **Forventet resultat**: Bookingen markeres som `cancelled` i PostgreSQL og fjernes straks fra den aktive liste.
 
 ### Testscenarie 6: Tableau Data-refresh & Nøgletalskontrol
 1. Åbn Tableau og forbind via Web Data Connector mod [http://localhost:5000/api/analytics/summary](http://localhost:5000/api/analytics/summary).
@@ -80,4 +80,4 @@ docker-compose up --build -d
 1. Kør `docker-compose down` i terminalen.
 2. Kør derefter `docker-compose up -d`.
 3. Genindlæs [http://localhost:3000](http://localhost:3000):
-   - **Forventet resultat**: Alle data, ændringer og bookinger bevares intakt i det tilknyttede Docker volume `mysql_data`.
+   - **Forventet resultat**: Alle data, ændringer og bookinger bevares intakt i det tilknyttede Docker volume `postgres_data`.

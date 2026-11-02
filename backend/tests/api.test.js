@@ -1,8 +1,10 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'http';
-import app from '../src/server.js';
 import db from '../src/repositories/db.js';
+
+process.env.NODE_ENV = 'test';
+const { default: app } = await import('../src/server.js');
 
 describe('Hotel Kong Arthur — Integration Tests', () => {
   let server;
@@ -23,7 +25,7 @@ describe('Hotel Kong Arthur — Integration Tests', () => {
   });
 
   describe('Database Layer Tests', () => {
-    test('skal kunne forbinde til MySQL og køre simpel query', async () => {
+    test('skal kunne forbinde til PostgreSQL og køre simpel query', async () => {
       const result = await db.query('SELECT 1 + 1 AS solution');
       assert.ok(result);
       assert.equal(result[0].solution, 2);
@@ -49,7 +51,7 @@ describe('Hotel Kong Arthur — Integration Tests', () => {
       let rolledBack = false;
       try {
         await db.withTransaction(async (conn) => {
-          await conn.execute("INSERT INTO GUEST (name, country, email, phone) VALUES ('Test Rollback', 'Danmark', 'rollback@test.dk', '+45 00000000')");
+          await conn.query("INSERT INTO GUEST (name, country, email, phone) VALUES ('Test Rollback', 'Danmark', 'rollback@test.dk', '+45 00000000')");
           throw new Error('Forceret fejl for rollback-test');
         });
       } catch (e) {

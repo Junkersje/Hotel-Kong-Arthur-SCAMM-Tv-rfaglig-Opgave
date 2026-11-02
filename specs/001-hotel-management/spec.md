@@ -15,7 +15,7 @@
 - Q: Hvilken detaljeringsgrad skal analysen "Hvilke værelser tjener Kong Arthur flest penge på?" vise i Tableau og REST API'et? (FR-012) → A: Kun de 8 værelsestyper (sidestiller "værelser" med de 8 officielle værelseskategorier).
 - Q: Hvordan skal "Kundetilfredshed" modelleres i databasen og præsenteres i Tableau-dashboardet? (FR-020) → A: Rating-score fra 1 til 5 stjerner pr. booking (viser gennemsnitlig score og antal besvarelser i dashboardet; viser "Ingen besvarelser", hvis data mangler).
 - Q: Hvilke præcise datointervaller skal definere de tre sæsoner i backenden og databasen? (FR-005) → A: Faste ikke-overlappende blokke: Lavsæson er 1. nov – 28./29. feb; Mellemsæson er 1. mar – 31. maj samt 1. sep – 31. okt; Højsæson er 1. jun – 31. aug.
-- Q: Hvilken slettesemantik skal anvendes, når en booking slettes via browseren og REST API'et? (FR-001) → A: Soft delete: Markeres som status 'cancelled' i MySQL (bevarer historik og forhindrer tab af data, men ekskluderes automatisk fra aktive lister, belægning og realiseret omsætning).
+- Q: Hvilken slettesemantik skal anvendes, når en booking slettes via browseren og REST API'et? (FR-001) → A: Soft delete: Markeres som status 'cancelled' i PostgreSQL (bevarer historik og forhindrer tab af data, men ekskluderes automatisk fra aktive lister, belægning og realiseret omsætning).
 - Q: Skal procentfordelingen mellem cocktails og kaffe for Helene Christine primært baseres på omsætning (DKK) eller antal solgte enheder (stk.)? (FR-019) → A: Begge dele understøttes i API og dashboard (omsætningsandel i DKK som standardvisning med mulighed for at skifte til antalsandel i stk.; nævneren udgøres udelukkende af de to kategorier).
 
 ---
@@ -37,7 +37,7 @@ Som receptionist ønsker jeg at kunne fremsøge og inspicere en kundes booking v
 
 ### User Story 2 — Oprette ny reservation med forretningsvalidering (Priority: P1)
 
-Som receptionist ønsker jeg nemt at kunne oprette en ny booking via en browserformular, så gæstens reservation gemmes pålideligt i MySQL-databasen og automatisk indgår i de ledelsesmæssige analyser.
+Som receptionist ønsker jeg nemt at kunne oprette en ny booking via en browserformular, så gæstens reservation gemmes pålideligt i PostgreSQL-databasen og automatisk indgår i de ledelsesmæssige analyser.
 
 - **Why this priority**: Oprettelse af nye bookinger er forudsætningen for at drive hotellet og demonstrere, at systemet håndterer dynamiske dataændringer frem for statiske filer.
 - **Independent Test**: Kan testes isoleret ved at indtaste gyldige bookingdata i formularen og kontrollere, at en ny post oprettes med unikt ID.
@@ -68,7 +68,7 @@ Som receptionist ønsker jeg nemt og sikkert at kunne slette eller aflyse en boo
 - **Why this priority**: Nødvendig for at fuldføre CRUD-kravet og sikre, at sletninger håndteres ensartet i både databasen og de økonomiske analyser.
 - **Independent Test**: Kan testes ved at slette en reservation og kontrollere, at den forsvinder fra aktive lister og belægningsberegninger.
 - **Acceptance Scenarios**:
-  1. **Given** en aktiv booking i systemet, **When** receptionisten klikker slet og bekræfter handlingen i bekræftelsesdialogen, **Then** udfører systemet en soft delete ved at opdatere bookingens status til `cancelled` i MySQL, og bookingen fjernes straks fra listen over aktive reservationer i browseren.
+  1. **Given** en aktiv booking i systemet, **When** receptionisten klikker slet og bekræfter handlingen i bekræftelsesdialogen, **Then** udfører systemet en soft delete ved at opdatere bookingens status til `cancelled` i PostgreSQL, og bookingen fjernes straks fra listen over aktive reservationer i browseren.
   2. **Given** en aflyst booking med status `cancelled`, **When** ledelsen inspicerer belægningsgraden eller omsætningen for den pågældende periode, **Then** ekskluderes denne booking automatisk fra solgte værelsesnætter og realiseret omsætning.
   3. **Given** et forsøg på at slette et ikke-eksisterende booking-ID, **When** handlingen udføres, **Then** returnerer systemet en forklarende fejl uden databrud eller systemnedbrud.
 
@@ -310,7 +310,7 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
   - *Mellemsæson*: 1. marts – 31. maj samt 1. september – 31. oktober (forår og efterår)
   - *Højsæson*: 1. juni – 31. august (sommermånederne)
 - **FR-006**: Systemet SKAL fordele nætter og tilhørende omsætning korrekt til de respektive år og sæsoner ved ophold, der krydser kalenderårs- eller sæsongrænser.
-- **FR-007**: Systemet SKAL registrere og persistere alle transaktioner i MySQL-databasen, så data bevares over genstart.
+- **FR-007**: Systemet SKAL registrere og persistere alle transaktioner i PostgreSQL-databasen, så data bevares over genstart.
 - **FR-008**: Systemet SKAL beregne den samlede realiserede hotelomsætning for et valgt år som summen af faktiske værelsesindtægter og faktiske barsalgslinjer.
 - **FR-009**: Systemet SKAL beregne og præsentere hotellets belægningsgrad som:  
   $$\text{Belægningsgrad (\%)} = \frac{\text{Antal optagne værelsesnætter}}{\text{Antal tilgængelige værelsesnætter (214 pr. døgn)}} \times 100$$
@@ -351,7 +351,7 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
 
 - **SC-001 (End-to-End Opdateringsflow)**: En ændring foretaget i browserfrontenden (opret, ret eller slet booking) skal være reflekteret i de tilknyttede nøgletal i Tableau inden for **under 30 sekunder** efter udløst data-refresh.
 - **SC-002 (Kapacitetsintegritet)**: Beregning af belægningsgrad skal til enhver tid være 100 % matematisk konsistent baseret på de **214 værelser** (hverken overstige 100 % for hotellet som helhed eller tælle afrejsedatoer som overnatninger).
-- **SC-003 (Datakvalitet & Validering)**: 100 % af ugyldige reservationsforsøg (afrejse før ankomst eller persontall $\gt 4$) afvises ved kilden uden at efterlade halve transaktioner i MySQL-databasen.
+- **SC-003 (Datakvalitet & Validering)**: 100 % af ugyldige reservationsforsøg (afrejse før ankomst eller persontall $\gt 4$) afvises ved kilden uden at efterlade halve transaktioner i PostgreSQL-databasen.
 - **SC-004 (Økonomisk Konsistens)**: Summen af indtægter opdelt på de 8 værelsestyper og 3 sæsoner skal stemme på decimalen med hotellets samlede rapporterede værelsesomsætning for perioden.
 - **SC-005 (Medarbejderisolation i Baren)**: Ved visning af Helene Christines barsalg for året må 0 % af andre bartenderes eller medarbejderes salgslinjer indgå i hendes opgørelse.
 - **SC-006 (Division med nul-håndtering)**: Ved perioder eller kategorier uden salg skal 100 % af nøgletallene (ADR, ALOS, kaffe/cocktail-procent) rapportere "Ikke beregnelig" eller "0,0 %" frem for at fremprovokere systemfejl eller uforklarlige blanke diagrammer.

@@ -4,7 +4,7 @@
 [![Architecture](https://img.shields.io/badge/architecture-3--tier%20MVC%2FMVVM-blue.svg)]()
 [![Docker](https://img.shields.io/badge/docker-compose%20orchestrated-2496ED.svg)]()
 [![Node.js](https://img.shields.io/badge/node.js-v20%20LTS-green.svg)]()
-[![MySQL](https://img.shields.io/badge/mysql-8.0-orange.svg)]()
+[![PostgreSQL](https://img.shields.io/badge/postgresql-15-blue.svg)]()
 
 Dette repository indeholder den komplette, integrerede prototype for **Hotel Kong Arthur** udviklet af **Team SCAMM** i forbindelse med 3. semesters tværfaglige opgave i softwarearkitektur.
 
@@ -32,20 +32,20 @@ graph TD
             Services["Forretningsvalidering (Zod)<br/>KPI- & Sæsonberegninger"]
         end
         subgraph Layer3["3. Dataadgangslag (Repositories)"]
-            Repos["SQL Parameteriserede Queries<br/>MySQL2 Connection Pool & Transaktioner"]
+            Repos["SQL Parameteriserede Queries<br/>PostgreSQL Connection Pool & Transaktioner"]
         end
         Routes --> Services
         Services --> Repos
     end
 
-    subgraph DatabaseLayer["Datalag (Persistens - Port 3306)"]
-        MySQL[("MySQL 8.0 Community Server<br/>hotel_kong_arthur<br/>214 værelser, 1.000 bookinger")]
+    subgraph DatabaseLayer["Datalag (Persistens - Port 5432)"]
+        PostgreSQL[("PostgreSQL 15<br/>hotel_kong_arthur<br/>214 værelser, 1.000 bookinger")]
     end
 
     Browser -->|HTTP JSON| Routes
     Swagger -->|OpenAPI 3.0 Kontrakt| Routes
     Tableau -->|REST JSON /api/analytics| Routes
-    Repos -->|TCP Pool / Transaktioner| MySQL
+    Repos -->|TCP Pool / Transaktioner| PostgreSQL
 ```
 
 ---
@@ -73,7 +73,7 @@ cp .env.example .env
 docker-compose up --build -d
 ```
 
-Alle 4 containere (`hotel-mysql`, `hotel-backend`, `hotel-frontend`, `hotel-swagger-ui`) oprettes, forbindes og starter automatisk op. Databasen initialiseres automatisk med samtlige tabeller, 214 værelser, 30 produkter og 1.000 eksempelbookinger.
+Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-swagger-ui`) oprettes, forbindes og starter automatisk op. Databasen initialiseres automatisk med samtlige tabeller, 214 værelser, 30 produkter og 1.000 eksempelbookinger.
 
 ---
 
@@ -85,7 +85,7 @@ Alle 4 containere (`hotel-mysql`, `hotel-backend`, `hotel-frontend`, `hotel-swag
 | **Backend REST API** | `5000` | 3-lags Express.js REST API | [http://localhost:5000/api/health](http://localhost:5000/api/health) |
 | **Swagger UI** | `8080` | Interaktiv OpenAPI 3.0 dokumentation og sandkasse | [http://localhost:8080](http://localhost:8080) |
 | **Backend Swagger Docs** | `5000` | Swagger UI serveret direkte fra Node.js | [http://localhost:5000/api-docs](http://localhost:5000/api-docs) |
-| **MySQL 8.0 Database** | `3306` | Persistent relationel database (`hotel_data`) | `localhost:3306` |
+| **PostgreSQL 15 Database** | `5432` | Persistent relationel database (`hotel_kong_arthur`) | `localhost:5432` |
 
 ---
 
@@ -95,7 +95,7 @@ Systemet er opdelt i 5 uafhængige, parallelle spor:
 
 | Medlem | Rolle | Primære Jira Tickets | Omfang / Fil-ejerskab |
 | :--- | :--- | :--- | :--- |
-| **Mathias** | **DevOps, Infrastruktur & Samlet QA** | `SH-1 – SH-12`, `SH-51 – SH-54` | Docker Compose, MySQL connection pool, middleware, `README.md`, `CONTRIBUTE.md`, E2E test og converge-rapport. |
+| **Mathias** | **DevOps, Infrastruktur & Samlet QA** | `SH-1 – SH-12`, `SH-51 – SH-54` | Docker Compose, PostgreSQL connection pool, middleware, `README.md`, `CONTRIBUTE.md`, E2E test og converge-rapport. |
 | **Amira** | **Receptionsskranke & Oprettelse (MVP)** | `SH-13 – SH-21` | Zod-validering, gæste- & bookingoprettelse, `BookingForm.jsx` og `POST /api/bookings`. |
 | **Christoffer**| **Booking Directory & Livscyklus** | `SH-22 – SH-32` | Reaktiv søgning, redigering af datoer, soft delete (`status = 'cancelled'`), `BookingList.jsx` og `PUT/DELETE`. |
 | **Simon** | **Hotel Finance & Belægningsanalyse** | `SH-33 – SH-42` | Hotelomsætning, sæsoninddeling (lav/mellem/høj), belægningsprocent baseret på 214 værelser, KPI endpoints. |

@@ -20,30 +20,31 @@ export async function searchBookings({
   if (String(q).trim()) {
     const search = String(q).trim();
     const like = `%${search}%`;
+    const firstSearchParameter = params.length + 1;
 
     conditions.push(`(
-      CAST(b.id AS CHAR) LIKE ?
-      OR g.name LIKE ?
-      OR g.email LIKE ?
+      CAST(b.id AS TEXT) ILIKE $${firstSearchParameter}
+      OR g.name ILIKE $${firstSearchParameter + 1}
+      OR g.email ILIKE $${firstSearchParameter + 2}
     )`);
     params.push(like, like, like);
   }
 
   // Filtrér efter bookingstatus.
   if (status) {
-    conditions.push('b.status = ?');
     params.push(status);
+    conditions.push(`b.status = $${params.length}`);
   }
 
   // Filtrér efter check-in-dato.
   if (startDate) {
-    conditions.push('b.check_in_date >= ?');
     params.push(startDate);
+    conditions.push(`b.check_in_date >= $${params.length}`);
   }
 
   if (endDate) {
-    conditions.push('b.check_in_date <= ?');
     params.push(endDate);
+    conditions.push(`b.check_in_date <= $${params.length}`);
   }
 
   const whereClause = conditions.length

@@ -18,7 +18,7 @@
     "purpose": "Konfigurerer backend runtime-miljøet med Node.js (ES Modules), pakkehåndtering og alle nødvendige dependencies til REST API, databaseforbindelse, CORS, validering og dokumentation.",
     "actions": [
       "Opret 'backend/package.json' med 'type': 'module' og startscripts ('npm start', 'npm run dev', 'npm test').",
-      "Definer afhængigheder: 'express' (web-framework), 'mysql2' (MySQL driver med connection pool og async/await promise support), 'cors' (Cross-Origin Resource Sharing), 'dotenv' (miljøvariabler), 'zod' (datavalidering), 'yamljs' (parsing af OpenAPI specifikation) og 'swagger-ui-express' (interaktiv API-dokumentation).",
+      "Definer afhængigheder: 'express' (web-framework), 'pg' (PostgreSQL driver med connection pool og async/await promise support), 'cors' (Cross-Origin Resource Sharing), 'dotenv' (miljøvariabler), 'zod' (datavalidering), 'yamljs' (parsing af OpenAPI specifikation) og 'swagger-ui-express' (interaktiv API-dokumentation).",
       "Opret et minimalt 'backend/src/server.js' som entrypoint."
     ],
     "dod": "'npm install' afvikler fejlfrit i 'backend/', og serveren kan startes op lokalt på port 5000."
@@ -63,12 +63,12 @@
   {
     "taskId": "T006",
     "issueKey": "SH-6",
-    "title": "Opret samlet docker-compose.yml med services for mysql, backend, frontend og swagger-ui",
+    "title": "Opret samlet docker-compose.yml med services for db, backend, frontend og swagger-ui",
     "purpose": "Orkestrerer hele 3-lags systemet med et enkelt klik/kommando ('docker-compose up'), forbinder containere på et isoleret internt netværk, og håndterer opstartsrækkefølge (healthchecks) og persistent lagring.",
     "actions": [
-      "Definer servicen 'mysql' (MySQL 8.0) med persistent volume 'mysql_data', miljøvariabler fra .env, og mounting af 'database/schema.sql' og 'database/seed.sql' i '/docker-entrypoint-initdb.d/'.",
-      "Definer healthcheck på MySQL servicen ('mysqladmin ping -h localhost').",
-      "Definer servicen 'backend' afhængig af MySQL (condition: service_healthy) med port-forwarding 5000:5000.",
+      "Definer servicen 'db' (PostgreSQL 15) med persistent volume 'postgres_data', miljøvariabler fra .env, og mounting af 'database/schema.sql' og 'database/seed.sql' i '/docker-entrypoint-initdb.d/'.",
+      "Definer healthcheck på PostgreSQL-servicen ('pg_isready').",
+      "Definer servicen 'backend' afhængig af PostgreSQL (condition: service_healthy) med port-forwarding 5000:5000.",
       "Definer servicen 'frontend' med port-forwarding 3000:80.",
       "Definer servicen 'swagger-ui' med port-forwarding 8080:8080 og reference til OpenAPI kontrakten.",
       "Opret et fælles bridge netværk 'hotel-network'."
@@ -78,7 +78,7 @@
   {
     "taskId": "T007",
     "issueKey": "SH-7",
-    "title": "Opret MySQL DDL-skema i database/schema.sql",
+    "title": "Opret PostgreSQL DDL-skema i database/schema.sql",
     "purpose": "Etablerer det relationelle databaselayout med 3. normalform (3NF), dataintegritet, fremmednøgler (Foreign Keys) og indekser for høj forespørgselsydeevne.",
     "actions": [
       "Opret tabellen 'room_types' (id, name, description, capacity, base_price_dkk).",
@@ -88,12 +88,12 @@
       "Opret tabellerne 'employees' (id, employee_code, first_name, last_name, role), 'products' (id, name, category ['cocktail','coffee','other'], unit_price_dkk), 'sales' (id, employee_id FK, sale_time, total_amount_dkk) og 'sale_lines' (id, sale_id FK, product_id FK, quantity, line_total_dkk).",
       "Tilføj indekser på 'bookings(check_in_date, check_out_date)', 'bookings(status)', 'guests(country)' og 'sales(sale_time)'."
     ],
-    "dod": "Skriptet eksekveres uden syntaksfejl i MySQL 8.0, og alle relationer og fremmednøgler håndhæves strengt."
+    "dod": "Skriptet eksekveres uden syntaksfejl i PostgreSQL 15, og alle relationer og fremmednøgler håndhæves strengt."
   },
   {
     "taskId": "T008",
     "issueKey": "SH-8",
-    "title": "Opret MySQL seed-data i database/seed.sql",
+    "title": "Opret PostgreSQL seed-data i database/seed.sql",
     "purpose": "Befolker databasen med initialdata, der afspejler Hotel Kong Arthurs faktiske drift: de 8 officielle værelsestyper, alle 214 værelser, Helene Christine (HC01), 20 cocktails, 10 kaffetyper og baseline-bookinger til analyse.",
     "actions": [
       "Indsæt de 8 værelsestyper (Standard Enkelt, Standard Dobbelt, Superior Dobbelt, Deluxe Dobbelt, Juniorsuite, Suite, Spa Suite, Familie Suite).",
@@ -107,10 +107,10 @@
   {
     "taskId": "T009",
     "issueKey": "SH-9",
-    "title": "Implementer MySQL connection pool og transaktionshjælper i backend/src/repositories/db.js",
+    "title": "Implementer PostgreSQL connection pool og transaktionshjælper i backend/src/repositories/db.js",
     "purpose": "Håndterer effektiv forbindelsesstyring mod databasen via connection pooling (genbrug af forbindelser) samt understøttelse af atomare transaktioner (BEGIN, COMMIT, ROLLBACK).",
     "actions": [
-      "Initialiser 'mysql2/promise.createPool' med parametre fra miljøvariabler (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, connectionLimit: 10).",
+      "Initialiser 'pg.createPool' med parametre fra miljøvariabler (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, connectionLimit: 10).",
       "Implementer hjælpefunktionen 'query(sql, params)' til standardforespørgsler.",
       "Implementer transaktionshjælper 'withTransaction(callback)' som automatisk reserverer en connection, starter transaktion, udfører callback og ruller tilbage ved exceptions."
     ],
@@ -162,7 +162,7 @@
       "Implementer 'RoomRepository.getAll()' som henter alle 214 værelser med join til 'room_types' for at inkludere type-navn.",
       "Implementer 'RoomRepository.getAvailableRooms(roomTypeId, checkIn, checkOut)' der finder ledige værelser uden overlappende aktive reservationer."
     ],
-    "dod": "Repository-funktionerne returnerer de korrekte data fra MySQL og filtrerer korrekt for overlappende bookinger."
+    "dod": "Repository-funktionerne returnerer de korrekte data fra PostgreSQL og filtrerer korrekt for overlappende bookinger."
   },
   {
     "taskId": "T014",
@@ -226,7 +226,7 @@
       "Tildel et konkret ledigt værelse (værelses-ID) og indsæt rækken i 'bookings' tabellen med status 'confirmed' og beregnet totalpris.",
       "Commit transaktionen og returner den oprettede booking med tildelt booking-ID."
     ],
-    "dod": "Ny booking persisteres fuldstændigt i MySQL. Hvis værelse ikke er ledigt, rulles transaktionen tilbage uden delvise ændringer."
+    "dod": "Ny booking persisteres fuldstændigt i PostgreSQL. Hvis værelse ikke er ledigt, rulles transaktionen tilbage uden delvise ændringer."
   },
   {
     "taskId": "T019",
@@ -283,7 +283,7 @@
     "taskId": "T023",
     "issueKey": "SH-23",
     "title": "[US3] Implementer BookingRepository.getById() og updateBooking() i backend/src/repositories/bookingRepository.js",
-    "purpose": "Giver mulighed for at hente en specifik reservation frem på ID og opdatere dens gæstedata, værelsestype, datoer eller status i MySQL.",
+    "purpose": "Giver mulighed for at hente en specifik reservation frem på ID og opdatere dens gæstedata, værelsestype, datoer eller status i PostgreSQL.",
     "actions": [
       "Implementer 'getById(id)' der returnerer fuld bookinginfo inkl. gæstedata.",
       "Implementer 'updateBooking(id, updateData)' som opdaterer felterne i 'bookings' tabellen og gæsteoplysningerne i 'guests'.",
@@ -352,7 +352,7 @@
       "Udfør SQL: 'UPDATE bookings SET status = \"cancelled\", updated_at = NOW() WHERE id = ?'.",
       "Sørg for at værelset i den pågældende periode automatisk frigives til nye bookinger."
     ],
-    "dod": "SQL-kaldet opdaterer status til 'cancelled' uden at slette rækken fra MySQL."
+    "dod": "SQL-kaldet opdaterer status til 'cancelled' uden at slette rækken fra PostgreSQL."
   },
   {
     "taskId": "T029",
@@ -475,7 +475,7 @@
       "Vis 4 stat-kort med pæne ikoner og Tailwind styling: Total Omsætning (DKK), Værelsesomsætning, Bar-andel (%) og Belægningsgrad (%).",
       "Hent data asynkront fra '/api/analytics/summary' og opdater automatisk ved datovalg."
     ],
-    "dod": "Dashboard-kortene vises pænt i browseren med korrekte dynamiske tal direkte fra MySQL."
+    "dod": "Dashboard-kortene vises pænt i browseren med korrekte dynamiske tal direkte fra PostgreSQL."
   },
   {
     "taskId": "T039",
@@ -634,7 +634,7 @@
     "purpose": "Leverer komplet teknisk dokumentation over Hotel Kong Arthur-platformen til sensorer, undervisere og nye udviklere.",
     "actions": [
       "Dokumenter forudsætninger (Docker, Docker Compose, Git).",
-      "Beskriv den 3-lags softwarearkitektur med Mermaid diagrammer (React SPA frontend, Node.js/Express backend, MySQL 8.0 database).",
+      "Beskriv den 3-lags softwarearkitektur med Mermaid diagrammer (React SPA frontend, Node.js/Express backend, PostgreSQL 15 database).",
       "Inkluder trin-for-trin startvejledning ('docker-compose up --build -d') samt links til frontend (port 3000), backend API (port 5000), Swagger UI (port 8080) og Tableau WDC.",
       "Angiv standardportliste og oversigt over miljøvariabler."
     ],
@@ -661,7 +661,7 @@
     "actions": [
       "Scenarie 1: Ren installation og container-start via docker-compose.",
       "Scenarie 2: Fremsøg eksisterende bookinger i UI.",
-      "Scenarie 3: Opret en ny booking og verificer persistering i MySQL.",
+      "Scenarie 3: Opret en ny booking og verificer persistering i PostgreSQL.",
       "Scenarie 4: Rediger en eksisterende booking (forlæng ophold).",
       "Scenarie 5: Soft delete / aflys en booking og verificer status='cancelled'.",
       "Scenarie 6: Hent analyse-endpoints og verificer live opdatering i Tableau WDC.",

@@ -37,11 +37,11 @@ Dette dokument konsoliderer de tekniske undersøgelser, arkitekturvalg og begrun
 
 ## 3. Database & Datapersistens
 
-- **Beslutning**: **MySQL 8.0** med versionsstyret SQL-skema (`schema.sql`) og gentagelig seed-kode (`seed.sql`), orkestreret i Docker med et navngivet Docker volume (`mysql_data`).
+- **Beslutning**: **PostgreSQL 15** med versionsstyret SQL-skema (`schema.sql`) og gentagelig seed-kode (`seed.sql`), orkestreret i Docker med et navngivet Docker volume (`postgres_data`).
 - **Begrundelse**:
-  - MySQL er et ufravigeligt krav i opgavebeskrivelsen og Constitution.
+  - PostgreSQL er et ufravigeligt krav i opgavebeskrivelsen og Constitution.
   - Understøtter ACID-transaktioner, fremmednøgler (`FOREIGN KEY`) og præcise decimaltyper (`DECIMAL(10,2)` for priser og beløb).
-  - Dataadgangslaget i Node.js anvender biblioteket `mysql2/promise` med connection pooling for at sikre hurtige og asynkrone databasekald uden blokerende I/O.
+  - Dataadgangslaget i Node.js anvender biblioteket `pg` med connection pooling for at sikre hurtige og asynkrone databasekald uden blokerende I/O.
 - **Overvejede alternativer**:
   - *PostgreSQL / SQLite*: Ikke tilladt jf. opgavekravet.
   - *ORM (Prisma / TypeORM)*: Overvejet, men fravalgt til fordel for parametriserede SQL-queries i repositories for at bevare fuld gennemsigtighed og direkte kontrol over de aggregerede KPI-forespørgsler.
@@ -65,10 +65,10 @@ Dette dokument konsoliderer de tekniske undersøgelser, arkitekturvalg og begrun
 - **Beslutning**: **Tableau Web Data Connector (WDC) / Web Connector** mod backendens `/api/analytics`-endpoints i JSON.
 - **Begrundelse**:
   - Opfylder opgavens krav om, at dashboardet skal have *"udgangspunkt i backendens REST API"* og understøtte løbende dataopdatering.
-  - Udelukker skjulte genveje direkte til MySQL og undgår statiske CSV-filer.
+  - Udelukker skjulte genveje direkte til PostgreSQL og undgår statiske CSV-filer.
   - Connectoren foretager HTTP GET-kald til JSON-endpoints, parser svaret og overfører data til Tableau, så en genopfriskning (Refresh) i Tableau henter opdaterede tal på under 30 sekunder efter en bookingændring.
 - **Overvejede alternativer**:
-  - *Direkte ODBC/JDBC mod MySQL*: Eksplicit forbudt i Constitution, da det omgår API-kravet.
+  - *Direkte ODBC/JDBC mod PostgreSQL*: Eksplicit forbudt i Constitution, da det omgår API-kravet.
   - *Manuel CSV-eksport*: Dokumenterer ikke en levende datavej.
 
 ---

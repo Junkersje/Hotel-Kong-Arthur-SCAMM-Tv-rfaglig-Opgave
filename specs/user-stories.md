@@ -48,7 +48,7 @@ Dette dokument indeholder samtlige **21 user stories** for Hotel Kong Arthur-sys
   - Fejlhåndtering: Hvis ingen bookinger matcher søgningen, viser UI'et en venlig besked frem for en tom eller frossen skærm. Backenden svarer med HTTP 200 og en tom liste `[]` (eller HTTP 404 ved direkte opslag på specifikt ukendt ID).
 - **Confirmation**:  
   - **AC-01.1 (Succesfuld søgning på ID/Navn)**:  
-    *Givet* at der findes en eksisterende booking med ID `101` tilhørende "Lars Hansen" i MySQL-databasen,  
+    *Givet* at der findes en eksisterende booking med ID `101` tilhørende "Lars Hansen" i PostgreSQL-databasen,
     *Når* receptionisten indtaster "101" eller "Lars Hansen" i browserfrontendens søgefelt og trykker søg,  
     *Så* kalder frontend `GET /bookings?search=...`, og receptionisten præsenteres for bookingen med korrekte detaljer (ankomst, afrejse, værelsestype og pris).
   - **AC-01.2 (Ingen match / Ukendt booking)**:  
@@ -67,16 +67,16 @@ Dette dokument indeholder samtlige **21 user stories** for Hotel Kong Arthur-sys
 - **Card**:  
   > **Som** receptionist  
   > **ønsker jeg** nemt at kunne oprette en ny booking via browserfrontenden  
-  > **så** reservationen gemmes i MySQL-databasen og automatisk indgår i de opdaterede analyser.
+  > **så** reservationen gemmes i PostgreSQL-databasen og automatisk indgår i de opdaterede analyser.
 - **Conversation**:  
   - Inputfelter: Gæstens navn, kontaktland, værelsestype (én af de 8 officielle typer: *Standard Enkeltværelse*, *Grand Lit*, *Standard Dobbeltværelse*, *Superior Dobbeltværelse*, *Junior Suite*, *Spa Executive*, *Suite*, *LOFT Suite*), ankomstdato, afrejsedato, antal gæster (1–4) og aftalt pris/beløb.
   - Validering: Afrejsedato SKAL ligge efter ankomstdato (afvises hvis afrejse $\le$ ankomst). Ankomstdato kan ikke ligge i fortiden for nye bookinger. Antal gæster må ikke overstige værelsestypens maks. kapacitet.
-  - Tre-lagsopdeling: Præsentationslag modtager JSON og validerer syntaks; Forretningslag håndterer bookingregler og sæsontilknytning; Dataadgangslag udfører `INSERT` i MySQL. Ved fejl rulles alt tilbage.
+  - Tre-lagsopdeling: Præsentationslag modtager JSON og validerer syntaks; Forretningslag håndterer bookingregler og sæsontilknytning; Dataadgangslag udfører `INSERT` i PostgreSQL. Ved fejl rulles alt tilbage.
 - **Confirmation**:  
   - **AC-02.1 (Gyldig bookingoprettelse)**:  
     *Givet* en formular udfyldt med gyldige data (Gæst: "Anna Schmidt", Land: "Tyskland", Type: "Superior Dobbeltværelse", 2026-11-10 til 2026-11-14, 2 gæster, 5.600 DKK),  
     *Når* receptionisten klikker "Opret booking",  
-    *Så* sender frontend `POST /bookings` med JSON-payload, backenden gemmer bookingen i MySQL, returnerer HTTP 201 Created med et nyt unikt booking-ID, og formularen nulstilles med en bekræftelsesbesked.
+    *Så* sender frontend `POST /bookings` med JSON-payload, backenden gemmer bookingen i PostgreSQL, returnerer HTTP 201 Created med et nyt unikt booking-ID, og formularen nulstilles med en bekræftelsesbesked.
   - **AC-02.2 (Ugyldig datoperiode afvises)**:  
     *Givet* at receptionisten angiver afrejsedato før eller lig med ankomstdato (f.eks. ankomst 2026-11-15 og afrejse 2026-11-12),  
     *Når* der klikkes "Opret booking",  
@@ -103,7 +103,7 @@ Dette dokument indeholder samtlige **21 user stories** for Hotel Kong Arthur-sys
   - **AC-03.1 (Succesfuld opdatering af datoer)**:  
     *Givet* en eksisterende booking med ID `101` for perioden 2026-12-01 til 2026-12-05,  
     *Når* receptionisten ændrer afrejsedato til 2026-12-07 og gemmer ændringen,  
-    *Så* sender frontend et `PUT /bookings/101` kald, backenden opdaterer posten i MySQL, returnerer HTTP 200 OK med de opdaterede data, og oversigten viser den nye afrejsedato.
+    *Så* sender frontend et `PUT /bookings/101` kald, backenden opdaterer posten i PostgreSQL, returnerer HTTP 200 OK med de opdaterede data, og oversigten viser den nye afrejsedato.
   - **AC-03.2 (Afvisning af ugyldig ændring)**:  
     *Givet* en eksisterende booking,  
     *Når* receptionisten forsøger at rette ankomstdatoen, så den bliver efter den eksisterende afrejsedato uden at korrigere afrejsedatoen,  
@@ -128,7 +128,7 @@ Dette dokument indeholder samtlige **21 user stories** for Hotel Kong Arthur-sys
   - **AC-04.1 (Bekræftelse og sletning/aflysning)**:  
     *Givet* en aktiv booking med ID `101` synlig i bookingoversigten,  
     *Når* receptionisten klikker "Slet", bekræfter prompten i browseren og sender anmodningen,  
-    *Så* kaldes `DELETE /bookings/101`, backenden opdaterer/sletter posten i MySQL, returnerer HTTP 200/204, og bookingen fjernes straks fra den aktive liste i browseren.
+    *Så* kaldes `DELETE /bookings/101`, backenden opdaterer/sletter posten i PostgreSQL, returnerer HTTP 200/204, og bookingen fjernes straks fra den aktive liste i browseren.
   - **AC-04.2 (Konsekvens for KPI og belægningsgrad)**:  
     *Givet* at en booking er slettet/aflyst,  
     *Når* `GET /analytics/occupancy` eller Tableau forespørger data for den pågældende periode,  

@@ -1,18 +1,20 @@
-import mysql from 'mysql2/promise';
+import pg from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const pool = mysql.createPool({
+const { Pool, types } = pg;
+
+types.setTypeParser(types.builtins.INT8, (value) => Number.parseInt(value, 10));
+types.setTypeParser(types.builtins.NUMERIC, (value) => Number.parseFloat(value));
+
+const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
+  port: parseInt(process.env.DB_PORT || '5432', 10),
   user: process.env.DB_USER || 'hotel_admin',
   password: process.env.DB_PASSWORD || 'secret_password_here',
   database: process.env.DB_NAME || 'hotel_kong_arthur',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  decimalNumbers: true
+  max: 10
 });
 
 /**
@@ -22,8 +24,8 @@ const pool = mysql.createPool({
  * @returns {Promise<Array<any>>}
  */
 export async function query(sql, params = []) {
-  const [rows] = await pool.execute(sql, params);
-  return rows;
+  const result = await pool.query(sql, params);
+  return result.rows;
 }
 
 /**
@@ -34,14 +36,14 @@ export async function query(sql, params = []) {
  * @returns {Promise<any>}
  */
 export async function withTransaction(callback) {
-  const connection = await pool.getConnection();
+  const connection = await pool.connect();
   try {
-    await connection.beginTransaction();
+    await connection.query('BEGIN');
     const result = await callback(connection);
-    await connection.commit();
+    await connection.query('COMMIT');
     return result;
   } catch (error) {
-    await connection.rollback();
+    await connection.query('ROLLBACK');
     throw error;
   } finally {
     connection.release();
