@@ -99,12 +99,12 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 **Mål**: Backenden udstiller nøgletal for samlet omsætning (værelser + bar), værelsesindtægt, barandel og belægningsgrad baseret på de 214 værelser.
 
-- [ ] T033 [P] [US5] Implementer sæsontilhørsforhold og kalenderberegningshjælper (faste blokke: nov-feb, mar-maj+sep-okt, jun-aug) i `backend/src/services/seasonService.js`
-- [ ] T034 [P] [US5] Implementer SQL-forespørgsler for samlet værelsesomsætning (ekskl. aflyste) og barsalg i `backend/src/repositories/analyticsRepository.js`
-- [ ] T035 [US8] Implementer SQL-forespørgsel for belægningsgrad: $\frac{\text{Optagne værelsesnætter}}{\text{214 værelser} \times \text{dage}} \times 100$ i `backend/src/repositories/analyticsRepository.js`
-- [ ] T036 [US5] Implementer `AnalyticsService.getSummary()` der samler total omsætning, værelsesomsætning, baromsætning, bar-procentdel og belægning i `backend/src/services/analyticsService.js`
-- [ ] T037 [US5] Opret REST ruter `GET /api/analytics/summary` og `GET /api/analytics/occupancy` i `backend/src/routes/analyticsRoutes.js`
-- [ ] T038 [US5] Tilføj en simpel "Hurtigt Nøgletalsoverblik"-sektion i browserfrontenden i `frontend/src/components/AnalyticsOverview.jsx`
+- [x] T033 [P] [US5] Implementer sæsontilhørsforhold og kalenderberegningshjælper (faste blokke: nov-feb, mar-maj+sep-okt, jun-aug) i `backend/src/services/seasonService.js`
+- [x] T034 [P] [US5] Implementer SQL-forespørgsler for samlet værelsesomsætning (ekskl. aflyste) og barsalg i `backend/src/repositories/analyticsRepository.js`
+- [x] T035 [US8] Implementer SQL-forespørgsel for belægningsgrad: $\frac{\text{Optagne værelsesnætter}}{\text{214 værelser} \times \text{dage}} \times 100$ i `backend/src/repositories/analyticsRepository.js`
+- [x] T036 [US5] Implementer `AnalyticsService.getSummary()` der samler total omsætning, værelsesomsætning, baromsætning, bar-procentdel og belægning i `backend/src/services/analyticsService.js`
+- [x] T037 [US5] Opret REST ruter `GET /api/analytics/summary` og `GET /api/analytics/occupancy` i `backend/src/routes/analyticsRoutes.js`
+- [x] T038 [US5] Tilføj en simpel "Hurtigt Nøgletalsoverblik"-sektion i browserfrontenden i `frontend/src/components/AnalyticsOverview.jsx`
 
 **Checkpoint**: Verificér via Swagger eller curl, at `GET /api/analytics/summary?year=2026` returnerer korrekte matematiske totaler for hotellets økonomi og belægning.
 
@@ -116,8 +116,8 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 - [ ] T039 [P] [US9] Implementer SQL-aggregering for omsætning og antal bookinger pr. land (med håndtering af "Ukendt" ved NULL) i `backend/src/repositories/analyticsRepository.js`
 - [ ] T040 [P] [US11] Implementer SQL-aggregering for omsætning fordelt på de 8 værelsestyper og de 3 sæsoner i `backend/src/repositories/analyticsRepository.js`
-- [ ] T041 [P] [US15] Implementer beregning af gennemsnitlig opholdslængde (ALOS) pr. land og pr. værelsestype i `backend/src/repositories/analyticsRepository.js`
-- [ ] T042 [P] [US16] Implementer beregning af ADR ($\frac{\text{Værelsesomsætning}}{\text{Solgte værelsesnætter}}$) med division med nul-beskyttelse i `backend/src/services/analyticsService.js`
+- [x] T041 [P] [US15] Implementer beregning af gennemsnitlig opholdslængde (ALOS) pr. land og pr. værelsestype i `backend/src/repositories/analyticsRepository.js`
+- [x] T042 [P] [US16] Implementer beregning af ADR ($\frac{\text{Værelsesomsætning}}{\text{Solgte værelsesnætter}}$) med division med nul-beskyttelse i `backend/src/services/analyticsService.js`
 - [ ] T043 [US9] Implementer `AnalyticsService.getRevenueByCountry()` og `AnalyticsService.getRevenueByRoomType()` i `backend/src/services/analyticsService.js`
 - [ ] T044 [US9] Opret REST ruter `GET /api/analytics/revenue-by-country`, `GET /api/analytics/revenue-by-room-type` og `GET /api/analytics/adr` i `backend/src/routes/analyticsRoutes.js`
 
