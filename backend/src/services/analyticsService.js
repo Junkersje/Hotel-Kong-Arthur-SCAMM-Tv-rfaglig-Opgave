@@ -103,6 +103,33 @@ const analyticsService = {
       categoryDistribution,
       totalItemsSold: totalItems
     };
+  },
+
+  /**
+   * T041 [P] [US15]: Henter gennemsnitlig opholdslængde fordelt på lande og værelsestyper.
+   */
+  async getStayLengthAnalytics() {
+    const repo = this?.analyticsRepository || analyticsRepository;
+    const [byCountry, byRoomType] = await Promise.all([
+      repo.getALOSByCountry(),
+      repo.getALOSByRoomType()
+    ]);
+
+    return {
+      byCountry: (byCountry || []).map(item => ({
+        country: item.country,
+        totalBookings: Number(item.total_bookings),
+        totalNights: Number(item.total_nights),
+        alos: Number(item.average_length_of_stay)
+      })),
+      byRoomType: (byRoomType || []).map(item => ({
+        roomTypeId: item.room_type_id,
+        roomTypeName: item.room_type_name,
+        totalBookings: Number(item.total_bookings),
+        totalNights: Number(item.total_nights),
+        alos: Number(item.average_length_of_stay)
+      }))
+    };
   }
 };
 
@@ -114,6 +141,7 @@ export const getSummary = analyticsService.getSummary.bind(analyticsService);
 export const getRoomTypeBreakdown = analyticsService.getRoomTypeBreakdown.bind(analyticsService);
 export const getMonthlyOccupancy = analyticsService.getMonthlyOccupancy.bind(analyticsService);
 export const getBarPerformance = analyticsService.getBarPerformance.bind(analyticsService);
+export const getStayLengthAnalytics = analyticsService.getStayLengthAnalytics.bind(analyticsService);
 
 export { analyticsService };
 export default analyticsService;
