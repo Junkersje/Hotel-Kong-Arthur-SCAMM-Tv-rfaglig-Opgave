@@ -297,6 +297,50 @@ const analyticsRepository = {
    */
   async getSeasonalOccupancy(year = null) {
     return this.getOccupancyBySeason(year);
+  },
+
+  /**
+   * T041 [P] [US15]: Gennemsnitlig opholdslængde (ALOS) opdelt pr. land.
+   */
+  async getALOSByCountry() {
+    const sql = `
+      SELECT 
+        g.country,
+        COUNT(b.id) AS total_bookings,
+        COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) AS total_nights,
+        ROUND(
+          COALESCE(AVG(DATEDIFF(b.check_out_date, b.check_in_date)), 0), 2
+        ) AS average_length_of_stay
+      FROM BOOKING b
+      JOIN GUEST g ON b.guest_id = g.id
+      WHERE b.status != 'cancelled'
+      GROUP BY g.country
+      ORDER BY average_length_of_stay DESC, total_nights DESC
+    `;
+    const [rows] = await (this?.db || db).query(sql);
+    return rows;
+  },
+
+  /**
+   * T041 [P] [US15]: Gennemsnitlig opholdslængde (ALOS) opdelt pr. værelsestype.
+   */
+  async getALOSByRoomType() {
+    const sql = `
+      SELECT 
+        rt.id AS room_type_id,
+        rt.name AS room_type_name,
+        COUNT(b.id) AS total_bookings,
+        COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) AS total_nights,
+        ROUND(
+          COALESCE(AVG(DATEDIFF(b.check_out_date, b.check_in_date)), 0), 2
+        ) AS average_length_of_stay
+      FROM ROOM_TYPE rt
+      LEFT JOIN BOOKING b ON rt.id = b.room_type_id AND b.status != 'cancelled'
+      GROUP BY rt.id, rt.name
+      ORDER BY average_length_of_stay DESC
+    `;
+    const [rows] = await (this?.db || db).query(sql);
+    return rows;
   }
 };
 
@@ -315,6 +359,8 @@ export const getTotalOccupancySummary = analyticsRepository.getTotalOccupancySum
 export const getMonthlyOccupancy = analyticsRepository.getMonthlyOccupancy.bind(analyticsRepository);
 export const getOccupancyBySeason = analyticsRepository.getOccupancyBySeason.bind(analyticsRepository);
 export const getSeasonalOccupancy = analyticsRepository.getSeasonalOccupancy.bind(analyticsRepository);
+export const getALOSByCountry = analyticsRepository.getALOSByCountry.bind(analyticsRepository);
+export const getALOSByRoomType = analyticsRepository.getALOSByRoomType.bind(analyticsRepository);
 
 export { analyticsRepository };
 export default analyticsRepository;
