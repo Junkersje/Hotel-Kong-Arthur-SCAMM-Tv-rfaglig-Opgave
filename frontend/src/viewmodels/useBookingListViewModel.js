@@ -11,13 +11,15 @@ import { BookingModel } from '../models/BookingModel.js';
 const DEBOUNCE_DELAY_MS = 300;
 
 export function useBookingListViewModel(options = {}) {
-  const { refreshTrigger = 0, onEdit, onDelete } = options;
+  const { refreshTrigger = 0, onEdit, onDelete, enabled = true } = options;
 
   const [rawBookings, setRawBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   // Modal-/dialogtilstande (kobles til EditBookingModal i T027 og DeleteDialog i T032)
   const [editingBooking, setEditingBooking] = useState(null);
@@ -32,10 +34,17 @@ export function useBookingListViewModel(options = {}) {
 
       if (trimmedQuery) {
         params.q = trimmedQuery;
-        params.search = trimmedQuery;
       }
       if (statusFilter) {
         params.status = statusFilter;
+      } else {
+        params.exclude_cancelled = 'true';
+      }
+      if (fromDate) {
+        params.from = fromDate;
+      }
+      if (toDate) {
+        params.to = toDate;
       }
 
       const response = await apiGet('/bookings', params);
@@ -54,26 +63,39 @@ export function useBookingListViewModel(options = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, fromDate, toDate]);
 
-  // Debounced API-kald ved ændring i søgefelt, statusfilter eller ekstern refreshTrigger
+  // Debounced API-kald ved ændring i søgefelt, statusfilter, datointerval eller ekstern refreshTrigger
   useEffect(() => {
+    if (!enabled) return undefined;
+
     const timer = setTimeout(() => {
       fetchBookings();
     }, DEBOUNCE_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [fetchBookings, refreshTrigger]);
+  }, [enabled, fetchBookings, refreshTrigger]);
 
   // Sikrer at visningen altid matcher aktive filtre og ekskluderer 'cancelled' fra den aktive liste (medmindre 'cancelled' vælges i filteret)
   const bookings = useMemo(() => {
     return rawBookings.filter((booking) => {
       if (statusFilter) {
-        if (booking.status !== statusFilter) {
+        if (statusFilter === 'completed') {
+          if (booking.status !== 'completed' && booking.status !== 'checked_out') {
+            return false;
+          }
+        } else if (booking.status !== statusFilter) {
           return false;
         }
       } else if (booking.status === 'cancelled') {
         // Fjernes fra den aktive liste ved soft delete (US4 / SH-32)
+        return false;
+      }
+
+      if (fromDate && booking.check_out_date && booking.check_out_date < fromDate) {
+        return false;
+      }
+      if (toDate && booking.check_in_date && booking.check_in_date > toDate) {
         return false;
       }
 
@@ -90,11 +112,13 @@ export function useBookingListViewModel(options = {}) {
 
       return idMatch || nameMatch || emailMatch || roomMatch || roomTypeMatch || countryMatch;
     });
-  }, [rawBookings, searchQuery, statusFilter]);
+  }, [rawBookings, searchQuery, statusFilter, fromDate, toDate]);
 
   const clearFilters = useCallback(() => {
     setSearchQuery('');
     setStatusFilter('');
+    setFromDate('');
+    setToDate('');
   }, []);
 
   const openEditModal = useCallback(
@@ -155,12 +179,16 @@ export function useBookingListViewModel(options = {}) {
     error,
     searchQuery,
     statusFilter,
+    fromDate,
+    toDate,
     editingBooking,
     deletingBooking,
 
     // Command Handlers
     setSearchQuery,
     setStatusFilter,
+    setFromDate,
+    setToDate,
     clearFilters,
     openEditModal,
     closeEditModal,

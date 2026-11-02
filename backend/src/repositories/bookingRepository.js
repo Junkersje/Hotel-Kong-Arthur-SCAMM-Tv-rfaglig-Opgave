@@ -21,6 +21,28 @@ export const ROOM_TYPE_BASE_PRICES_DKK = {
   8: 3500  // LOFT Suite (3000-4000)
 };
 
+export const ROOM_TYPE_INDICATIVE_PRICES = {
+  1: '900–1.200 DKK',
+  2: '1.100–1.400 DKK',
+  3: '1.200–1.600 DKK',
+  4: '1.400–2.000 DKK',
+  5: '1.800–2.500 DKK',
+  6: '2.000–2.800 DKK',
+  7: '2.500–3.500 DKK',
+  8: '3.000–4.000 DKK'
+};
+
+export const ROOM_TYPE_SPEC_CAPACITIES = {
+  1: 1,
+  2: 2,
+  3: 2,
+  4: 3,
+  5: 4,
+  6: 2,
+  7: 4,
+  8: 4
+};
+
 function formatDateOnly(val) {
   if (!val) return null;
   if (val instanceof Date) {
@@ -45,10 +67,25 @@ function splitFullName(fullName = '') {
   };
 }
 
+function mapRowToRoomType(rt) {
+  if (!rt) return null;
+  const specCapacity = ROOM_TYPE_SPEC_CAPACITIES[rt.id] || 2;
+  return {
+    id: rt.id,
+    name: rt.name,
+    capacity: Math.max(Number(rt.capacity) || 0, specCapacity),
+    description: rt.description ?? null,
+    base_price_indicative:
+      rt.base_price_indicative || ROOM_TYPE_INDICATIVE_PRICES[rt.id] || '900–4.000 DKK',
+    base_price_dkk: ROOM_TYPE_BASE_PRICES_DKK[rt.id] || 1500
+  };
+}
+
 function mapRowToBooking(row) {
   if (!row) return null;
   const { firstName, lastName } = splitFullName(row.guest_name);
   const totalPrice = Number(row.total_price ?? 0);
+  const specCapacity = ROOM_TYPE_SPEC_CAPACITIES[row.room_type_id] || 2;
 
   return {
     id: row.id,
@@ -58,10 +95,10 @@ function mapRowToBooking(row) {
     last_name: lastName,
     email: row.guest_email,
     phone: row.guest_phone,
-    country: row.guest_country,
+    country: row.guest_country || 'Ukendt',
     room_type_id: row.room_type_id,
     room_type_name: row.room_type_name,
-    room_type_capacity: row.room_type_capacity,
+    room_type_capacity: Math.max(Number(row.room_type_capacity) || 0, specCapacity),
     room_number: row.room_number,
     floor: row.room_floor,
     check_in_date: formatDateOnly(row.check_in_date),
@@ -139,11 +176,7 @@ export class BookingRepository {
     if (!rows || rows.length === 0) {
       return null;
     }
-    const rt = rows[0];
-    return {
-      ...rt,
-      base_price_dkk: ROOM_TYPE_BASE_PRICES_DKK[rt.id] || 1500
-    };
+    return mapRowToRoomType(rows[0]);
   }
 
   /**
@@ -157,10 +190,7 @@ export class BookingRepository {
       ORDER BY id ASC
     `;
     const rows = await this.db.query(sql);
-    return rows.map((rt) => ({
-      ...rt,
-      base_price_dkk: ROOM_TYPE_BASE_PRICES_DKK[rt.id] || 1500
-    }));
+    return rows.map(mapRowToRoomType);
   }
 
   /**
@@ -185,6 +215,7 @@ export class BookingRepository {
       SELECT r.room_number
       FROM ROOM r
       WHERE r.room_type_id = ?
+        AND r.status != 'maintenance'
         AND r.room_number NOT IN (
           SELECT b.room_number
           FROM BOOKING b
@@ -293,16 +324,48 @@ export class BookingRepository {
           : existing.satisfaction_rating;
 
       // Bestem værelsesnummer og verificer at der ikke opstår dato-overlap
-      let nextRoomNumber =
-        updateData.room_number !== undefined && updateData.room_number !== null
-          ? Number(updateData.room_number)
-          : Number(existing.room_number);
+      const hasExplicitRoom =
+        updateData.room_number !== undefined &&
+        updateData.room_number !== null &&
+        String(updateData.room_number).trim() !== '';
+
+      let nextRoomNumber = hasExplicitRoom
+        ? Number(updateData.room_number)
+        : Number(existing.room_number);
 
       const datesChanged = nextCheckIn !== existingCheckIn || nextCheckOut !== existingCheckOut;
       const roomTypeChanged = nextRoomTypeId !== Number(existing.room_type_id);
       const explicitRoomChanged =
-        updateData.room_number !== undefined &&
-        Number(updateData.room_number) !== Number(existing.room_number);
+        hasExplicitRoom && nextRoomNumber !== Number(existing.room_number);
+
+      if (explicitRoomChanged) {
+        const [roomRows] = await conn.execute(
+          'SELECT room_number, room_type_id, status FROM ROOM WHERE room_number = ? LIMIT 1',
+          [nextRoomNumber]
+        );
+        if (!roomRows || roomRows.length === 0) {
+          const roomErr = new Error(`Værelse ${nextRoomNumber} findes ikke på hotellet.`);
+          roomErr.status = 400;
+          roomErr.code = 'INVALID_ROOM_NUMBER';
+          throw roomErr;
+        }
+        if (roomRows[0].status === 'maintenance') {
+          const maintErr = new Error(
+            `Værelse ${nextRoomNumber} er under vedligeholdelse og kan ikke bookes.`
+          );
+          maintErr.status = 409;
+          maintErr.code = 'ROOM_MAINTENANCE';
+          throw maintErr;
+        }
+        if (Number(roomRows[0].room_type_id) !== nextRoomTypeId) {
+          const mismatchErr = new Error(
+            `Værelse ${nextRoomNumber} tilhører ikke den valgte værelsestype (#${nextRoomTypeId}).`
+          );
+          mismatchErr.status = 400;
+          mismatchErr.code = 'ROOM_TYPE_MISMATCH';
+          throw mismatchErr;
+        }
+      }
 
       if (nextStatus !== 'cancelled' && (datesChanged || roomTypeChanged || explicitRoomChanged)) {
         if (!roomTypeChanged || explicitRoomChanged) {
@@ -398,11 +461,29 @@ export class BookingRepository {
             ? String(guestInput.phone).trim()
             : currentGuest.phone;
 
+        if (nextEmail && nextEmail !== currentGuest.email) {
+          const [emailConflict] = await conn.execute(
+            'SELECT id FROM GUEST WHERE email = ? AND id != ? LIMIT 1',
+            [nextEmail, existing.guest_id]
+          );
+          if (emailConflict && emailConflict.length > 0) {
+            const emailErr = new Error(
+              `E-mailadressen '${nextEmail}' bruges allerede af en anden registreret gæst.`
+            );
+            emailErr.status = 409;
+            emailErr.code = 'EMAIL_CONFLICT';
+            throw emailErr;
+          }
+        }
+
         await conn.execute(
           'UPDATE GUEST SET name = ?, country = ?, email = ?, phone = ? WHERE id = ?',
           [nextGuestName, nextCountry, nextEmail, nextPhone, existing.guest_id]
         );
       }
+
+      // Håndter 'completed' (fra OpenAPI/spec.md) kompatibelt med MySQL schema ENUM('confirmed','checked_in','checked_out','cancelled')
+      const dbStatus = nextStatus === 'completed' ? 'checked_out' : nextStatus;
 
       // Opdater BOOKING tabellen
       await conn.execute(
@@ -424,14 +505,18 @@ export class BookingRepository {
           nextCheckOut,
           nextNumGuests,
           nextTotalPrice,
-          nextStatus,
+          dbStatus,
           nextSatisfactionRating,
           bookingId
         ]
       );
     });
 
-    return await this.getById(bookingId);
+    const updated = await this.getById(bookingId);
+    if (updated && updateData.status === 'completed') {
+      updated.status = 'completed';
+    }
+    return updated;
   }
 
   /**
@@ -453,7 +538,7 @@ export class BookingRepository {
   }
 
   /**
-   * Fremsøger bookinger med valgfri filtrering på søgetekst (ID, navn, email) og status.
+   * Fremsøger bookinger med valgfri filtrering på søgetekst (ID, navn, email), status og datointerval.
    * @param {object} [filters]
    * @returns {Promise<Array<object>>}
    */
@@ -469,14 +554,22 @@ export class BookingRepository {
     const params = [];
 
     if (queryText) {
-      conditions.push('(CAST(b.id AS CHAR) LIKE ? OR g.name LIKE ? OR g.email LIKE ? OR CAST(b.room_number AS CHAR) LIKE ?)');
+      conditions.push(
+        '(CAST(b.id AS CHAR) LIKE ? OR g.name LIKE ? OR g.email LIKE ? OR g.country LIKE ? OR rt.name LIKE ? OR CAST(b.room_number AS CHAR) LIKE ?)'
+      );
       const wildcard = `%${queryText}%`;
-      params.push(wildcard, wildcard, wildcard, wildcard);
+      params.push(wildcard, wildcard, wildcard, wildcard, wildcard, wildcard);
     }
 
     if (status) {
-      conditions.push('b.status = ?');
-      params.push(status);
+      if (status === 'completed') {
+        conditions.push("b.status IN ('completed', 'checked_out')");
+      } else {
+        conditions.push('b.status = ?');
+        params.push(status);
+      }
+    } else if (filters.exclude_cancelled === 'true' || filters.exclude_cancelled === true) {
+      conditions.push("b.status != 'cancelled'");
     }
 
     if (fromDate) {

@@ -30,6 +30,16 @@ export const STATUS_COLORS = {
   cancelled: 'bg-rose-50 text-rose-700 border-rose-200'
 };
 
+function parseUtcDate(dateStr) {
+  if (!dateStr) return NaN;
+  const match = String(dateStr).substring(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+  const d = new Date(dateStr);
+  return d.getTime();
+}
+
 /**
  * Beregner antal overnattede nætter mellem to datoer.
  * @param {string} checkIn - YYYY-MM-DD
@@ -38,11 +48,11 @@ export const STATUS_COLORS = {
  */
 export function calculateNights(checkIn, checkOut) {
   if (!checkIn || !checkOut) return 0;
-  const start = new Date(checkIn);
-  const end = new Date(checkOut);
+  const start = parseUtcDate(checkIn);
+  const end = parseUtcDate(checkOut);
   const diffTime = end - start;
   if (Number.isNaN(diffTime) || diffTime <= 0) return 0;
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -157,27 +167,24 @@ export class BookingModel {
 export function validateBookingInput(bookingData = {}) {
   const errors = {};
 
-  const hasFullName = bookingData.guest_name && bookingData.guest_name.trim().length > 0;
-  const hasSplitName =
-    bookingData.first_name &&
-    bookingData.first_name.trim().length > 0 &&
-    bookingData.last_name &&
-    bookingData.last_name.trim().length > 0;
+  const usesSplitNameFields = 'first_name' in bookingData || 'last_name' in bookingData;
 
-  if (!hasFullName && !hasSplitName) {
-    if ('guest_name' in bookingData) {
-      errors.guest_name = 'Gæstens navn er påkrævet.';
-    } else {
-      if (!bookingData.first_name || !bookingData.first_name.trim()) {
-        errors.first_name = 'Fornavn er påkrævet.';
-      }
-      if (!bookingData.last_name || !bookingData.last_name.trim()) {
-        errors.last_name = 'Efternavn er påkrævet.';
-      }
+  if (usesSplitNameFields) {
+    if (!bookingData.first_name || !bookingData.first_name.trim()) {
+      errors.first_name = 'Fornavn er påkrævet.';
     }
+    if (!bookingData.last_name || !bookingData.last_name.trim()) {
+      errors.last_name = 'Efternavn er påkrævet.';
+    }
+  } else if (!bookingData.guest_name || !bookingData.guest_name.trim()) {
+    errors.guest_name = 'Gæstens navn er påkrævet.';
   }
 
-  if (bookingData.email !== undefined && (!bookingData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookingData.email))) {
+  if (
+    bookingData.email !== undefined &&
+    String(bookingData.email).trim() !== '' &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(bookingData.email).trim())
+  ) {
     errors.email = 'Indtast en gyldig e-mailadresse.';
   }
 

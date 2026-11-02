@@ -4,30 +4,111 @@
  * Overholder 3-lagsarkitekturen samt OOP og SOLID (Constructor Dependency Injection).
  */
 
+import { z } from 'zod';
 import bookingRepository, { ROOM_TYPE_BASE_PRICES_DKK } from '../repositories/bookingRepository.js';
 
 export const MIN_GUESTS_PER_ROOM = 1;
 export const MAX_GUESTS_PER_ROOM = 4;
-export const ALLOWED_BOOKING_STATUSES = ['confirmed', 'checked_in', 'checked_out', 'cancelled'];
+export const ALLOWED_BOOKING_STATUSES = [
+  'confirmed',
+  'checked_in',
+  'checked_out',
+  'completed',
+  'cancelled'
+];
+
+/**
+ * Struktureret hierarki af typede applikationsfejl (Constitution Princip VII).
+ */
+export class AppError extends Error {
+  constructor(message, statusCode = 500, code = 'INTERNAL_SERVER_ERROR') {
+    super(message);
+    this.name = this.constructor.name;
+    this.status = statusCode;
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+export class ValidationError extends AppError {
+  constructor(message, code = 'VALIDATION_ERROR') {
+    super(message, 400, code);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message, code = 'NOT_FOUND') {
+    super(message, 404, code);
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message, code = 'CONFLICT') {
+    super(message, 409, code);
+  }
+}
 
 function createAppError(message, statusCode = 400, code = 'VALIDATION_ERROR') {
-  const error = new Error(message);
-  error.status = statusCode;
-  error.statusCode = statusCode;
-  error.code = code;
-  return error;
+  if (statusCode === 404) return new NotFoundError(message, code);
+  if (statusCode === 409) return new ConflictError(message, code);
+  if (statusCode === 400) return new ValidationError(message, code);
+  return new AppError(message, statusCode, code);
 }
 
-function calculateNightsBetween(checkInDate, checkOutDate) {
-  const start = new Date(checkInDate);
-  const end = new Date(checkOutDate);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+function parsePositiveInt(val) {
+  if (typeof val === 'number') {
+    return Number.isInteger(val) && val > 0 ? val : NaN;
+  }
+  if (typeof val === 'string' && /^\d+$/.test(val.trim())) {
+    const parsed = Number(val.trim());
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : NaN;
+  }
+  return NaN;
+}
+
+function parseUtcDate(dateStr) {
+  if (!dateStr) return NaN;
+  const match = String(dateStr).substring(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+  const d = new Date(dateStr);
+  return d.getTime();
+}
+
+export function calculateNightsBetween(checkInDate, checkOutDate) {
+  const startMs = parseUtcDate(checkInDate);
+  const endMs = parseUtcDate(checkOutDate);
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) {
     return 0;
   }
-  const diffMs = end.getTime() - start.getTime();
+  const diffMs = endMs - startMs;
   if (diffMs <= 0) return 0;
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * Zod-skema til validering af bookingopdateringer (jf. plan.md & Constitution VII).
+ */
+export const updateBookingSchema = z
+  .object({
+    guest_name: z.string().optional(),
+    first_name: z.string().optional(),
+    last_name: z.string().optional(),
+    email: z.string().optional(),
+    phone: z.string().optional(),
+    country: z.string().nullable().optional(),
+    room_type_id: z.union([z.number(), z.string()]).optional(),
+    room_number: z.union([z.number(), z.string()]).nullable().optional(),
+    check_in_date: z.string().optional(),
+    check_out_date: z.string().optional(),
+    num_guests: z.union([z.number(), z.string()]).optional(),
+    total_price: z.union([z.number(), z.string()]).optional(),
+    total_price_dkk: z.union([z.number(), z.string()]).optional(),
+    status: z.enum(ALLOWED_BOOKING_STATUSES).optional(),
+    satisfaction_rating: z.union([z.number(), z.string()]).nullable().optional()
+  })
+  .passthrough();
 
 export class BookingService {
   constructor(repository = bookingRepository) {
@@ -57,8 +138,8 @@ export class BookingService {
    * @returns {Promise<object>}
    */
   async getBookingById(id) {
-    const parsedId = parseInt(id, 10);
-    if (Number.isNaN(parsedId) || parsedId <= 0) {
+    const parsedId = parsePositiveInt(id);
+    if (Number.isNaN(parsedId)) {
       throw createAppError('Ugyldigt booking-ID.', 400, 'INVALID_BOOKING_ID');
     }
 
@@ -81,8 +162,8 @@ export class BookingService {
    * @returns {Promise<object>}
    */
   async updateBooking(id, input = {}) {
-    const parsedId = parseInt(id, 10);
-    if (Number.isNaN(parsedId) || parsedId <= 0) {
+    const parsedId = parsePositiveInt(id);
+    if (Number.isNaN(parsedId)) {
       throw createAppError('Ugyldigt booking-ID.', 400, 'INVALID_BOOKING_ID');
     }
 
@@ -92,15 +173,25 @@ export class BookingService {
       throw createAppError(`Booking #${parsedId} blev ikke fundet.`, 404, 'NOT_FOUND');
     }
 
-    // 2. Valider at nuværende status tillader redigering
-    const requestedStatus = input.status || existing.status;
-    if (!ALLOWED_BOOKING_STATUSES.includes(requestedStatus)) {
+    // 2. Valider status og skema (inkl. Zod-kontrol)
+    const zodResult = updateBookingSchema.safeParse(input);
+    if (!zodResult.success) {
+      const firstIssue = zodResult.error.issues[0];
+      if (firstIssue?.path?.[0] === 'status') {
+        throw createAppError(
+          `Ugyldig bookingstatus '${input.status}'. Tilladte værdier: ${ALLOWED_BOOKING_STATUSES.join(', ')}.`,
+          400,
+          'INVALID_STATUS'
+        );
+      }
       throw createAppError(
-        `Ugyldig bookingstatus '${requestedStatus}'. Tilladte værdier: ${ALLOWED_BOOKING_STATUSES.join(', ')}.`,
+        firstIssue?.message || 'Ugyldigt inputformat for bookingopdatering.',
         400,
-        'INVALID_STATUS'
+        'VALIDATION_ERROR'
       );
     }
+
+    const requestedStatus = input.status || existing.status;
 
     const isReactivating =
       existing.status === 'cancelled' &&
@@ -128,13 +219,13 @@ export class BookingService {
       );
     }
 
-    // 4. Valider værelsestype og gæsteantal (1-4 og maks. kapacitet på værelsestypen)
+    // 4. Valider værelsestype, værelsesnummer og gæsteantal (1-4 og maks. kapacitet på værelsestypen)
     const nextRoomTypeId =
       input.room_type_id !== undefined
-        ? parseInt(input.room_type_id, 10)
+        ? parsePositiveInt(input.room_type_id)
         : Number(existing.room_type_id);
 
-    if (Number.isNaN(nextRoomTypeId) || nextRoomTypeId <= 0) {
+    if (Number.isNaN(nextRoomTypeId)) {
       throw createAppError('Ugyldig værelsestype angivet.', 400, 'INVALID_ROOM_TYPE');
     }
 
@@ -147,9 +238,18 @@ export class BookingService {
       );
     }
 
+    let nextRoomNumber = existing.room_number;
+    if (input.room_number !== undefined && input.room_number !== null && input.room_number !== '') {
+      const parsedRoomNumber = parsePositiveInt(input.room_number);
+      if (Number.isNaN(parsedRoomNumber)) {
+        throw createAppError('Ugyldigt værelsesnummer angivet.', 400, 'INVALID_ROOM_NUMBER');
+      }
+      nextRoomNumber = parsedRoomNumber;
+    }
+
     const nextNumGuests =
       input.num_guests !== undefined
-        ? parseInt(input.num_guests, 10)
+        ? parsePositiveInt(input.num_guests)
         : Number(existing.num_guests);
 
     if (
@@ -207,7 +307,7 @@ export class BookingService {
       if (input.satisfaction_rating === null || input.satisfaction_rating === '') {
         nextSatisfactionRating = null;
       } else {
-        const rating = parseInt(input.satisfaction_rating, 10);
+        const rating = parsePositiveInt(input.satisfaction_rating);
         if (Number.isNaN(rating) || rating < 1 || rating > 5) {
           throw createAppError(
             'Kundetilfredshedsscore skal være mellem 1 og 5 stjerner.',
@@ -221,7 +321,10 @@ export class BookingService {
 
     const updatePayload = {
       room_type_id: nextRoomTypeId,
-      room_number: input.room_number !== undefined ? input.room_number : existing.room_number,
+      room_number:
+        input.room_number !== undefined && input.room_number !== null && input.room_number !== ''
+          ? nextRoomNumber
+          : undefined,
       check_in_date: nextCheckIn,
       check_out_date: nextCheckOut,
       num_guests: nextNumGuests,
@@ -249,8 +352,8 @@ export class BookingService {
    * @returns {Promise<object>}
    */
   async cancelBooking(id) {
-    const parsedId = parseInt(id, 10);
-    if (Number.isNaN(parsedId) || parsedId <= 0) {
+    const parsedId = parsePositiveInt(id);
+    if (Number.isNaN(parsedId)) {
       throw createAppError('Ugyldigt booking-ID.', 400, 'INVALID_BOOKING_ID');
     }
 

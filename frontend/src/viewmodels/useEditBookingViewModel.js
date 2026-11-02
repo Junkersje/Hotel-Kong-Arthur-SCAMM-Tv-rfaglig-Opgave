@@ -15,21 +15,15 @@ import {
 } from '../models/BookingModel.js';
 import { DEFAULT_ROOM_TYPES, RoomTypeModel } from '../models/RoomTypeModel.js';
 
-export function useEditBookingViewModel(booking, onSuccess, onCancel) {
+function buildInitialFormData(booking) {
   const initialGuestName = getGuestDisplayName(booking);
   const initialParts = initialGuestName.split(/\s+/);
   const initialFirstName = booking?.first_name || initialParts[0] || '';
   const initialLastName = booking?.last_name || initialParts.slice(1).join(' ') || '';
   const initialCheckIn = formatDate(booking?.check_in_date);
   const initialCheckOut = formatDate(booking?.check_out_date);
-  const initialTotalPrice = getBookingTotalPrice(booking);
-  const initialNights = calculateNights(initialCheckIn, initialCheckOut);
 
-  const [roomTypes, setRoomTypes] = useState(
-    DEFAULT_ROOM_TYPES.map((rt) => new RoomTypeModel(rt))
-  );
-
-  const [formData, setFormData] = useState({
+  return {
     guest_name: initialGuestName,
     first_name: initialFirstName,
     last_name: initialLastName,
@@ -41,11 +35,30 @@ export function useEditBookingViewModel(booking, onSuccess, onCancel) {
     check_out_date: initialCheckOut !== '—' ? initialCheckOut : '',
     num_guests: String(booking?.num_guests || 1),
     status: booking?.status || 'confirmed'
-  });
+  };
+}
+
+export function useEditBookingViewModel(booking, onSuccess, onCancel) {
+  const initialCheckIn = formatDate(booking?.check_in_date);
+  const initialCheckOut = formatDate(booking?.check_out_date);
+  const initialTotalPrice = getBookingTotalPrice(booking);
+  const initialNights = calculateNights(initialCheckIn, initialCheckOut);
+
+  const [roomTypes, setRoomTypes] = useState(
+    DEFAULT_ROOM_TYPES.map((rt) => new RoomTypeModel(rt))
+  );
+
+  const [formData, setFormData] = useState(() => buildInitialFormData(booking));
 
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setFormData(buildInitialFormData(booking));
+    setErrors({});
+    setServerError(null);
+  }, [booking]);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,19 +112,19 @@ export function useEditBookingViewModel(booking, onSuccess, onCancel) {
           ? initialTotalPrice / initialNights
           : baseRate;
 
-      nextPrice = Math.round(nights * nightlyRate);
+      nextPrice = Math.round(nights * nightlyRate * 100) / 100;
     }
 
     return {
       estimatedPrice: nextPrice,
-      priceDifference: nextPrice - initialTotalPrice,
+      priceDifference: Math.round((nextPrice - initialTotalPrice) * 100) / 100,
       isStayExtended: nights > initialNights
     };
   }, [
     nights,
     initialNights,
     initialTotalPrice,
-     initialCheckIn,
+    initialCheckIn,
     initialCheckOut,
     formData.room_type_id,
     formData.check_in_date,
@@ -180,7 +193,6 @@ export function useEditBookingViewModel(booking, onSuccess, onCancel) {
         check_in_date: formData.check_in_date,
         check_out_date: formData.check_out_date,
         num_guests: parseInt(formData.num_guests, 10),
-        total_price: estimatedPrice,
         status: formData.status
       };
 

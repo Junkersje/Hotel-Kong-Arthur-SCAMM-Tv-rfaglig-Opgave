@@ -17,15 +17,7 @@ import {
   AlertCircle,
   X
 } from 'lucide-react';
-import {
-  STATUS_LABELS,
-  STATUS_COLORS,
-  formatCurrency,
-  formatDate,
-  calculateNights,
-  getGuestDisplayName,
-  getBookingTotalPrice
-} from '../models/BookingModel.js';
+import { BookingModel, STATUS_LABELS } from '../models/BookingModel.js';
 import { useBookingListViewModel } from '../viewmodels/useBookingListViewModel.js';
 import EditBookingModal from '../components/EditBookingModal.jsx';
 import DeleteDialog from '../components/DeleteDialog.jsx';
@@ -39,7 +31,8 @@ export default function BookingListView({
   const internalViewModel = useBookingListViewModel({
     refreshTrigger,
     onEdit,
-    onDelete
+    onDelete,
+    enabled: !externalViewModel
   });
 
   const vm = externalViewModel || internalViewModel;
@@ -50,10 +43,14 @@ export default function BookingListView({
     error,
     searchQuery,
     statusFilter,
+    fromDate,
+    toDate,
     editingBooking,
     deletingBooking,
     setSearchQuery,
     setStatusFilter,
+    setFromDate,
+    setToDate,
     clearFilters,
     openEditModal,
     closeEditModal,
@@ -64,19 +61,19 @@ export default function BookingListView({
     refreshBookings
   } = vm;
 
-  const hasActiveFilters = Boolean(searchQuery.trim() || statusFilter);
+  const hasActiveFilters = Boolean(searchQuery.trim() || statusFilter || fromDate || toDate);
 
   return (
     <section
       aria-label="Bookingoversigt"
       className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
     >
-      {/* Header med titel, søgefelt og statusfilter */}
+      {/* Header med titel, søgefelt, datointerval og statusfilter */}
       <div className="p-6 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Aktuelle Reservationer</h2>
           <p className="text-sm text-slate-500">
-            Fremsøg og filtrér reservationer på booking-ID, gæstens navn eller status
+            Fremsøg og filtrér reservationer på booking-ID, gæstens navn, datointerval eller status
           </p>
         </div>
 
@@ -104,6 +101,27 @@ export default function BookingListView({
             )}
           </div>
 
+          {/* Datointerval filtre (US1) */}
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              aria-label="Fra dato"
+              title="Filtrér fra dato"
+              value={fromDate || ''}
+              onChange={(e) => setFromDate && setFromDate(e.target.value)}
+              className="text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 transition"
+            />
+            <span className="text-xs text-slate-400">–</span>
+            <input
+              type="date"
+              aria-label="Til dato"
+              title="Filtrér til dato"
+              value={toDate || ''}
+              onChange={(e) => setToDate && setToDate(e.target.value)}
+              className="text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 transition"
+            />
+          </div>
+
           {/* Dropdown for statusfilter */}
           <div className="relative">
             <Filter className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -117,6 +135,7 @@ export default function BookingListView({
               <option value="confirmed">Bekræftet (confirmed)</option>
               <option value="checked_in">Indtjekket (checked_in)</option>
               <option value="checked_out">Udtjekket (checked_out)</option>
+              <option value="completed">Gennemført (completed)</option>
               <option value="cancelled">Annulleret (cancelled)</option>
             </select>
           </div>
@@ -214,16 +233,19 @@ export default function BookingListView({
                 </td>
               </tr>
             ) : (
-              bookings.map((booking) => {
-                const guestName = getGuestDisplayName(booking);
-                const checkIn = formatDate(booking.check_in_date);
-                const checkOut = formatDate(booking.check_out_date);
-                const nights = booking.nights ?? calculateNights(checkIn, checkOut);
-                const totalPrice = getBookingTotalPrice(booking);
-                const statusColor =
-                  STATUS_COLORS[booking.status] || 'bg-slate-100 text-slate-800 border-slate-200';
-                const statusLabel = STATUS_LABELS[booking.status] || booking.status;
-                const isCancelled = booking.status === 'cancelled';
+              bookings.map((rawBooking) => {
+                const booking =
+                  rawBooking instanceof BookingModel ? rawBooking : new BookingModel(rawBooking);
+                const {
+                  guest_name: guestName,
+                  check_in_date: checkIn,
+                  check_out_date: checkOut,
+                  nights,
+                  formattedPrice,
+                  statusColorClass: statusColor,
+                  statusLabel,
+                  isCancelled
+                } = booking;
 
                 return (
                   <tr key={booking.id} className="hover:bg-slate-50/80 transition">
@@ -250,7 +272,7 @@ export default function BookingListView({
                     <td className="py-3.5 px-4">
                       <div className="inline-flex items-center gap-1.5 font-medium text-slate-900">
                         <BedDouble className="w-4 h-4 text-amber-700 shrink-0" />
-                        <span>{booking.room_type_name || `Type #${booking.room_type_id}`}</span>
+                        <span>{booking.room_type_name}</span>
                       </div>
                     </td>
 
@@ -287,13 +309,13 @@ export default function BookingListView({
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="inline-flex items-center gap-1 text-xs text-slate-700">
                         <Users className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{booking.num_guests || 1} pers.</span>
+                        <span>{booking.num_guests} pers.</span>
                       </div>
                     </td>
 
                     {/* Pris */}
                     <td className="py-3.5 px-4 font-medium text-slate-900 whitespace-nowrap">
-                      {formatCurrency(totalPrice)}
+                      {formattedPrice}
                     </td>
 
                     {/* Status */}
@@ -347,9 +369,18 @@ export default function BookingListView({
         {hasActiveFilters && (
           <span>
             Aktive filtre:{' '}
-            {searchQuery.trim() && <strong className="text-slate-700">&ldquo;{searchQuery.trim()}&rdquo;</strong>}
-            {searchQuery.trim() && statusFilter && ' • '}
-            {statusFilter && <strong className="text-slate-700">{STATUS_LABELS[statusFilter] || statusFilter}</strong>}
+            {[
+              searchQuery.trim() ? `“${searchQuery.trim()}”` : null,
+              fromDate || toDate ? `${fromDate || '...'} → ${toDate || '...'}` : null,
+              statusFilter ? STATUS_LABELS[statusFilter] || statusFilter : null
+            ]
+              .filter(Boolean)
+              .map((label, idx) => (
+                <React.Fragment key={label}>
+                  {idx > 0 && ' • '}
+                  <strong className="text-slate-700">{label}</strong>
+                </React.Fragment>
+              ))}
           </span>
         )}
       </div>

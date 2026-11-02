@@ -88,10 +88,13 @@ app.use('/api', bookingRoutes);
 
 // 404 handler for unknown routes
 app.use((req, res) => {
+  const message = `Ruten ${req.method} ${req.url} findes ikke`;
   res.status(404).json({
     success: false,
+    message,
+    status_code: 404,
     error: {
-      message: `Ruten ${req.method} ${req.url} findes ikke`,
+      message,
       code: 'NOT_FOUND'
     }
   });
@@ -101,11 +104,15 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
   const statusCode = err.status || err.statusCode || 500;
+  const message = err.message || 'Der opstod en intern serverfejl';
+  const code = err.code || 'INTERNAL_SERVER_ERROR';
   res.status(statusCode).json({
     success: false,
+    message,
+    status_code: statusCode,
     error: {
-      message: err.message || 'Der opstod en intern serverfejl',
-      code: err.code || 'INTERNAL_SERVER_ERROR'
+      message,
+      code
     }
   });
 });

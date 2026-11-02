@@ -160,6 +160,7 @@ export default function EditBookingModalView({ booking, onSuccess, onCancel }) {
                 <option value="confirmed">Bekræftet (confirmed)</option>
                 <option value="checked_in">Indtjekket (checked_in)</option>
                 <option value="checked_out">Udtjekket (checked_out)</option>
+                <option value="completed">Gennemført (completed)</option>
                 <option value="cancelled">Annulleret (cancelled)</option>
               </select>
             </div>

@@ -54,11 +54,10 @@ export default function App() {
     checkHealth();
   }, [checkHealth]);
 
-  // Callback der udløser øjeblikkelig genindlæsning af BookingList efter oprettelse i BookingForm
+  // Callback der udløser genindlæsning af BookingList efter oprettelse i BookingForm
   const handleBookingCreated = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
-    bookingListViewModel.refreshBookings();
-  }, [bookingListViewModel]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
