@@ -116,6 +116,187 @@ const analyticsRepository = {
     `;
     const [rows] = await (this?.db || db).query(sql);
     return rows;
+  },
+
+  /**
+   * BEREGNING AF BELÆGNINGSGRAD (T035)
+   * Hotel Kong Arthur har i alt 214 værelser.
+   */
+
+  /**
+   * Beregner belægningsgrad for en specifik valgt periode (start_date til end_date).
+   * @param {string} startDate - Format 'YYYY-MM-DD'
+   * @param {string} endDate - Format 'YYYY-MM-DD'
+   */
+  async getOccupancyRateByPeriod(startDate, endDate) {
+    const TOTAL_ROOMS = 214;
+    
+    const sql = `
+      SELECT 
+        DATEDIFF(?, ?) AS period_days,
+        ? * DATEDIFF(?, ?) AS total_capacity_room_nights,
+        COALESCE(SUM(
+          DATEDIFF(
+            LEAST(b.check_out_date, ?),
+            GREATEST(b.check_in_date, ?)
+          )
+        ), 0) AS occupied_room_nights,
+        ROUND(
+          (COALESCE(SUM(
+            DATEDIFF(
+              LEAST(b.check_out_date, ?),
+              GREATEST(b.check_in_date, ?)
+            )
+          ), 0) / (? * DATEDIFF(?, ?))) * 100, 2
+        ) AS occupancy_rate_percent
+      FROM BOOKING b
+      WHERE b.status != 'cancelled'
+        AND b.check_in_date < ?
+        AND b.check_out_date > ?
+    `;
+
+    const params = [
+      endDate, startDate,             // period_days
+      TOTAL_ROOMS, endDate, startDate,// total_capacity_room_nights
+      endDate, startDate,             // occupied_room_nights LEAST/GREATEST
+      endDate, startDate,             // percentage LEAST/GREATEST
+      TOTAL_ROOMS, endDate, startDate,// percentage capacity denominator
+      endDate, startDate              // WHERE overlap condition
+    ];
+
+    const [rows] = await (this?.db || db).query(sql, params);
+    return rows[0];
+  },
+
+  /**
+   * Henter samlet antal optagne nætter og overordnet belægningsgrad for hele databasens historik.
+   */
+  async getTotalOccupancySummary() {
+    const TOTAL_ROOMS = 214;
+
+    const sql = `
+      SELECT 
+        MIN(check_in_date) AS earliest_booking,
+        MAX(check_out_date) AS latest_booking,
+        DATEDIFF(MAX(check_out_date), MIN(check_in_date)) AS total_days_in_dataset,
+        COALESCE(SUM(DATEDIFF(check_out_date, check_in_date)), 0) AS total_occupied_room_nights,
+        ROUND(
+          (COALESCE(SUM(DATEDIFF(check_out_date, check_in_date)), 0) / 
+          (COUNT(DISTINCT DATE(check_in_date)) * ?)) * 100, 2
+        ) AS estimated_overall_occupancy_percent
+      FROM BOOKING
+      WHERE status != 'cancelled'
+    `;
+
+    const [rows] = await (this?.db || db).query(sql, [TOTAL_ROOMS]);
+    return rows[0];
+  },
+
+  /**
+   * Henter månedlig belægningsgrad til brug for overblik og Tableau/API.
+   * @param {number} [year] - Valgfrit årstal til filtrering
+   */
+  async getMonthlyOccupancy(year = null) {
+    const TOTAL_ROOMS = 214;
+
+    let sql = `
+      SELECT 
+        YEAR(b.check_in_date) AS year,
+        MONTH(b.check_in_date) AS month,
+        COUNT(b.id) AS total_bookings,
+        COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) AS total_nights_booked,
+        DAY(LAST_DAY(b.check_in_date)) AS days_in_month,
+        (DAY(LAST_DAY(b.check_in_date)) * ?) AS monthly_capacity_room_nights,
+        ROUND(
+          (COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) / 
+          (DAY(LAST_DAY(b.check_in_date)) * ?)) * 100, 2
+        ) AS occupancy_rate_percent
+      FROM BOOKING b
+      WHERE b.status != 'cancelled'
+    `;
+
+    const params = [TOTAL_ROOMS, TOTAL_ROOMS];
+
+    if (year) {
+      sql += ` AND YEAR(b.check_in_date) = ?`;
+      params.push(year);
+    }
+
+    sql += `
+      GROUP BY YEAR(b.check_in_date), MONTH(b.check_in_date), DAY(LAST_DAY(b.check_in_date))
+      ORDER BY year DESC, month DESC
+    `;
+
+    const [rows] = await (this?.db || db).query(sql, params);
+    return rows;
+  },
+
+  /**
+   * Henter sæsonmæssig belægningsgrad opdelt pr. sæson (low, mid, high).
+   * @param {number} [year] - Valgfrit årstal til filtrering
+   */
+  async getOccupancyBySeason(year = null) {
+    const TOTAL_ROOMS = 214;
+
+    let sql = `
+      SELECT 
+        s.season,
+        s.total_bookings,
+        s.total_nights_booked,
+        (s.season_days * ?) AS season_capacity_room_nights,
+        ROUND(
+          (s.total_nights_booked / (s.season_days * ?)) * 100, 2
+        ) AS occupancy_rate_percent
+      FROM (
+        SELECT 
+          CASE 
+            WHEN MONTH(b.check_in_date) IN (6, 7, 8) THEN 'high'
+            WHEN MONTH(b.check_in_date) IN (3, 4, 5, 9, 10) THEN 'mid'
+            ELSE 'low'
+          END AS season,
+          CASE 
+            WHEN MONTH(b.check_in_date) IN (6, 7, 8) THEN 92
+            WHEN MONTH(b.check_in_date) IN (3, 4, 5, 9, 10) THEN 153
+            ELSE 120
+          END AS season_days,
+          COUNT(b.id) AS total_bookings,
+          COALESCE(SUM(DATEDIFF(b.check_out_date, b.check_in_date)), 0) AS total_nights_booked
+        FROM BOOKING b
+        WHERE b.status != 'cancelled'
+    `;
+
+    const params = [TOTAL_ROOMS, TOTAL_ROOMS];
+
+    if (year) {
+      sql += ` AND YEAR(b.check_in_date) = ?`;
+      params.push(year);
+    }
+
+    sql += `
+        GROUP BY 
+          CASE 
+            WHEN MONTH(b.check_in_date) IN (6, 7, 8) THEN 'high'
+            WHEN MONTH(b.check_in_date) IN (3, 4, 5, 9, 10) THEN 'mid'
+            ELSE 'low'
+          END,
+          CASE 
+            WHEN MONTH(b.check_in_date) IN (6, 7, 8) THEN 92
+            WHEN MONTH(b.check_in_date) IN (3, 4, 5, 9, 10) THEN 153
+            ELSE 120
+          END
+      ) s
+      ORDER BY FIELD(s.season, 'high', 'mid', 'low')
+    `;
+
+    const [rows] = await (this?.db || db).query(sql, params);
+    return rows;
+  },
+
+  /**
+   * Alias for getOccupancyBySeason
+   */
+  async getSeasonalOccupancy(year = null) {
+    return this.getOccupancyBySeason(year);
   }
 };
 
@@ -129,6 +310,11 @@ export const getRevenueByRoomTypeAndSeason = analyticsRepository.getRevenueByRoo
 export const getTotalBarRevenue = analyticsRepository.getTotalBarRevenue.bind(analyticsRepository);
 export const getRevenueByProduct = analyticsRepository.getRevenueByProduct.bind(analyticsRepository);
 export const getBarCategoryDistribution = analyticsRepository.getBarCategoryDistribution.bind(analyticsRepository);
+export const getOccupancyRateByPeriod = analyticsRepository.getOccupancyRateByPeriod.bind(analyticsRepository);
+export const getTotalOccupancySummary = analyticsRepository.getTotalOccupancySummary.bind(analyticsRepository);
+export const getMonthlyOccupancy = analyticsRepository.getMonthlyOccupancy.bind(analyticsRepository);
+export const getOccupancyBySeason = analyticsRepository.getOccupancyBySeason.bind(analyticsRepository);
+export const getSeasonalOccupancy = analyticsRepository.getSeasonalOccupancy.bind(analyticsRepository);
 
 export { analyticsRepository };
 export default analyticsRepository;
