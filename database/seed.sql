@@ -1,5 +1,4 @@
 /*Seed is ONLY allowed to contain the insert values for the tables in schema!*/
-USE hotel_kong_arthur;
 
 
 -- Data for table: category

@@ -1,8 +1,6 @@
 ﻿-- Hotel Kong Arthur - MySQL Database Schema & Seed Data (Spec-Kit ER Model)
 /*Schema is ONLY allowed to contain table definitions and constraints!*/
 
-USE hotel_kong_arthur;
-
 DROP TABLE IF EXISTS booking CASCADE;
 DROP TABLE IF EXISTS costumer CASCADE;
 DROP TABLE IF EXISTS room_price CASCADE;
