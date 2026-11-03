@@ -1,91 +1,97 @@
 ﻿-- Hotel Kong Arthur - MySQL Database Schema & Seed Data (Spec-Kit ER Model)
-CREATE DATABASE IF NOT EXISTS hotel_kong_arthur CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE hotel_kong_arthur;
+/*Schema is ONLY allowed to contain table definitions and constraints!*/
 
-DROP TABLE IF EXISTS SALE_LINE;
-DROP TABLE IF EXISTS SALE;
-DROP TABLE IF EXISTS PRODUCT;
-DROP TABLE IF EXISTS EMPLOYEE;
-DROP TABLE IF EXISTS BOOKING;
-DROP TABLE IF EXISTS GUEST;
-DROP TABLE IF EXISTS ROOM;
-DROP TABLE IF EXISTS ROOM_TYPE;
+DROP TABLE IF EXISTS booking CASCADE;
+DROP TABLE IF EXISTS costumer CASCADE;
+DROP TABLE IF EXISTS room_price CASCADE;
+DROP TABLE IF EXISTS room CASCADE;
+DROP TABLE IF EXISTS room_type CASCADE;
+DROP TABLE IF EXISTS season CASCADE;
+DROP TABLE IF EXISTS country CASCADE;
+DROP TABLE IF EXISTS sales CASCADE;
+DROP TABLE IF EXISTS product CASCADE;
+DROP TABLE IF EXISTS category CASCADE;
 
-CREATE TABLE ROOM_TYPE (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    capacity INT NOT NULL,
-    description TEXT
-);
 
-CREATE TABLE ROOM (
-    room_number INT PRIMARY KEY,
-    room_type_id INT NOT NULL,
-    floor INT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'available',
-    FOREIGN KEY (room_type_id) REFERENCES ROOM_TYPE(id)
-);
+    CREATE TABLE country (
+        id INT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL
+    );
 
-CREATE TABLE GUEST (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(150) NOT NULL,
-    country VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    phone VARCHAR(50) NOT NULL
-);
 
-CREATE TABLE BOOKING (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    guest_id INT NOT NULL,
-    room_type_id INT NOT NULL,
-    room_number INT NOT NULL,
-    check_in_date DATE NOT NULL,
-    check_out_date DATE NOT NULL,
-    num_guests INT NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    status ENUM('confirmed', 'checked_in', 'checked_out', 'cancelled') NOT NULL DEFAULT 'confirmed',
-    satisfaction_rating INT,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    FOREIGN KEY (guest_id) REFERENCES GUEST(id),
-    FOREIGN KEY (room_type_id) REFERENCES ROOM_TYPE(id),
-    FOREIGN KEY (room_number) REFERENCES ROOM(room_number)
-);
+    CREATE TABLE season (
+        id INT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL
+    );
 
-CREATE TABLE EMPLOYEE (
-    id VARCHAR(20) PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    role VARCHAR(100) NOT NULL
-);
 
-CREATE TABLE PRODUCT (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(150) NOT NULL,
-    category ENUM('Cocktail', 'Coffee') NOT NULL,
-    price DECIMAL(10,2) NOT NULL
-);
+    CREATE TABLE room_type (
+        id INT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        max_capacity INT NOT NULL
+    );
 
-CREATE TABLE SALE (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    employee_id VARCHAR(20) NOT NULL,
-    sale_time DATETIME NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (employee_id) REFERENCES EMPLOYEE(id)
-);
 
-CREATE TABLE SALE_LINE (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    sale_id INT NOT NULL,
-    product_id INT NOT NULL,
+    CREATE TABLE room (
+        id INT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        room_type_id INT REFERENCES room_type(id)
+    );
+
+
+    CREATE TABLE room_price (
+        id INT PRIMARY KEY,
+        room_type_id INT REFERENCES room_type(id),
+        season_id INT REFERENCES season(id),
+        price_pr_night NUMERIC(10, 2) NOT NULL
+    );
+
+
+    CREATE TABLE costumer (
+        id INT PRIMARY KEY,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        email VARCHAR(255),
+        phone_number VARCHAR(50),
+        country_id INT REFERENCES country(id)
+    );
+
+
+    CREATE TABLE booking (
+        id INT PRIMARY KEY,
+        costumer_id INT REFERENCES costumer(id),
+        order_date TIMESTAMP,
+        room_id INT REFERENCES room(id),
+        arrival TIMESTAMP,
+        departure TIMESTAMP,
+        season_id INT REFERENCES season(id),
+        occupants INT,
+        price NUMERIC(10, 2),
+        status VARCHAR(50),
+        star_rating INT,
+        updated_at TIMESTAMP
+    );
+
+
+    CREATE TABLE category (
+        id INT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL
+    );
+
+
+    CREATE TABLE product (
+        id INT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        category_id INT REFERENCES category(id),
+        unit_price NUMERIC(10, 2) NOT NULL,
+        total_amount_sold INT NOT NULL
+    );
+
+
+   CREATE TABLE sales (
+    id INT NOT NULL,
+    product_id INT NOT NULL REFERENCES product(id),
     quantity INT NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL,
-    subtotal DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (sale_id) REFERENCES SALE(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES PRODUCT(id)
+    date TIMESTAMP NOT NULL,
+    PRIMARY KEY (id, product_id)
 );
-
--- Indekser for høj forespørgselsydeevne (SH-7 / T007)
-CREATE INDEX idx_booking_dates ON BOOKING(check_in_date, check_out_date);
-CREATE INDEX idx_booking_status ON BOOKING(status);
-CREATE INDEX idx_guest_country ON GUEST(country);
-CREATE INDEX idx_sale_time ON SALE(sale_time);
