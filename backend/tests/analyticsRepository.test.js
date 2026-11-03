@@ -6,22 +6,25 @@ const executedCalls = [];
 const mockPool = {
   query: async (sql, params = []) => {
     executedCalls.push({ sql, params });
-    if (/DATEDIFF/i.test(sql) && /LEAST/i.test(sql)) {
-      return [
-        [
+
+    // T035: getOccupancyRateByPeriod
+    if (/occupancy_rate_percent/i.test(sql) && /LEAST/i.test(sql)) {
+      return {
+        rows: [
           {
             period_days: 90,
             total_capacity_room_nights: 19260,
             occupied_room_nights: 14500,
             occupancy_rate_percent: 75.29
           }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/MIN\(check_in_date\)/i.test(sql) && /estimated_overall_occupancy_percent/i.test(sql)) {
-      return [
-        [
+
+    // T035: getTotalOccupancySummary
+    if (/MIN\(b\.arrival/i.test(sql) && /estimated_overall_occupancy_percent/i.test(sql)) {
+      return {
+        rows: [
           {
             earliest_booking: '2026-01-01',
             latest_booking: '2026-12-31',
@@ -29,13 +32,14 @@ const mockPool = {
             total_occupied_room_nights: 55000,
             estimated_overall_occupancy_percent: 70.41
           }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/MONTH\(b\.check_in_date\)/i.test(sql) && /monthly_capacity_room_nights/i.test(sql)) {
-      return [
-        [
+
+    // T035: getMonthlyOccupancy
+    if (/EXTRACT\(MONTH FROM b\.arrival\)/i.test(sql) && /monthly_capacity_room_nights/i.test(sql)) {
+      return {
+        rows: [
           {
             year: 2026,
             month: 7,
@@ -45,13 +49,14 @@ const mockPool = {
             monthly_capacity_room_nights: 6634,
             occupancy_rate_percent: 78.38
           }
-        ],
-        []
-      ];
+        ]
+      };
     }
+
+    // T035: getOccupancyBySeason
     if (/season_capacity_room_nights/i.test(sql)) {
-      return [
-        [
+      return {
+        rows: [
           {
             season: 'high',
             total_bookings: 950,
@@ -73,81 +78,87 @@ const mockPool = {
             season_capacity_room_nights: 25680,
             occupancy_rate_percent: 46.73
           }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/FROM BOOKING/i.test(sql) && /WHERE status != 'cancelled'/i.test(sql)) {
-      return [
-        [
+
+    // T034: getTotalRoomRevenue
+    if (/FROM booking/i.test(sql) && /WHERE b\.status != 'cancelled'/i.test(sql) && /total_room_revenue/i.test(sql)) {
+      return {
+        rows: [
           {
             total_room_revenue: 1545000.5,
             total_valid_bookings: 850
           }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/FROM ROOM_TYPE rt/i.test(sql) && /CASE/i.test(sql)) {
-      return [
-        [
+
+    // T034: getRevenueByRoomTypeAndSeason
+    if (/FROM room_type/i.test(sql) && /CASE/i.test(sql)) {
+      return {
+        rows: [
           { room_type_id: 1, room_type_name: 'Single', season: 'high', total_bookings: 80, total_revenue: 150000 }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/FROM ROOM_TYPE rt/i.test(sql)) {
-      return [
-        [
+
+    // T034: getRevenueByRoomType
+    if (/FROM room_type/i.test(sql)) {
+      return {
+        rows: [
           { room_type_id: 1, room_type_name: 'Single', total_bookings: 200, total_revenue: 300000 },
           { room_type_id: 2, room_type_name: 'Double', total_bookings: 350, total_revenue: 700000 }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/FROM SALE\b/i.test(sql)) {
-      return [
-        [
+
+    // T034: getTotalBarRevenue
+    if (/FROM sales/i.test(sql) && /product/i.test(sql) && /total_bar_revenue/i.test(sql)) {
+      return {
+        rows: [
           {
             total_bar_revenue: 450200.75,
             total_sales_transactions: 3200
           }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/FROM PRODUCT p/i.test(sql) && /GROUP BY p\.category/i.test(sql)) {
-      return [
-        [
+
+    // T034: getBarCategoryDistribution
+    if (/FROM category/i.test(sql)) {
+      return {
+        rows: [
           { category: 'Cocktail', total_items_sold: 1200, total_category_revenue: 150000 },
           { category: 'Coffee', total_items_sold: 1800, total_category_revenue: 81000 }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    if (/FROM PRODUCT p/i.test(sql) && /GROUP BY p\.id/i.test(sql)) {
-      return [
-        [
+
+    // T034: getRevenueByProduct
+    if (/FROM product/i.test(sql)) {
+      return {
+        rows: [
           { product_id: 1, product_name: 'Espresso Martini', category: 'Cocktail', total_quantity_sold: 450, total_revenue: 54000 },
           { product_id: 2, product_name: 'Cafe Latte', category: 'Coffee', total_quantity_sold: 600, total_revenue: 27000 }
-        ],
-        []
-      ];
+        ]
+      };
     }
-    return [[], []];
+
+    return { rows: [] };
   }
 };
 
 mock.module('../src/config/database.js', {
-  defaultExport: mockPool,
-  namedExports: {
+  exports: {
+    default: mockPool,
     pool: mockPool
   }
 });
 
 mock.module('../src/repositories/db.js', {
-  defaultExport: { pool: mockPool },
-  namedExports: {
+  exports: {
+    default: { pool: mockPool },
     pool: mockPool
   }
 });
@@ -172,9 +183,9 @@ test('T034: getTotalRoomRevenue henter samlet værelsesomsætning ekskl. aflyste
   const result = await analyticsRepository.getTotalRoomRevenue();
 
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /FROM BOOKING/i);
-  assert.match(executedCalls[0].sql, /WHERE status != 'cancelled'/i);
-  assert.match(executedCalls[0].sql, /COALESCE\(SUM\(total_price\), 0\) AS total_room_revenue/i);
+  assert.match(executedCalls[0].sql, /FROM booking b/i);
+  assert.match(executedCalls[0].sql, /WHERE b\.status != 'cancelled'/i);
+  assert.match(executedCalls[0].sql, /COALESCE\(SUM\(b\.price\), 0\)::numeric AS total_room_revenue/i);
   assert.deepEqual(result, {
     total_room_revenue: 1545000.5,
     total_valid_bookings: 850
@@ -186,8 +197,9 @@ test('T034: getRevenueByRoomType grupperer omsætning pr. værelsestype', async 
   const result = await analyticsRepository.getRevenueByRoomType();
 
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /FROM ROOM_TYPE rt/i);
-  assert.match(executedCalls[0].sql, /LEFT JOIN BOOKING b ON rt\.id = b\.room_type_id AND b\.status != 'cancelled'/i);
+  assert.match(executedCalls[0].sql, /FROM room_type rt/i);
+  assert.match(executedCalls[0].sql, /LEFT JOIN room r ON rt\.id = r\.room_type_id/i);
+  assert.match(executedCalls[0].sql, /LEFT JOIN booking b ON r\.id = b\.room_id AND b\.status != 'cancelled'/i);
   assert.match(executedCalls[0].sql, /GROUP BY rt\.id, rt\.name/i);
   assert.equal(result.length, 2);
   assert.equal(result[1].room_type_name, 'Double');
@@ -199,17 +211,18 @@ test('T034: getRevenueByRoomTypeAndSeason grupperer omsætning efter sæson og v
 
   assert.equal(executedCalls.length, 1);
   assert.match(executedCalls[0].sql, /CASE/i);
-  assert.match(executedCalls[0].sql, /WHEN MONTH\(b\.check_in_date\) IN \(6, 7, 8\) THEN 'high'/i);
+  assert.match(executedCalls[0].sql, /WHEN EXTRACT\(MONTH FROM b\.arrival\)::int IN \(6, 7, 8\) THEN 'high'/i);
   assert.equal(result[0].season, 'high');
 });
 
-test('T034: getTotalBarRevenue henter samlet baromsætning fra SALE', async () => {
+test('T034: getTotalBarRevenue henter samlet baromsætning fra sales og product', async () => {
   executedCalls.length = 0;
   const result = await analyticsRepository.getTotalBarRevenue();
 
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /FROM SALE/i);
-  assert.match(executedCalls[0].sql, /COALESCE\(SUM\(total_amount\), 0\) AS total_bar_revenue/i);
+  assert.match(executedCalls[0].sql, /FROM sales s/i);
+  assert.match(executedCalls[0].sql, /JOIN product p ON s\.product_id = p\.id/i);
+  assert.match(executedCalls[0].sql, /COALESCE\(SUM\(s\.quantity \* p\.unit_price\), 0\)::numeric AS total_bar_revenue/i);
   assert.deepEqual(result, {
     total_bar_revenue: 450200.75,
     total_sales_transactions: 3200
@@ -221,9 +234,10 @@ test('T034: getRevenueByProduct henter salg og omsætning pr. drink/produkt', as
   const result = await analyticsRepository.getRevenueByProduct();
 
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /FROM PRODUCT p/i);
-  assert.match(executedCalls[0].sql, /LEFT JOIN SALE_LINE sl ON p\.id = sl\.product_id/i);
-  assert.match(executedCalls[0].sql, /GROUP BY p\.id, p\.name, p\.category/i);
+  assert.match(executedCalls[0].sql, /FROM product p/i);
+  assert.match(executedCalls[0].sql, /LEFT JOIN category c ON p\.category_id = c\.id/i);
+  assert.match(executedCalls[0].sql, /LEFT JOIN sales s ON p\.id = s\.product_id/i);
+  assert.match(executedCalls[0].sql, /GROUP BY p\.id, p\.name, c\.name/i);
   assert.equal(result.length, 2);
   assert.equal(result[0].product_name, 'Espresso Martini');
 });
@@ -233,9 +247,10 @@ test('T034: getBarCategoryDistribution henter fordeling mellem Cocktail og Coffe
   const result = await analyticsRepository.getBarCategoryDistribution();
 
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /FROM PRODUCT p/i);
-  assert.match(executedCalls[0].sql, /JOIN SALE_LINE sl ON p\.id = sl\.product_id/i);
-  assert.match(executedCalls[0].sql, /GROUP BY p\.category/i);
+  assert.match(executedCalls[0].sql, /FROM category c/i);
+  assert.match(executedCalls[0].sql, /JOIN product p ON c\.id = p\.category_id/i);
+  assert.match(executedCalls[0].sql, /JOIN sales s ON p\.id = s\.product_id/i);
+  assert.match(executedCalls[0].sql, /GROUP BY c\.name/i);
   assert.equal(result.length, 2);
   assert.equal(result[0].category, 'Cocktail');
 });
@@ -262,8 +277,8 @@ test('T034 Acceptkriterie: Eksklusion af aflyste bookinger i SQL-klausuler', asy
   await analyticsRepository.getTotalRoomRevenue();
   const roomRevSql = executedCalls[0].sql;
   assert.ok(
-    /WHERE\s+status\s*!=\s*'cancelled'/i.test(roomRevSql),
-    'getTotalRoomRevenue skal ekskludere aflyste bookinger med WHERE status != \'cancelled\''
+    /b\.status\s*!=\s*'cancelled'/i.test(roomRevSql),
+    'getTotalRoomRevenue skal ekskludere aflyste bookinger med status != \'cancelled\''
   );
 
   executedCalls.length = 0;
@@ -285,10 +300,9 @@ test('T034 Acceptkriterie: Eksklusion af aflyste bookinger i SQL-klausuler', asy
 
 test('T034 Acceptkriterie: Korrekt COALESCE håndtering ved 0 bookinger eller 0 salg', async () => {
   const customDb = {
-    query: async () => [
-      [{ total_room_revenue: 0, total_valid_bookings: 0 }],
-      []
-    ]
+    query: async () => ({
+      rows: [{ total_room_revenue: 0, total_valid_bookings: 0 }]
+    })
   };
 
   analyticsRepository.db = customDb;
@@ -304,14 +318,17 @@ test('T035: getOccupancyRateByPeriod beregner belægningsgrad for en specifik pe
 
   assert.equal(executedCalls.length, 1);
   const call = executedCalls[0];
-  assert.match(call.sql, /FROM BOOKING b/i);
+  assert.match(call.sql, /FROM booking b/i);
   assert.match(call.sql, /b\.status != 'cancelled'/i);
-  assert.match(call.sql, /LEAST\(b\.check_out_date, \?\)/i);
-  assert.match(call.sql, /GREATEST\(b\.check_in_date, \?\)/i);
+  assert.match(call.sql, /LEAST\(b\.departure::date, \$2::date\)/i);
+  assert.match(call.sql, /GREATEST\(b\.arrival::date, \$1::date\)/i);
+  assert.match(call.sql, /b\.arrival::date < \$2::date/i);
+  assert.match(call.sql, /b\.departure::date > \$1::date/i);
   assert.match(call.sql, /occupancy_rate_percent/i);
   assert.ok(call.params.includes(214), 'TOTAL_ROOMS = 214 skal indgå i parametrene');
-  assert.equal(call.params[0], '2026-08-31');
-  assert.equal(call.params[1], '2026-06-01');
+  assert.equal(call.params[0], '2026-06-01');
+  assert.equal(call.params[1], '2026-08-31');
+  assert.equal(call.params[2], 214);
   assert.deepEqual(result, {
     period_days: 90,
     total_capacity_room_nights: 19260,
@@ -326,8 +343,10 @@ test('T035: getTotalOccupancySummary henter overordnet belægningsresumé', asyn
 
   assert.equal(executedCalls.length, 1);
   const call = executedCalls[0];
-  assert.match(call.sql, /FROM BOOKING/i);
+  assert.match(call.sql, /FROM booking b/i);
   assert.match(call.sql, /status != 'cancelled'/i);
+  assert.match(call.sql, /MIN\(b\.arrival::date\)/i);
+  assert.match(call.sql, /MAX\(b\.departure::date\)/i);
   assert.match(call.sql, /estimated_overall_occupancy_percent/i);
   assert.deepEqual(call.params, [214]);
   assert.equal(result.total_days_in_dataset, 365);
@@ -340,11 +359,13 @@ test('T035: getMonthlyOccupancy grupperer månedlig belægningsgrad', async () =
 
   assert.equal(executedCalls.length, 1);
   const call = executedCalls[0];
-  assert.match(call.sql, /YEAR\(b\.check_in_date\)/i);
-  assert.match(call.sql, /MONTH\(b\.check_in_date\)/i);
-  assert.match(call.sql, /DAY\(LAST_DAY\(b\.check_in_date\)\)/i);
+  assert.match(call.sql, /FROM booking b/i);
+  assert.match(call.sql, /EXTRACT\(YEAR FROM b\.arrival\)/i);
+  assert.match(call.sql, /EXTRACT\(MONTH FROM b\.arrival\)/i);
+  assert.match(call.sql, /DATE_TRUNC\('month', b\.arrival\)/i);
+  assert.match(call.sql, /b\.departure::date - b\.arrival::date/i);
   assert.match(call.sql, /b\.status != 'cancelled'/i);
-  assert.deepEqual(call.params, [214, 214]);
+  assert.deepEqual(call.params, [214]);
   assert.equal(result.length, 1);
   assert.equal(result[0].occupancy_rate_percent, 78.38);
 
@@ -352,8 +373,8 @@ test('T035: getMonthlyOccupancy grupperer månedlig belægningsgrad', async () =
   executedCalls.length = 0;
   await analyticsRepository.getMonthlyOccupancy(2026);
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /AND YEAR\(b\.check_in_date\) = \?/i);
-  assert.deepEqual(executedCalls[0].params, [214, 214, 2026]);
+  assert.match(executedCalls[0].sql, /AND EXTRACT\(YEAR FROM b\.arrival\)::int = \$2::int/i);
+  assert.deepEqual(executedCalls[0].params, [214, 2026]);
 });
 
 test('T035: getOccupancyBySeason henter sæsonmæssig belægningsgrad', async () => {
@@ -364,6 +385,7 @@ test('T035: getOccupancyBySeason henter sæsonmæssig belægningsgrad', async ()
   const call = executedCalls[0];
   assert.match(call.sql, /season/i);
   assert.match(call.sql, /season_capacity_room_nights/i);
+  assert.match(call.sql, /b\.departure::date - b\.arrival::date/i);
   assert.match(call.sql, /b\.status != 'cancelled'/i);
   assert.equal(result.length, 3);
   assert.equal(result[0].season, 'high');
@@ -372,7 +394,7 @@ test('T035: getOccupancyBySeason henter sæsonmæssig belægningsgrad', async ()
   executedCalls.length = 0;
   const aliasResult = await analyticsRepository.getSeasonalOccupancy(2026);
   assert.equal(executedCalls.length, 1);
-  assert.match(executedCalls[0].sql, /AND YEAR\(b\.check_in_date\) = \?/i);
+  assert.match(executedCalls[0].sql, /AND EXTRACT\(YEAR FROM b\.arrival\)::int = \$2::int/i);
   assert.equal(aliasResult.length, 3);
 });
 
@@ -422,4 +444,3 @@ test('T035 Acceptkriterie: Alle belægningsforespørgsler ekskluderer aflyste bo
     );
   }
 });
-
