@@ -60,7 +60,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [x] T018 [US2] Implementer `BookingRepository.createBooking()` med indsættelse i `costumer` og `booking` i `backend/src/repositories/bookingRepository.js`
 - [x] T019 [US2] Opret REST rute `POST /api/bookings` med HTTP 201 Created og HTTP 400 Bad Request fejlrespons i `backend/src/routes/bookingRoutes.js`
 - [ ] T020 [P] [US1] Byg `BookingList` React-komponent med søgefelt og filtrering i `frontend/src/components/BookingList.jsx`
-- [ ] T021 [P] [US2] Byg `BookingForm` React-komponent med validering og dropdown for de 8 værelsestyper i `frontend/src/components/BookingForm.jsx`
+- [x] T021 [P] [US2] Byg `BookingForm` React-komponent med validering og dropdown for de 8 værelsestyper i `frontend/src/components/BookingForm.jsx`
 - [ ] T022 [US1] Integrer `BookingList` og `BookingForm` i hovedapplikationen i `frontend/src/App.jsx`
 
 **Checkpoint (MVP)**: Verificér, at en receptionist kan søge i bookinger og oprette en ny gyldig booking, som straks vises i oversigten og persisteres i PostgreSQL.
