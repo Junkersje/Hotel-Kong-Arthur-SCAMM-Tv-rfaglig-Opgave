@@ -88,9 +88,10 @@ DROP TABLE IF EXISTS category CASCADE;
     );
 
 
-    CREATE TABLE sales (
-        id INT PRIMARY KEY,
-        product_id INT REFERENCES product(id),
-        quantity INT NOT NULL,
-        date TIMESTAMP NOT NULL
-    );
+   CREATE TABLE sales (
+    id INT NOT NULL,
+    product_id INT NOT NULL REFERENCES product(id),
+    quantity INT NOT NULL,
+    date TIMESTAMP NOT NULL,
+    PRIMARY KEY (id, product_id)
+);

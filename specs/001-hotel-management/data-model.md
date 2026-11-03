@@ -13,144 +13,160 @@ Dette dokument definerer den relationelle datamodel, tabeller, fremmednøgler, f
 
 ```mermaid
 erDiagram
-    ROOM_TYPE ||--o{ ROOM : "contains"
-    ROOM_TYPE ||--o{ BOOKING : "categorizes"
-    ROOM ||--o{ BOOKING : "assigned to"
-    GUEST ||--o{ BOOKING : "places"
-    
-    EMPLOYEE ||--o{ SALE : "serves"
-    SALE ||--o{ SALE_LINE : "contains"
-    PRODUCT ||--o{ SALE_LINE : "sold in"
+    country ||--o{ costumer : "has"
+    season ||--o{ room_price : "defines"
+    season ||--o{ booking : "falls_under"
+    room_type ||--o{ room : "categorizes"
+    room_type ||--o{ room_price : "priced_at"
+    room ||--o{ booking : "assigned_to"
+    costumer ||--o{ booking : "places"
+    category ||--o{ product : "classifies"
+    product ||--o{ sales : "sold_in"
 
-    ROOM_TYPE {
+    country {
         int id PK
-        string name
-        int capacity
-        string description
+        varchar name
     }
 
-    ROOM {
-        int room_number PK
+    season {
+        int id PK
+        varchar name
+    }
+
+    room_type {
+        int id PK
+        varchar name
+        int max_capacity
+    }
+
+    room {
+        int id PK
+        varchar name
         int room_type_id FK
-        int floor
-        string status
     }
 
-    GUEST {
+    room_price {
         int id PK
-        string name
-        string country
-        string email
-        string phone
-    }
-
-    BOOKING {
-        int id PK
-        int guest_id FK
         int room_type_id FK
-        int room_number FK
-        date check_in_date
-        date check_out_date
-        int num_guests
-        decimal total_price
-        enum status
-        int satisfaction_rating
-        datetime created_at
-        datetime updated_at
+        int season_id FK
+        numeric price_pr_night
     }
 
-    EMPLOYEE {
-        string id PK
-        string name
-        string role
-    }
-
-    PRODUCT {
+    costumer {
         int id PK
-        string name
-        enum category
-        decimal price
+        varchar first_name
+        varchar last_name
+        varchar email
+        varchar phone_number
+        int country_id FK
     }
 
-    SALE {
+    booking {
         int id PK
-        string employee_id FK
-        datetime sale_time
-        decimal total_amount
+        int costumer_id FK
+        timestamp order_date
+        int room_id FK
+        timestamp arrival
+        timestamp departure
+        int season_id FK
+        int occupants
+        numeric price
+        varchar status
+        int star_rating
+        timestamp updated_at
     }
 
-    SALE_LINE {
+    category {
         int id PK
-        int sale_id FK
+        varchar name
+    }
+
+    product {
+        int id PK
+        varchar name
+        int category_id FK
+        numeric unit_price
+        int total_amount_sold
+    }
+
+    sales {
+        int id PK
         int product_id FK
         int quantity
-        decimal unit_price
-        decimal subtotal
+        timestamp date
     }
+
 ```
 ## Konceptuel Domain Model
 ```mermaid
 classDiagram
     direction TB
 
-    class Guest {
+    class Country {
         +String name
-        +String country
+    }
+
+    class Customer {
+        +String firstName
+        +String lastName
         +String email
-        +String phone
+        +String phoneNumber
     }
 
-    class Booking {
-        +Date checkInDate
-        +Date checkOutDate
-        +Integer numGuests
-        +Decimal totalPrice
-        +String status
-        +Integer satisfactionRating
-    }
-
-    class Room {
-        +Integer roomNumber
-        +Integer floor
-        +String status
+    class Season {
+        +String name
     }
 
     class RoomType {
         +String name
-        +Integer capacity
-        +String description
+        +Integer maxCapacity
     }
 
-    class Employee {
+    class RoomPrice {
+        +Decimal pricePrNight
+    }
+
+    class Room {
         +String name
-        +String role
     }
 
-    class Sale {
-        +DateTime saleTime
-        +Decimal totalAmount
+    class Booking {
+        +DateTime orderDate
+        +DateTime arrival
+        +DateTime departure
+        +Integer occupants
+        +Decimal price
+        +String status
+        +Integer starRating
+        +DateTime updatedAt
     }
 
-    class SaleItem {
-        +Integer quantity
-        +Decimal unitPrice
-        +Decimal subtotal
+    class Category {
+        +String name
     }
 
     class Product {
         +String name
-        +String category
-        +Decimal price
+        +Decimal unitPrice
+        +Integer totalAmountSold
     }
 
-    RoomType "1" -- "1..*" Room : kategoriserer
-    Room "0..1" -- "0..*" Booking : tildeles
-    Guest "1" -- "0..*" Booking : foretager
-    RoomType "1" -- "0..*" Booking : specificerer
+    class Sale {
+        +Integer quantity
+        +DateTime date
+    }
 
-    Employee "1" -- "0..*" Sale : registrerer
-    Sale "1" *-- "1..*" SaleItem : består af
-    Product "1" -- "0..*" SaleItem : indgår i
+    Country "1" -- "0..*" Customer : er hjemland for
+    Customer "1" -- "0..*" Booking : foretager
+    RoomType "1" -- "1..*" Room : kategoriserer
+    Room "1" -- "0..*" Booking : reserveres i
+    Season "1" -- "0..*" Booking : tilknyttes
+
+    RoomType "1" -- "0..*" RoomPrice : prissættes ved
+    Season "1" -- "0..*" RoomPrice : gælder for
+
+    Category "1" -- "0..*" Product : grupperer
+    Product "1" -- "0..*" Sale : indgår i
 ```
 ---
 
