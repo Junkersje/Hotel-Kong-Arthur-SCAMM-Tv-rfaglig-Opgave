@@ -1,7 +1,7 @@
-
 import { Router } from "express";
-import { getBookings } from "../services/bookingService.js";
+import { getBookings, createBooking } from "../services/bookingService.js";
 import { getRoomTypes } from "../services/roomService.js";
+import { validateCreateBooking } from "../validators/bookingValidator.js";
 
 const router = Router();
 
@@ -11,7 +11,7 @@ router.get("/bookings", async (req, res, next) => {
     const { search, q, status, from, to, limit, offset } = req.query;
 
     const bookings = await getBookings({
-     q: search ?? q,
+      q: search ?? q,
       status,
       startDate: from,
       endDate: to,
@@ -31,6 +31,22 @@ router.get("/room-types", async (req, res, next) => {
     const roomTypes = await getRoomTypes();
 
     res.status(200).json(roomTypes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/bookings
+router.post("/bookings", validateCreateBooking, async (req, res, next) => {
+  try {
+    const bookingData = req.validatedBody || req.body;
+    const newBooking = await createBooking(bookingData);
+
+    return res.status(201).json({
+      success: true,
+      message: "Booking oprettet med succes",
+      data: newBooking,
+    });
   } catch (error) {
     next(error);
   }

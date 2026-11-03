@@ -1,4 +1,3 @@
-
 import { describe, test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
@@ -9,6 +8,19 @@ let roomTypes = [];
 let bookingError = null;
 let roomError = null;
 
+let createBookingFn = async (bookingData) => ({
+  id: 999,
+  customer_id: 88,
+  customer_name: `${bookingData.first_name} ${bookingData.last_name}`,
+  customer_email: bookingData.email,
+  room: { id: 201, name: '201', room_type_name: 'Standard Single' },
+  arrival: bookingData.check_in_date,
+  departure: bookingData.check_out_date,
+  occupants: bookingData.num_guests,
+  price: 2100,
+  status: 'confirmed'
+});
+
 // Mock services before importing the routes.
 mock.module('../src/services/bookingService.js', {
   namedExports: {
@@ -16,6 +28,9 @@ mock.module('../src/services/bookingService.js', {
       calls.push({ endpoint: 'bookings', filters });
       if (bookingError) throw bookingError;
       return bookings;
+    },
+    createBooking: async (data) => {
+      return await createBookingFn(data);
     }
   }
 });
@@ -157,83 +172,37 @@ describe('T016: Booking Routes Unit Tests', () => {
     const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
     assert.ok(postRoute, 'POST /bookings route skal være defineret');
 
-    const mockClient = {
-      query: async (sql) => {
-        if (sql === 'BEGIN' || sql === 'COMMIT') return { rows: [] };
-        if (sql.includes('SELECT id FROM country')) return { rows: [{ id: 1 }] };
-        if (sql.includes('SELECT id FROM costumer')) return { rows: [] };
-        if (sql.includes('COALESCE(MAX(id), 0) + 1 AS next_id FROM costumer')) {
-          return { rows: [{ next_id: 88 }] };
-        }
-        if (sql.includes('INSERT INTO costumer')) return { rows: [{ id: 88 }] };
-        if (sql.includes('FROM room r')) return { rows: [{ id: 201, name: '201', room_type_name: 'Standard Single' }] };
-        if (sql.includes('SELECT id FROM season')) return { rows: [{ id: 1 }] };
-        if (sql.includes('SELECT price_pr_night FROM room_price')) {
-          return { rows: [{ price_pr_night: 1050 }] };
-        }
-        if (sql.includes('COALESCE(MAX(id), 0) + 1 AS next_id FROM booking')) {
-          return { rows: [{ next_id: 999 }] };
-        }
-        if (sql.includes('INSERT INTO booking')) {
-          return {
-            rows: [{
-              id: 999,
-              costumer_id: 88,
-              order_date: new Date(),
-              room_id: 201,
-              arrival: '2026-07-01',
-              departure: '2026-07-03',
-              season_id: 1,
-              occupants: 1,
-              price: 2100,
-              status: 'confirmed',
-              star_rating: 5,
-              updated_at: new Date()
-            }]
-          };
-        }
-        return { rows: [] };
-      },
-      release: () => {}
+    const validPayload = {
+      first_name: 'Signe',
+      last_name: 'Krogh',
+      email: 'signe@example.com',
+      phone_number: '+45 99887766',
+      country: 'Danmark',
+      room_type_id: 1,
+      num_guests: 1,
+      check_in_date: '2026-07-01',
+      check_out_date: '2026-07-03'
     };
 
-    db.connect = async () => mockClient;
+    const req = { body: validPayload, validatedBody: validPayload };
+    let resStatus = null;
+    let resBody = null;
+    const res = {
+      setHeader: () => {},
+      status: (code) => ({
+        json: (data) => {
+          resStatus = code;
+          resBody = data;
+        }
+      })
+    };
 
-    try {
-      const validPayload = {
-        first_name: 'Signe',
-        last_name: 'Krogh',
-        email: 'signe@example.com',
-        phone_number: '+45 99887766',
-        country: 'Danmark',
-        room_type_id: 1,
-        num_guests: 1,
-        check_in_date: '2026-07-01',
-        check_out_date: '2026-07-03'
-      };
+    const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
+    await routeHandler(req, res);
 
-      const req = { body: validPayload, validatedBody: validPayload };
-      let resStatus = null;
-      let resBody = null;
-      const res = {
-        setHeader: () => {},
-        status: (code) => ({
-          json: (data) => {
-            resStatus = code;
-            resBody = data;
-          }
-        })
-      };
-
-      const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
-      await routeHandler(req, res);
-
-      assert.equal(resStatus, 201);
-      assert.equal(resBody.success, true);
-      assert.equal(resBody.data.id, 999);
-      assert.equal(resBody.data.customer_name, 'Signe Krogh');
-    } finally {
-      db.connect = originalConnect;
-    }
+    assert.equal(resStatus, 201);
+    assert.equal(resBody.success, true);
+    assert.equal(resBody.data.id, 999);
+    assert.equal(resBody.data.customer_name, 'Signe Krogh');
   });
 });

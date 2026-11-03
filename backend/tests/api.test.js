@@ -32,19 +32,18 @@ describe('Hotel Kong Arthur — Integration Tests', () => {
     });
 
     test('skal indeholde præcis 214 værelser i ROOM tabellen', async () => {
-      const [row] = await db.query('SELECT COUNT(*) AS total FROM ROOM');
+      const [row] = await db.query('SELECT COUNT(*) AS total FROM room');
       assert.equal(row.total, 214);
     });
 
     test('skal indeholde de 8 officielle værelsestyper', async () => {
-      const [row] = await db.query('SELECT COUNT(*) AS total FROM ROOM_TYPE');
+      const [row] = await db.query('SELECT COUNT(*) AS total FROM room_type');
       assert.equal(row.total, 8);
     });
 
-    test('skal indeholde bartender Helene Christine (EMP-01)', async () => {
-      const rows = await db.query("SELECT * FROM EMPLOYEE WHERE id = 'EMP-01'");
-      assert.equal(rows.length, 1);
-      assert.equal(rows[0].name, 'Helene Christine');
+    test('skal indeholde de 30 officielle barprodukter i product tabellen', async () => {
+      const [row] = await db.query('SELECT COUNT(*) AS total FROM product');
+      assert.equal(row.total, 30);
     });
 
     test('skal rulle transaktion tilbage ved fejl i withTransaction', async () => {
