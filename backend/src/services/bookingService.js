@@ -81,4 +81,6 @@ export async function getBookings(filterParams = {}) {
   }));
 }
 
+export { createBookingSchema, validateCreateBooking } from "../validators/bookingValidator.js";
+
 export default { getBookings };

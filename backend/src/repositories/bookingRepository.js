@@ -1,9 +1,5 @@
 import { query } from './db.js';
 
-/**
- * T014: Søg efter hotelreservationer.
- * Understøtter søgetekst, status, datointerval og pagination.
- */
 export async function searchBookings({
   q = '',
   status = '',
@@ -15,7 +11,6 @@ export async function searchBookings({
   const conditions = [];
   const params = [];
 
-  // Søg efter booking-ID, costumers navn eller email.
   if (String(q).trim()) {
     const search = String(q).trim();
     const like = `%${search}%`;
@@ -26,31 +21,31 @@ export async function searchBookings({
       OR (c.first_name || ' ' || c.last_name) ILIKE $${firstSearchParameter + 1}
       OR c.email ILIKE $${firstSearchParameter + 2}
     )`);
+
     params.push(like, like, like);
   }
 
-  // Filtrér efter bookingstatus.
   if (status) {
     params.push(status);
     conditions.push(`b.status = $${params.length}`);
   }
 
-  // Filtrér efter check-in-dato.
   if (startDate) {
     params.push(startDate);
-    conditions.push(`b.check_in_date >= $${params.length}`);
+    conditions.push(`b.arrival >= $${params.length}`);
   }
 
-  if (endDate) {
-    params.push(endDate);
-    conditions.push(`b.check_in_date <= $${params.length}`);
-  }
+ if (endDate) {
+  params.push(endDate);
+  conditions.push(
+    `b.arrival < ($${params.length}::date + INTERVAL '1 day')`
+  );
+}
 
   const whereClause = conditions.length
     ? `WHERE ${conditions.join(' AND ')}`
     : '';
 
-  // Begræns antallet af resultater.
   const safeLimit = Math.min(
     100,
     Math.max(1, Number.parseInt(limit, 10) || 20)
@@ -68,22 +63,23 @@ export async function searchBookings({
       (c.first_name || ' ' || c.last_name) AS costumer_name,
       c.email AS costumer_email,
       COALESCE(cntry.name, 'Ukendt') AS costumer_country,
-      b.room_number,
-      b.room_type_id,
+      b.room_id,
+      r.name AS room_number,
+      r.room_type_id,
       rt.name AS room_type_name,
-      b.check_in_date,
-      b.check_out_date,
+      b.arrival AS check_in_date,
+      b.departure AS check_out_date,
       b.occupants,
-      b.total_price,
+      b.price AS total_price,
       b.status,
-      b.created_at
-    FROM BOOKING b
-    JOIN COSTUMER c ON b.costumer_id = c.id
-    LEFT JOIN COUNTRY cntry ON c.country_id = cntry.id
-    JOIN ROOM r ON b.room_number = r.room_number
-    JOIN ROOM_TYPE rt ON b.room_type_id = rt.id
+      b.order_date AS created_at
+    FROM booking b
+    JOIN costumer c ON b.costumer_id = c.id
+    LEFT JOIN country cntry ON c.country_id = cntry.id
+    JOIN room r ON b.room_id = r.id
+    JOIN room_type rt ON r.room_type_id = rt.id
     ${whereClause}
-    ORDER BY b.created_at DESC, b.id DESC
+    ORDER BY b.order_date DESC, b.id DESC
     LIMIT ${safeLimit} OFFSET ${safeOffset}
   `;
 

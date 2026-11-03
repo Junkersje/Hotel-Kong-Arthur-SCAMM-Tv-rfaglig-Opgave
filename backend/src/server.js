@@ -7,7 +7,12 @@ import fs from 'fs';
 import yaml from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 import db from './repositories/db.js';
+<<<<<<< HEAD
 import bookingRoutes from "./routes/bookingRoutes.js";
+=======
+import bookingRoutes from './routes/bookingRoutes.js';
+
+>>>>>>> efbca00f4903683bfc783e0419a64ee8ba668abe
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -81,8 +86,15 @@ app.get('/', (req, res) => {
     health: '/api/health'
   });
 });
+<<<<<<< HEAD
 // Booking- og værelsesruter (T016)
 app.use("/api", bookingRoutes);
+=======
+
+// API Routes
+app.use('/api', bookingRoutes);
+
+>>>>>>> efbca00f4903683bfc783e0419a64ee8ba668abe
 // 404 handler for unknown routes
 app.use((req, res) => {
   res.status(404).json({
