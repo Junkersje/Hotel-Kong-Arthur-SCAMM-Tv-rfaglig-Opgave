@@ -10,6 +10,25 @@ const analyticsRepository = {
   db,
 
   /**
+   * Sikker forespørgselsafvikler mod PostgreSQL.
+   * Håndterer både standard pg Result { rows }, direkte arrays og legacy mocks.
+   */
+  async _query(sql, params = []) {
+    const targetDb = this?.db || db;
+    const result = await targetDb.query(sql, params);
+    if (result && Array.isArray(result.rows)) {
+      return result.rows;
+    }
+    if (Array.isArray(result)) {
+      if (Array.isArray(result[0])) {
+        return result[0];
+      }
+      return result;
+    }
+    return [];
+  },
+
+  /**
    * Henter samlet værelsesomsætning for ikke-aflyste bookinger.
    */
   async getTotalRoomRevenue() {
@@ -20,8 +39,8 @@ const analyticsRepository = {
       FROM BOOKING
       WHERE status != 'cancelled'
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows[0];
+    const rows = await this._query(sql);
+    return rows[0] || { total_room_revenue: 0, total_valid_bookings: 0 };
   },
 
   /**
@@ -40,8 +59,7 @@ const analyticsRepository = {
       GROUP BY rt.id, rt.name
       ORDER BY total_revenue DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
@@ -64,8 +82,7 @@ const analyticsRepository = {
       GROUP BY rt.id, rt.name, season
       ORDER BY rt.id, total_revenue DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
@@ -78,8 +95,8 @@ const analyticsRepository = {
         COUNT(id)::int AS total_sales_transactions
       FROM SALE
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows[0];
+    const rows = await this._query(sql);
+    return rows[0] || { total_bar_revenue: 0, total_sales_transactions: 0 };
   },
 
   /**
@@ -98,8 +115,7 @@ const analyticsRepository = {
       GROUP BY p.id, p.name, p.category
       ORDER BY total_revenue DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
@@ -115,8 +131,7 @@ const analyticsRepository = {
       JOIN SALE_LINE sl ON p.id = sl.product_id
       GROUP BY p.category
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
@@ -145,8 +160,13 @@ const analyticsRepository = {
         AND b.check_out_date > $1::date
     `;
 
-    const { rows } = await (this?.db || db).query(sql, [startDate, endDate, TOTAL_ROOMS]);
-    return rows[0];
+    const rows = await this._query(sql, [startDate, endDate, TOTAL_ROOMS]);
+    return rows[0] || {
+      period_days: 0,
+      total_capacity_room_nights: 0,
+      occupied_room_nights: 0,
+      occupancy_rate_percent: 0
+    };
   },
 
   /**
@@ -169,8 +189,12 @@ const analyticsRepository = {
       WHERE status != 'cancelled'
     `;
 
-    const { rows } = await (this?.db || db).query(sql, [TOTAL_ROOMS]);
-    return rows[0];
+    const rows = await this._query(sql, [TOTAL_ROOMS]);
+    return rows[0] || {
+      total_days_in_dataset: 0,
+      total_occupied_room_nights: 0,
+      estimated_overall_occupancy_percent: 0
+    };
   },
 
   /**
@@ -211,8 +235,7 @@ const analyticsRepository = {
       ORDER BY year DESC, month DESC
     `;
 
-    const { rows } = await (this?.db || db).query(sql, params);
-    return rows;
+    return await this._query(sql, params);
   },
 
   /**
@@ -272,8 +295,7 @@ const analyticsRepository = {
       ORDER BY CASE s.season WHEN 'high' THEN 1 WHEN 'mid' THEN 2 WHEN 'low' THEN 3 ELSE 4 END
     `;
 
-    const { rows } = await (this?.db || db).query(sql, params);
-    return rows;
+    return await this._query(sql, params);
   },
 
   /**
@@ -311,8 +333,7 @@ const analyticsRepository = {
       ORDER BY year DESC, month DESC
     `;
 
-    const { rows } = await (this?.db || db).query(sql, params);
-    return rows;
+    return await this._query(sql, params);
   },
 
   /**
@@ -334,8 +355,7 @@ const analyticsRepository = {
       GROUP BY cntry.name
       ORDER BY average_length_of_stay DESC, total_nights DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
@@ -356,8 +376,7 @@ const analyticsRepository = {
       GROUP BY rt.id, rt.name
       ORDER BY average_length_of_stay DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   }
 };
 
