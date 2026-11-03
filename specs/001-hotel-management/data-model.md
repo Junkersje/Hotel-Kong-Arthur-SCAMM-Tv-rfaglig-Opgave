@@ -204,7 +204,7 @@ classDiagram
 
 ---
 
-### 2.3 `guests` (Gæster og lande)
+### 2.3 `costumer` (Kunder / Gæster og lande)
 - **Formål**: Registrering af gæstens oplysninger og bopælsland/nationalitet.
 - **Felter**:
   - `id` (SERIAL, PK)
@@ -220,7 +220,7 @@ classDiagram
 - **Formål**: Kerneenhed for overnatninger, CRUD-håndtering og omsætningsberegninger.
 - **Felter**:
   - `id` (SERIAL, PK)
-  - `guest_id` (INT, NOT NULL, FK $\rightarrow$ `guests.id`)
+  - `costumer_id` (INT, NOT NULL, FK $\rightarrow$ `costumer.id`)
   - `room_type_id` (INT, NOT NULL, FK $\rightarrow$ `room_types.id`)
   - `room_number` (INT, NULL, FK $\rightarrow$ `rooms.room_number`) — Valgfrit tildelt værelse
   - `check_in_date` (DATE, NOT NULL)

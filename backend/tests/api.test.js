@@ -51,7 +51,7 @@ describe('Hotel Kong Arthur — Integration Tests', () => {
       let rolledBack = false;
       try {
         await db.withTransaction(async (conn) => {
-          await conn.query("INSERT INTO GUEST (name, country, email, phone) VALUES ('Test Rollback', 'Danmark', 'rollback@test.dk', '+45 00000000')");
+          await conn.query("INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (99999, 'Test', 'Rollback', 'rollback@test.dk', '+45 00000000', 1)");
           throw new Error('Forceret fejl for rollback-test');
         });
       } catch (e) {
@@ -59,7 +59,7 @@ describe('Hotel Kong Arthur — Integration Tests', () => {
       }
       assert.equal(rolledBack, true);
 
-      const rows = await db.query("SELECT * FROM GUEST WHERE email = 'rollback@test.dk'");
+      const rows = await db.query("SELECT * FROM costumer WHERE email = 'rollback@test.dk'");
       assert.equal(rows.length, 0, 'Gæsten burde ikke være persisteret efter rollback');
     });
   });

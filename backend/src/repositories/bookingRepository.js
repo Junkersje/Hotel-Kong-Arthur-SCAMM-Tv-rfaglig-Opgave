@@ -1,4 +1,3 @@
-
 import { query } from './db.js';
 
 /**
@@ -16,7 +15,7 @@ export async function searchBookings({
   const conditions = [];
   const params = [];
 
-  // Søg efter booking-ID, gæstens navn eller email.
+  // Søg efter booking-ID, costumers navn eller email.
   if (String(q).trim()) {
     const search = String(q).trim();
     const like = `%${search}%`;
@@ -24,8 +23,8 @@ export async function searchBookings({
 
     conditions.push(`(
       CAST(b.id AS TEXT) ILIKE $${firstSearchParameter}
-      OR g.name ILIKE $${firstSearchParameter + 1}
-      OR g.email ILIKE $${firstSearchParameter + 2}
+      OR (c.first_name || ' ' || c.last_name) ILIKE $${firstSearchParameter + 1}
+      OR c.email ILIKE $${firstSearchParameter + 2}
     )`);
     params.push(like, like, like);
   }
@@ -65,21 +64,22 @@ export async function searchBookings({
   const sql = `
     SELECT
       b.id,
-      b.guest_id,
-      g.name AS guest_name,
-      g.email AS guest_email,
-      g.country AS guest_country,
+      b.costumer_id,
+      (c.first_name || ' ' || c.last_name) AS costumer_name,
+      c.email AS costumer_email,
+      COALESCE(cntry.name, 'Ukendt') AS costumer_country,
       b.room_number,
       b.room_type_id,
       rt.name AS room_type_name,
       b.check_in_date,
       b.check_out_date,
-      b.num_guests,
+      b.occupants,
       b.total_price,
       b.status,
       b.created_at
     FROM BOOKING b
-    JOIN GUEST g ON b.guest_id = g.id
+    JOIN COSTUMER c ON b.costumer_id = c.id
+    LEFT JOIN COUNTRY cntry ON c.country_id = cntry.id
     JOIN ROOM r ON b.room_number = r.room_number
     JOIN ROOM_TYPE rt ON b.room_type_id = rt.id
     ${whereClause}

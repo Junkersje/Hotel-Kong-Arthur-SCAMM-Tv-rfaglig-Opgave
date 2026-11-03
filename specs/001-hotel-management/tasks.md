@@ -37,7 +37,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 **Formål**: Database-skema, seed-data, database-forbindelse og 3-lags skelet i backenden.  
 ⚠️ **KRITISK**: Ingen user stories kan implementeres, før denne fase er 100 % gennemført og testet.
 
-- [x] T007 Opret PostgreSQL DDL-skema med tabeller for `room_types`, `rooms` (214 værelser), `guests`, `bookings`, `employees`, `products`, `sales`, `sale_lines` i `database/schema.sql`
+- [x] T007 Opret PostgreSQL DDL-skema med tabeller for `room_type`, `room` (214 værelser), `country`, `costumer`, `booking`, `category`, `product`, `sales` i `database/schema.sql`
 - [x] T008 Opret PostgreSQL seed-data med de 8 officielle værelsestyper, 214 værelser, Helene Christine (`HC01`), 20 cocktails, 10 kaffetyper og baseline-bookinger i `database/seed.sql`
 - [x] T009 [P] Implementer PostgreSQL connection pool og transaktionshjælper med `pg` i `backend/src/repositories/db.js`
 - [x] T010 [P] Implementer fælles middleware til JSON-parsing, CORS og centraliseret fejlhåndtering i `backend/src/server.js`
@@ -57,7 +57,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [ ] T015 [US1] Implementer `BookingService.getBookings()` og `RoomService.getRoomTypes()` i `backend/src/services/bookingService.js`
 - [ ] T016 [US1] Opret REST ruter `GET /api/bookings` og `GET /api/room-types` i `backend/src/routes/bookingRoutes.js`
 - [ ] T017 [US2] Implementer Zod-validering for bookingoprettelse (kræv `check_out_date > check_in_date` og `num_guests BETWEEN 1 AND 4`) i `backend/src/services/bookingService.js`
-- [ ] T018 [US2] Implementer `BookingRepository.createBooking()` med indsættelse i `guests` og `bookings` i `backend/src/repositories/bookingRepository.js`
+- [ ] T018 [US2] Implementer `BookingRepository.createBooking()` med indsættelse i `costumer` og `booking` i `backend/src/repositories/bookingRepository.js`
 - [ ] T019 [US2] Opret REST rute `POST /api/bookings` med HTTP 201 Created og HTTP 400 Bad Request fejlrespons i `backend/src/routes/bookingRoutes.js`
 - [ ] T020 [P] [US1] Byg `BookingList` React-komponent med søgefelt og filtrering i `frontend/src/components/BookingList.jsx`
 - [ ] T021 [P] [US2] Byg `BookingForm` React-komponent med validering og dropdown for de 8 værelsestyper i `frontend/src/components/BookingForm.jsx`
