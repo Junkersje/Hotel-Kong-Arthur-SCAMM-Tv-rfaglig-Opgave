@@ -1,5 +1,13 @@
 import { Router } from "express";
+<<<<<<< HEAD
 import { getBookings, createBooking } from "../services/bookingService.js";
+=======
+import {
+  getBookings,
+  createBooking,
+  validateCreateBooking
+} from "../services/bookingService.js";
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
 import { getRoomTypes } from "../services/roomService.js";
 import { validateCreateBooking } from "../validators/bookingValidator.js";
 
@@ -17,7 +25,7 @@ router.get("/bookings", async (req, res, next) => {
       startDate: from,
       endDate: to,
       limit,
-      offset,
+      offset
     });
 
     return res.status(200).json(bookings);
@@ -26,7 +34,25 @@ router.get("/bookings", async (req, res, next) => {
   }
 });
 
+<<<<<<< HEAD
 // GET /api/room-types (T016)
+=======
+// POST /api/bookings
+router.post("/bookings", validateCreateBooking, async (req, res, next) => {
+  try {
+    const booking = await createBooking(req.validatedBody);
+
+    res.status(201).json({
+      success: true,
+      data: booking
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/room-types
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
 router.get("/room-types", async (req, res, next) => {
   res.setHeader("Content-Type", "application/json");
   try {

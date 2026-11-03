@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -32,9 +33,18 @@ app.use((req, res, next) => {
 
 // Swagger UI - SH-11 (T011)
 let swaggerDocument = null;
+
 const openApiPaths = [
   path.join(__dirname, 'contracts', 'openapi.yaml'),
-  path.join(__dirname, '..', '..', 'specs', '001-hotel-management', 'contracts', 'openapi.yaml')
+  path.join(
+    __dirname,
+    '..',
+    '..',
+    'specs',
+    '001-hotel-management',
+    'contracts',
+    'openapi.yaml'
+  )
 ];
 
 for (const p of openApiPaths) {
@@ -43,25 +53,39 @@ for (const p of openApiPaths) {
       swaggerDocument = yaml.load(p);
       break;
     } catch (e) {
-      console.warn(`Kunne ikke parse OpenAPI fra ${p}:`, e.message);
+      console.warn(
+        `Kunne ikke parse OpenAPI fra ${p}:`,
+        e.message
+      );
     }
   }
 }
 
 if (swaggerDocument) {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument)
+  );
+
   console.log('Swagger UI monteret på /api-docs');
 } else {
-  console.warn('Advarsel: openapi.yaml blev ikke fundet for /api-docs');
+  console.warn(
+    'Advarsel: openapi.yaml blev ikke fundet for /api-docs'
+  );
 }
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
     const result = await db.query('SELECT 1 AS alive');
+
     res.json({
       status: 'UP',
-      database: result && result[0]?.alive === 1 ? 'CONNECTED' : 'UNKNOWN',
+      database:
+        result && result[0]?.alive === 1
+          ? 'CONNECTED'
+          : 'UNKNOWN',
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -83,7 +107,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Booking- og værelsesruter (T016, T018, T019)
+// Booking- og værelsesruter (T016, T018, T019) - T016
 app.use('/api', bookingRoutes);
 
 // 404 handler for unknown routes
@@ -97,14 +121,17 @@ app.use((req, res) => {
   });
 });
 
-// Centraliseret fejlhåndterings-middleware - SH-10 (T010)
+// Centraliseret fejlhåndtering - SH-10 (T010)
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
+
   const statusCode = err.status || err.statusCode || 500;
+
   res.status(statusCode).json({
     success: false,
     error: {
-      message: err.message || 'Der opstod en intern serverfejl',
+      message:
+        err.message || 'Der opstod en intern serverfejl',
       code: err.code || 'INTERNAL_SERVER_ERROR'
     }
   });
@@ -113,8 +140,12 @@ app.use((err, req, res, next) => {
 // Start server hvis filen køres direkte
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`Hotel Kong Arthur REST API lytter på port ${PORT}`);
-    console.log(`API dokumentation tilgængelig på http://localhost:${PORT}/api-docs`);
+    console.log(
+      `Hotel Kong Arthur REST API lytter på port ${PORT}`
+    );
+    console.log(
+      `API dokumentation tilgængelig på http://localhost:${PORT}/api-docs`
+    );
   });
 }
 
