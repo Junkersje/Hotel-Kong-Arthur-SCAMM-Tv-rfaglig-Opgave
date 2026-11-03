@@ -1,6 +1,10 @@
 
 import { Router } from "express";
-import { getBookings } from "../services/bookingService.js";
+import {
+  getBookings,
+  createBooking,
+  validateCreateBooking
+} from "../services/bookingService.js";
 import { getRoomTypes } from "../services/roomService.js";
 
 const router = Router();
@@ -11,15 +15,29 @@ router.get("/bookings", async (req, res, next) => {
     const { search, q, status, from, to, limit, offset } = req.query;
 
     const bookings = await getBookings({
-     q: search ?? q,
+      q: search ?? q,
       status,
       startDate: from,
       endDate: to,
       limit,
-      offset,
+      offset
     });
 
     res.status(200).json(bookings);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/bookings
+router.post("/bookings", validateCreateBooking, async (req, res, next) => {
+  try {
+    const booking = await createBooking(req.validatedBody);
+
+    res.status(201).json({
+      success: true,
+      data: booking
+    });
   } catch (error) {
     next(error);
   }
