@@ -1,4 +1,3 @@
-
 import { describe, test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -8,6 +7,25 @@ let roomTypes = [];
 let bookingError = null;
 let roomError = null;
 let createBookingError = null;
+<<<<<<< HEAD
+
+let createBookingFn = async (bookingData) => {
+  if (createBookingError) throw createBookingError;
+  return {
+    id: 999,
+    customer_id: 88,
+    customer_name: `${bookingData.first_name} ${bookingData.last_name}`,
+    customer_email: bookingData.email,
+    room: { id: 201, name: '201', room_type_id: bookingData.room_type_id, room_type_name: 'Standard Single' },
+    arrival: bookingData.check_in_date,
+    departure: bookingData.check_out_date,
+    occupants: bookingData.num_guests,
+    price: 2100,
+    status: 'confirmed'
+  };
+};
+=======
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
 
 // Mock bookingService
 mock.module('../src/services/bookingService.js', {
@@ -17,6 +35,11 @@ mock.module('../src/services/bookingService.js', {
       if (bookingError) throw bookingError;
       return bookings;
     },
+<<<<<<< HEAD
+    createBooking: async (data) => {
+      return await createBookingFn(data);
+    }
+=======
 
     createBooking: async (data) => {
       calls.push({ endpoint: 'create-booking', data });
@@ -29,6 +52,7 @@ mock.module('../src/services/bookingService.js', {
     },
 
     validateCreateBooking: (req, res, next) => next()
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
   }
 });
 
@@ -77,6 +101,7 @@ async function invoke(path, query = {}) {
   const req = { query };
 
   const res = {
+    setHeader() {},
     status(code) {
       statusCode = code;
       return this;
@@ -94,8 +119,12 @@ async function invoke(path, query = {}) {
   return { statusCode, body, forwardedError };
 }
 
+<<<<<<< HEAD
+describe('T016 & T019: Booking Routes Unit Tests', () => {
+=======
 describe('T016: Booking Routes Unit Tests', () => {
 
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
   test('GET /bookings returnerer HTTP 200 med array', async () => {
     reset();
     bookings = [{ id: 101, status: 'confirmed' }];
@@ -174,11 +203,19 @@ describe('T016: Booking Routes Unit Tests', () => {
     assert.equal(result.forwardedError, roomError);
   });
 
+<<<<<<< HEAD
+  test('POST /bookings opretter en booking og returnerer HTTP 201 Created med Location header', async () => {
+    reset();
+    const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
+    assert.ok(postRoute, 'POST /bookings route skal være defineret');
+
+=======
   test('POST /bookings opretter en booking og returnerer HTTP 201 Created', async () => {
     reset();
 
     const handler = getHandler('/bookings', 'post');
 
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
     const validPayload = {
       first_name: 'Signe',
       last_name: 'Krogh',
@@ -191,6 +228,153 @@ describe('T016: Booking Routes Unit Tests', () => {
       check_out_date: '2026-07-03'
     };
 
+<<<<<<< HEAD
+    const req = { body: validPayload, validatedBody: validPayload };
+    let resStatus = null;
+    let resBody = null;
+    const resHeaders = {};
+
+    const res = {
+      setHeader: (key, val) => {
+        resHeaders[key] = val;
+      },
+      status: (code) => ({
+        json: (data) => {
+          resStatus = code;
+          resBody = data;
+        }
+      })
+    };
+
+    const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
+    await routeHandler(req, res);
+
+    assert.equal(resStatus, 201);
+    assert.equal(resBody.success, true);
+    assert.equal(resBody.data.id, 999);
+    assert.equal(resBody.data.customer_name, 'Signe Krogh');
+    assert.equal(resHeaders['Location'], '/api/bookings/999');
+    assert.equal(resHeaders['Content-Type'], 'application/json');
+  });
+
+  test('POST /bookings returnerer HTTP 409 Conflict når værelser er udsolgt', async () => {
+    reset();
+    const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
+
+    const conflictErr = new Error('Der er desværre ingen ledige værelser af denne type i den valgte periode.');
+    conflictErr.statusCode = 409;
+    createBookingError = conflictErr;
+
+    const validPayload = {
+      first_name: 'Peter',
+      last_name: 'Hansen',
+      email: 'peter@example.com',
+      country: 'Danmark',
+      room_type_id: 1,
+      num_guests: 1,
+      check_in_date: '2026-07-01',
+      check_out_date: '2026-07-03'
+    };
+
+    const req = { body: validPayload, validatedBody: validPayload };
+    let resStatus = null;
+    let resBody = null;
+
+    const res = {
+      setHeader: () => {},
+      status: (code) => ({
+        json: (data) => {
+          resStatus = code;
+          resBody = data;
+        }
+      })
+    };
+
+    const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
+    await routeHandler(req, res);
+
+    assert.equal(resStatus, 409);
+    assert.equal(resBody.success, false);
+    assert.equal(resBody.error, 'Konflikt ved værelsestildeling');
+    assert.match(resBody.details, /ingen ledige værelser/i);
+  });
+
+  test('POST /bookings returnerer HTTP 500 ved uventet serverfejl', async () => {
+    reset();
+    const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
+
+    createBookingError = new Error('Uventet forbindelsesnedbrud');
+
+    const validPayload = {
+      first_name: 'Peter',
+      last_name: 'Hansen',
+      email: 'peter@example.com',
+      country: 'Danmark',
+      room_type_id: 1,
+      num_guests: 1,
+      check_in_date: '2026-07-01',
+      check_out_date: '2026-07-03'
+    };
+
+    const req = { body: validPayload, validatedBody: validPayload };
+    let resStatus = null;
+    let resBody = null;
+
+    const res = {
+      setHeader: () => {},
+      status: (code) => ({
+        json: (data) => {
+          resStatus = code;
+          resBody = data;
+        }
+      })
+    };
+
+    const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
+    await routeHandler(req, res);
+
+    assert.equal(resStatus, 500);
+    assert.equal(resBody.success, false);
+    assert.equal(resBody.error, 'Uventet forbindelsesnedbrud');
+  });
+
+  test('POST /bookings afviser ugyldig payload via middleware med HTTP 400', async () => {
+    reset();
+    const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
+    const validatorMiddleware = postRoute.route.stack[0].handle;
+
+    const invalidPayload = {
+      first_name: '',
+      last_name: '',
+      email: 'not-an-email',
+      check_in_date: '2026-07-05',
+      check_out_date: '2026-07-01'
+    };
+
+    const req = { body: invalidPayload };
+    let resStatus = null;
+    let resBody = null;
+
+    const res = {
+      status: (code) => ({
+        json: (data) => {
+          resStatus = code;
+          resBody = data;
+        }
+      })
+    };
+
+    let nextCalled = false;
+    await validatorMiddleware(req, res, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, false);
+    assert.equal(resStatus, 400);
+    assert.equal(resBody.success, false);
+    assert.equal(resBody.error, 'Valideringsfejl');
+    assert.ok(Array.isArray(resBody.details));
+=======
     const req = {
       body: validPayload,
       validatedBody: validPayload
@@ -223,6 +407,7 @@ describe('T016: Booking Routes Unit Tests', () => {
     assert.equal(forwardedError, undefined);
     assert.equal(calls[0].endpoint, 'create-booking');
     assert.deepEqual(calls[0].data, validPayload);
+>>>>>>> b117495ec2fb46f535b103953452c47c00664493
   });
 
   test('POST /bookings sender fejl videre til Express', async () => {
