@@ -9,6 +9,7 @@ import yaml from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 import db from './repositories/db.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 dotenv.config();
 
@@ -109,6 +110,9 @@ app.get('/', (req, res) => {
 
 // Booking- og værelsesruter (T016, T018, T019) - T016
 app.use('/api', bookingRoutes);
+
+// Analytics- og nøgletalsruter (T037)
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler for unknown routes
 app.use((req, res) => {

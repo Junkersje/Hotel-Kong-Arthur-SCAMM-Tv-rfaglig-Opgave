@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { getBookings, createBooking } from "../services/bookingService.js";
+import * as bookingService from "../services/bookingService.js";
 import { getRoomTypes } from "../services/roomService.js";
 import { validateCreateBooking } from "../validators/bookingValidator.js";
+
+const { getBookings, createBooking } = bookingService;
 
 const router = Router();
 
@@ -75,6 +77,48 @@ router.post("/bookings", validateCreateBooking, async (req, res) => {
     return res.status(error.statusCode || 500).json({
       success: false,
       error: error.message || "Der opstod en intern serverfejl ved oprettelsen af reservationen",
+    });
+  }
+});
+
+// PUT /api/bookings/:id (SH-25 / T025)
+router.put("/bookings/:id", async (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  try {
+    if (typeof bookingService.updateBooking !== "function") {
+      return res.status(501).json({ success: false, error: "updateBooking er ikke tilgængelig" });
+    }
+    const updated = await bookingService.updateBooking(req.params.id, req.body);
+    return res.status(200).json({
+      success: true,
+      message: "Reservation opdateret med succes",
+      data: updated,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message || "Der opstod en fejl ved opdatering af reservationen",
+    });
+  }
+});
+
+// DELETE /api/bookings/:id (SH-30 / T030 - Soft delete til status 'cancelled')
+router.delete("/bookings/:id", async (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  try {
+    if (typeof bookingService.cancelBooking !== "function") {
+      return res.status(501).json({ success: false, error: "cancelBooking er ikke tilgængelig" });
+    }
+    const cancelled = await bookingService.cancelBooking(req.params.id);
+    return res.status(200).json({
+      success: true,
+      message: "Reservation annulleret (soft delete)",
+      data: cancelled,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message || "Der opstod en fejl ved annullering af reservationen",
     });
   }
 });

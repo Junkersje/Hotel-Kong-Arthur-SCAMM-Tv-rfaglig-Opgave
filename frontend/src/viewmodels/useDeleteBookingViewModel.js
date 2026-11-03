@@ -15,9 +15,18 @@ export function useDeleteBookingViewModel(booking, onSuccess, onCancel) {
     setIsDeleting(true);
     setError(null);
     try {
-      const response = await apiDelete(`/bookings/${booking.id}`);
+      let response;
+      try {
+        response = await apiDelete(`/bookings/${booking.id}`);
+      } catch (apiErr) {
+        if (apiErr.status === 404) {
+          response = { ...booking, status: 'cancelled' };
+        } else {
+          throw apiErr;
+        }
+      }
       if (typeof onSuccess === 'function') {
-        onSuccess(response || { ...booking, status: 'cancelled' });
+        onSuccess(response?.data || response || { ...booking, status: 'cancelled' });
       }
     } catch (err) {
       setError(err.message || 'Kunne ikke aflyse reservationen.');

@@ -11,7 +11,7 @@ export async function getRoomTypes() {
   return roomTypes.map((roomType) => ({
     id: roomType.id,
     name: roomType.name,
-    capacity: roomType.capacity,
+    capacity: roomType.capacity ?? roomType.max_capacity,
     description: roomType.description
   }));
 }

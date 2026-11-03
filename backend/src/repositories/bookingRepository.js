@@ -60,8 +60,11 @@ export async function searchBookings({
     SELECT
       b.id,
       b.costumer_id,
+      c.first_name,
+      c.last_name,
       (c.first_name || ' ' || c.last_name) AS costumer_name,
       c.email AS costumer_email,
+      c.phone_number AS costumer_phone,
       COALESCE(cntry.name, 'Ukendt') AS costumer_country,
       b.room_id,
       r.name AS room_number,
@@ -72,6 +75,7 @@ export async function searchBookings({
       b.occupants,
       b.price AS total_price,
       b.status,
+      b.star_rating,
       b.order_date AS created_at
     FROM booking b
     JOIN costumer c ON b.costumer_id = c.id

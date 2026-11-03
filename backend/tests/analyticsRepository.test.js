@@ -150,15 +150,15 @@ const mockPool = {
 };
 
 mock.module('../src/config/database.js', {
-  exports: {
-    default: mockPool,
+  defaultExport: mockPool,
+  namedExports: {
     pool: mockPool
   }
 });
 
 mock.module('../src/repositories/db.js', {
-  exports: {
-    default: { pool: mockPool },
+  defaultExport: { pool: mockPool },
+  namedExports: {
     pool: mockPool
   }
 });
