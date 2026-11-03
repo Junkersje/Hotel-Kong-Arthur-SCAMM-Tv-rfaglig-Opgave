@@ -663,7 +663,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (195, 'Aisha', 'Silva', 'aisha.silva195@gmail.com', '+1 67279295', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (196, 'Carlos', 'Silva', 'carlos.silva196@outlook.com', '+7 51946203', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (197, 'Hiroshi', 'Smith', 'hiroshi.smith197@icloud.com', '+52 99269266', 111);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (191, 'Ingrid', 'Olsen', 'ingrid.olsen191@outlook.com', '+33 63516659', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (198, 'Muhammad', 'Silva', 'muhammad.silva198@yahoo.com', '+82 44210729', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (199, 'Muhammad', 'Smith', 'muhammad.smith199@outlook.com', '+33 60237832', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (200, 'Muhammad', 'Ivanov', 'muhammad.ivanov200@icloud.com', '+61 30486849', 9);
@@ -678,7 +677,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (209, 'Ingrid', 'Yamamoto', 'ingrid.yamamoto209@icloud.com', '+46 27463800', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (210, 'Carlos', 'Kim', 'carlos.kim210@icloud.com', '+55 84674816', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (211, 'David', 'Martinez', 'david.martinez211@outlook.com', '+86 18050510', 36);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (6, 'Lucas', 'Khan', 'lucas.khan6@yahoo.com', '+61 25457816', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (212, 'Santiago', 'Brown', 'santiago.brown212@outlook.com', '+44 88714010', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (213, 'Muhammad', 'Yamamoto', 'muhammad.yamamoto213@gmail.com', '+44 85374852', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (214, 'Olivia', 'Ivanov', 'olivia.ivanov214@outlook.com', '+34 85387867', 165);
@@ -733,7 +731,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (263, 'David', 'Smith', 'david.smith263@yahoo.com', '+55 98227303', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (264, 'Isabella', 'Lee', 'isabella.lee264@icloud.com', '+91 63792364', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (265, 'Muhammad', 'Smith', 'muhammad.smith265@hotmail.com', '+52 19339597', 111);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (197, 'Hiroshi', 'Smith', 'hiroshi.smith197@icloud.com', '+52 99269266', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (266, 'Liam', 'Sato', 'liam.sato266@outlook.com', '+44 29042093', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (267, 'Zhang', 'Hassan', 'zhang.hassan267@outlook.com', '+7 94982908', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (268, 'Sophia', 'Ivanov', 'sophia.ivanov268@yahoo.com', '+52 14114726', 111);
@@ -752,16 +749,13 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (281, 'David', 'Dubois', 'david.dubois281@hotmail.com', '+1 90023800', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (282, 'Liam', 'Müller', 'liam.müller282@hotmail.com', '+34 21402740', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (283, 'Ingrid', 'Martinez', 'ingrid.martinez283@icloud.com', '+34 17061037', 165);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (189, 'Elena', 'Ivanov', 'elena.ivanov189@hotmail.com', '+91 55490631', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (284, 'Isabella', 'Kim', 'isabella.kim284@yahoo.com', '+39 30881581', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (285, 'Elena', 'Silva', 'elena.silva285@yahoo.com', '+84 31127198', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (286, 'Lucas', 'Sato', 'lucas.sato286@yahoo.com', '+55 92924837', 24);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (197, 'Hiroshi', 'Smith', 'hiroshi.smith197@icloud.com', '+52 99269266', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (287, 'Santiago', 'Ivanov', 'santiago.ivanov287@outlook.com', '+55 16679008', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (288, 'Olivia', 'Olsen', 'olivia.olsen288@hotmail.com', '+234 20949687', 127);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (289, 'John', 'Olsen', 'john.olsen289@yahoo.com', '+61 46521025', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (290, 'Olivia', 'Sato', 'olivia.sato290@outlook.com', '+39 69473616', 84);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (98, 'Zhang', 'Nguyen', 'zhang.nguyen98@icloud.com', '+49 85776373', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (291, 'Elena', 'Martinez', 'elena.martinez291@gmail.com', '+234 98843907', 127);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (292, 'Ahmed', 'Müller', 'ahmed.müller292@icloud.com', '+91 66910299', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (293, 'Santiago', 'Garcia', 'santiago.garcia293@hotmail.com', '+33 75184410', 61);
@@ -771,7 +765,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (297, 'Muhammad', 'Schneider', 'muhammad.schneider297@outlook.com', '+81 46663833', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (298, 'Maria', 'Nguyen', 'maria.nguyen298@icloud.com', '+20 38933176', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (299, 'Muhammad', 'Rossi', 'muhammad.rossi299@outlook.com', '+81 78765957', 86);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (134, 'Aisha', 'Rossi', 'aisha.rossi134@icloud.com', '+81 73920651', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (300, 'Olivia', 'Patel', 'olivia.patel300@outlook.com', '+86 25276327', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (301, 'Chen', 'Patel', 'chen.patel301@outlook.com', '+234 56328316', 127);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (302, 'Santiago', 'Yamamoto', 'santiago.yamamoto302@gmail.com', '+34 67702031', 165);
@@ -808,7 +801,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (333, 'Aisha', 'Brown', 'aisha.brown333@hotmail.com', '+20 84990607', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (334, 'Muhammad', 'Sato', 'muhammad.sato334@icloud.com', '+86 99663907', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (335, 'Muhammad', 'Silva', 'muhammad.silva335@yahoo.com', '+46 57535513', 169);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (56, 'Zhang', 'Patel', 'zhang.patel56@yahoo.com', '+52 59796322', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (336, 'Liam', 'Müller', 'liam.müller336@hotmail.com', '+39 19673809', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (337, 'Aisha', 'Patel', 'aisha.patel337@hotmail.com', '+55 63293990', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (338, 'David', 'Olsen', 'david.olsen338@yahoo.com', '+84 15677713', 192);
@@ -840,7 +832,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (364, 'Sara', 'Sato', 'sara.sato364@outlook.com', '+61 89036966', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (365, 'Olivia', 'Lee', 'olivia.lee365@outlook.com', '+52 63747464', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (366, 'Carlos', 'Silva', 'carlos.silva366@gmail.com', '+46 80325062', 169);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (112, 'David', 'Silva', 'david.silva112@hotmail.com', '+84 27447248', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (367, 'Muhammad', 'Kim', 'muhammad.kim367@yahoo.com', '+84 20555833', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (368, 'Hiroshi', 'Müller', 'hiroshi.müller368@yahoo.com', '+46 63118906', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (369, 'Isabella', 'Müller', 'isabella.müller369@icloud.com', '+44 51644346', 186);
@@ -854,7 +845,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (377, 'Maria', 'Silva', 'maria.silva377@hotmail.com', '+82 25304396', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (378, 'Hiroshi', 'Khan', 'hiroshi.khan378@gmail.com', '+20 81216573', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (379, 'Liam', 'Müller', 'liam.müller379@hotmail.com', '+86 78444607', 36);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (149, 'Chen', 'Smith', 'chen.smith149@hotmail.com', '+61 96347724', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (380, 'Isabella', 'Schneider', 'isabella.schneider380@yahoo.com', '+81 36025314', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (381, 'Aisha', 'Ivanov', 'aisha.ivanov381@yahoo.com', '+7 56892354', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (382, 'Lucas', 'Patel', 'lucas.patel382@gmail.com', '+84 57123808', 192);
@@ -888,7 +878,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (410, 'Fatima', 'Smith', 'fatima.smith410@gmail.com', '+84 69023966', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (411, 'Chen', 'Rossi', 'chen.rossi411@yahoo.com', '+52 19165226', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (412, 'Elena', 'Olsen', 'elena.olsen412@outlook.com', '+92 72937522', 132);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (98, 'Zhang', 'Nguyen', 'zhang.nguyen98@icloud.com', '+49 85776373', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (413, 'Aisha', 'Patel', 'aisha.patel413@yahoo.com', '+61 69352161', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (414, 'Isabella', 'Yamamoto', 'isabella.yamamoto414@outlook.com', '+20 94743076', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (415, 'David', 'Patel', 'david.patel415@gmail.com', '+33 50643870', 61);
@@ -914,8 +903,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (435, 'Maria', 'Silva', 'maria.silva435@gmail.com', '+81 61604364', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (436, 'Isabella', 'Rossi', 'isabella.rossi436@gmail.com', '+34 72104107', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (437, 'Isabella', 'Khan', 'isabella.khan437@outlook.com', '+33 87890494', 61);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (370, 'Hiroshi', 'Silva', 'hiroshi.silva370@hotmail.com', '+7 55568701', 144);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (315, 'Chen', 'Ivanov', 'chen.ivanov315@outlook.com', '+1 11031743', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (438, 'Isabella', 'Ivanov', 'isabella.ivanov438@outlook.com', '+20 84399083', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (439, 'Chen', 'Hassan', 'chen.hassan439@gmail.com', '+81 15505975', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (440, 'Ahmed', 'Ivanov', 'ahmed.ivanov440@hotmail.com', '+81 70362235', 86);
@@ -925,7 +912,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (444, 'Elena', 'Hassan', 'elena.hassan444@yahoo.com', '+61 53154591', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (445, 'Carlos', 'Martinez', 'carlos.martinez445@gmail.com', '+1 91202508', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (446, 'Santiago', 'Dubois', 'santiago.dubois446@hotmail.com', '+61 73837847', 9);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (203, 'Zhang', 'Patel', 'zhang.patel203@yahoo.com', '+55 22243983', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (447, 'Ingrid', 'Müller', 'ingrid.müller447@outlook.com', '+92 77292380', 132);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (448, 'Fatima', 'Smith', 'fatima.smith448@yahoo.com', '+46 30248230', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (449, 'Lucas', 'Silva', 'lucas.silva449@icloud.com', '+46 18304547', 169);
@@ -991,7 +977,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (509, 'Fatima', 'Smith', 'fatima.smith509@yahoo.com', '+33 99987086', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (510, 'Chen', 'Brown', 'chen.brown510@icloud.com', '+86 66828640', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (511, 'Fatima', 'Yamamoto', 'fatima.yamamoto511@gmail.com', '+91 78248169', 78);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (464, 'Hiroshi', 'Lee', 'hiroshi.lee464@outlook.com', '+52 31306555', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (512, 'Santiago', 'Brown', 'santiago.brown512@yahoo.com', '+52 58563745', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (513, 'Isabella', 'Lee', 'isabella.lee513@icloud.com', '+49 12446861', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (514, 'Fatima', 'Sato', 'fatima.sato514@outlook.com', '+46 58667035', 169);
@@ -1042,7 +1027,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (559, 'Liam', 'Brown', 'liam.brown559@outlook.com', '+52 69135982', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (560, 'Lucas', 'Nguyen', 'lucas.nguyen560@icloud.com', '+84 71965637', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (561, 'Ingrid', 'Lee', 'ingrid.lee561@gmail.com', '+49 47818761', 65);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (432, 'Olivia', 'Johansson', 'olivia.johansson432@icloud.com', '+82 92545028', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (562, 'Isabella', 'Brown', 'isabella.brown562@hotmail.com', '+55 61254050', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (563, 'Fatima', 'Smith', 'fatima.smith563@outlook.com', '+86 77498993', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (564, 'Elena', 'Hassan', 'elena.hassan564@outlook.com', '+34 80794454', 165);
@@ -1055,13 +1039,11 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (571, 'Ahmed', 'Rossi', 'ahmed.rossi571@icloud.com', '+82 17003454', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (572, 'Sophia', 'Müller', 'sophia.müller572@gmail.com', '+86 96057593', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (573, 'Carlos', 'Dubois', 'carlos.dubois573@outlook.com', '+1 74503785', 32);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (346, 'Fatima', 'Martinez', 'fatima.martinez346@icloud.com', '+92 86960402', 132);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (574, 'David', 'Garcia', 'david.garcia574@icloud.com', '+49 59823245', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (575, 'John', 'Lee', 'john.lee575@outlook.com', '+61 84429198', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (576, 'Liam', 'Yamamoto', 'liam.yamamoto576@icloud.com', '+91 23769360', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (577, 'Carlos', 'Dubois', 'carlos.dubois577@outlook.com', '+1 79244185', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (578, 'Muhammad', 'Patel', 'muhammad.patel578@icloud.com', '+1 26733967', 32);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (7, 'Hiroshi', 'Nguyen', 'hiroshi.nguyen7@outlook.com', '+61 72858374', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (579, 'Liam', 'Kim', 'liam.kim579@gmail.com', '+91 48260510', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (580, 'John', 'Nguyen', 'john.nguyen580@hotmail.com', '+49 21257528', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (581, 'David', 'Sato', 'david.sato581@outlook.com', '+1 31516757', 187);
@@ -1105,7 +1087,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (619, 'Santiago', 'Johansson', 'santiago.johansson619@hotmail.com', '+82 44349528', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (620, 'Liam', 'Khan', 'liam.khan620@outlook.com', '+7 38944689', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (621, 'Sara', 'Smith', 'sara.smith621@hotmail.com', '+46 30068183', 169);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (129, 'Isabella', 'Olsen', 'isabella.olsen129@icloud.com', '+49 27013243', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (622, 'Sara', 'Dubois', 'sara.dubois622@yahoo.com', '+46 83659258', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (623, 'Muhammad', 'Sato', 'muhammad.sato623@yahoo.com', '+33 91722503', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (624, 'Hiroshi', 'Olsen', 'hiroshi.olsen624@yahoo.com', '+46 80836292', 169);
@@ -1116,14 +1097,12 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (629, 'Ahmed', 'Martinez', 'ahmed.martinez629@hotmail.com', '+55 50419829', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (630, 'Elena', 'Martinez', 'elena.martinez630@hotmail.com', '+1 26354208', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (631, 'Hiroshi', 'Garcia', 'hiroshi.garcia631@gmail.com', '+91 16408822', 78);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (83, 'Hiroshi', 'Hassan', 'hiroshi.hassan83@gmail.com', '+33 47028180', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (632, 'Hiroshi', 'Schneider', 'hiroshi.schneider632@hotmail.com', '+91 42002808', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (633, 'Maria', 'Olsen', 'maria.olsen633@gmail.com', '+1 66348030', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (634, 'Elena', 'Lee', 'elena.lee634@outlook.com', '+20 95758649', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (635, 'Olivia', 'Olsen', 'olivia.olsen635@outlook.com', '+34 93592219', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (636, 'Hiroshi', 'Garcia', 'hiroshi.garcia636@icloud.com', '+1 71352751', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (637, 'Aisha', 'Müller', 'aisha.müller637@gmail.com', '+34 18429833', 165);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (255, 'Muhammad', 'Brown', 'muhammad.brown255@hotmail.com', '+49 46677730', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (638, 'Maria', 'Brown', 'maria.brown638@outlook.com', '+86 24879094', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (639, 'Liam', 'Garcia', 'liam.garcia639@outlook.com', '+82 77085942', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (640, 'Zhang', 'Lee', 'zhang.lee640@outlook.com', '+86 90092958', 36);
@@ -1132,12 +1111,10 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (643, 'Aisha', 'Patel', 'aisha.patel643@outlook.com', '+44 94819556', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (644, 'Lucas', 'Schneider', 'lucas.schneider644@gmail.com', '+82 79172559', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (645, 'John', 'Khan', 'john.khan645@yahoo.com', '+33 87181563', 61);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (492, 'Santiago', 'Kim', 'santiago.kim492@icloud.com', '+1 51638598', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (646, 'Hiroshi', 'Schneider', 'hiroshi.schneider646@yahoo.com', '+1 42472386', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (647, 'Liam', 'Khan', 'liam.khan647@hotmail.com', '+52 29270557', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (648, 'Carlos', 'Martinez', 'carlos.martinez648@yahoo.com', '+61 49093864', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (649, 'Aisha', 'Hassan', 'aisha.hassan649@icloud.com', '+86 67611469', 36);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (10, 'Lucas', 'Garcia', 'lucas.garcia10@outlook.com', '+34 40281491', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (650, 'Santiago', 'Olsen', 'santiago.olsen650@gmail.com', '+49 10209961', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (651, 'Ahmed', 'Johansson', 'ahmed.johansson651@outlook.com', '+61 92518345', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (652, 'John', 'Sato', 'john.sato652@icloud.com', '+33 57354167', 61);
@@ -1149,8 +1126,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (658, 'Ahmed', 'Johansson', 'ahmed.johansson658@hotmail.com', '+234 99686286', 127);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (659, 'John', 'Dubois', 'john.dubois659@outlook.com', '+49 21490910', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (660, 'David', 'Schneider', 'david.schneider660@yahoo.com', '+44 80260907', 186);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (328, 'Liam', 'Ivanov', 'liam.ivanov328@yahoo.com', '+92 27339011', 132);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (332, 'Santiago', 'Lee', 'santiago.lee332@hotmail.com', '+81 77144075', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (661, 'John', 'Sato', 'john.sato661@gmail.com', '+84 58399417', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (662, 'Maria', 'Nguyen', 'maria.nguyen662@hotmail.com', '+33 19083764', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (663, 'Lucas', 'Silva', 'lucas.silva663@outlook.com', '+33 80606503', 61);
@@ -1161,17 +1136,12 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (668, 'Ingrid', 'Olsen', 'ingrid.olsen668@gmail.com', '+49 12729224', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (669, 'Zhang', 'Hassan', 'zhang.hassan669@outlook.com', '+39 62405812', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (670, 'Fatima', 'Schneider', 'fatima.schneider670@icloud.com', '+7 73100462', 144);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (522, 'Zhang', 'Kim', 'zhang.kim522@icloud.com', '+44 28463709', 186);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (81, 'Muhammad', 'Sato', 'muhammad.sato81@gmail.com', '+44 18126895', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (671, 'Lucas', 'Khan', 'lucas.khan671@hotmail.com', '+46 15843091', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (672, 'Hiroshi', 'Khan', 'hiroshi.khan672@hotmail.com', '+33 95318289', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (673, 'Sophia', 'Schneider', 'sophia.schneider673@icloud.com', '+44 61926331', 186);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (565, 'Zhang', 'Schneider', 'zhang.schneider565@outlook.com', '+81 66191704', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (674, 'Lucas', 'Johansson', 'lucas.johansson674@yahoo.com', '+1 60103798', 32);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (586, 'Maria', 'Garcia', 'maria.garcia586@icloud.com', '+46 68716573', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (675, 'Santiago', 'Khan', 'santiago.khan675@gmail.com', '+39 44044361', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (676, 'Fatima', 'Dubois', 'fatima.dubois676@yahoo.com', '+39 12179995', 84);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (155, 'Fatima', 'Hassan', 'fatima.hassan155@icloud.com', '+20 24490391', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (677, 'Zhang', 'Schneider', 'zhang.schneider677@icloud.com', '+49 57928328', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (678, 'Santiago', 'Kim', 'santiago.kim678@yahoo.com', '+55 19067690', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (679, 'Sophia', 'Patel', 'sophia.patel679@icloud.com', '+91 56278607', 78);
@@ -1192,21 +1162,18 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (694, 'Liam', 'Yamamoto', 'liam.yamamoto694@hotmail.com', '+44 74227366', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (695, 'Aisha', 'Martinez', 'aisha.martinez695@hotmail.com', '+86 94790150', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (696, 'David', 'Lee', 'david.lee696@gmail.com', '+61 34464938', 9);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (484, 'Ahmed', 'Olsen', 'ahmed.olsen484@gmail.com', '+44 90893133', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (697, 'Isabella', 'Smith', 'isabella.smith697@icloud.com', '+49 28099607', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (698, 'Ingrid', 'Yamamoto', 'ingrid.yamamoto698@hotmail.com', '+55 18469210', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (699, 'Ahmed', 'Schneider', 'ahmed.schneider699@gmail.com', '+46 71428713', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (700, 'Olivia', 'Johansson', 'olivia.johansson700@outlook.com', '+33 14963880', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (701, 'Liam', 'Sato', 'liam.sato701@yahoo.com', '+39 49385195', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (702, 'Liam', 'Patel', 'liam.patel702@hotmail.com', '+1 37057085', 187);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (309, 'Sara', 'Johansson', 'sara.johansson309@yahoo.com', '+49 51395350', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (703, 'Maria', 'Garcia', 'maria.garcia703@yahoo.com', '+1 15879578', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (704, 'Olivia', 'Silva', 'olivia.silva704@icloud.com', '+44 36772387', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (705, 'Elena', 'Sato', 'elena.sato705@outlook.com', '+91 15624520', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (706, 'Hiroshi', 'Müller', 'hiroshi.müller706@hotmail.com', '+86 52358553', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (707, 'Carlos', 'Silva', 'carlos.silva707@yahoo.com', '+20 51617680', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (708, 'John', 'Kim', 'john.kim708@yahoo.com', '+81 79173614', 86);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (553, 'Olivia', 'Schneider', 'olivia.schneider553@yahoo.com', '+61 42100652', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (709, 'Ingrid', 'Ivanov', 'ingrid.ivanov709@gmail.com', '+44 63448727', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (710, 'John', 'Olsen', 'john.olsen710@yahoo.com', '+46 82884346', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (711, 'Santiago', 'Johansson', 'santiago.johansson711@icloud.com', '+39 73538641', 84);
@@ -1255,7 +1222,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (754, 'Ingrid', 'Yamamoto', 'ingrid.yamamoto754@outlook.com', '+52 69580374', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (755, 'Muhammad', 'Sato', 'muhammad.sato755@outlook.com', '+7 57183837', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (756, 'Elena', 'Kim', 'elena.kim756@icloud.com', '+39 70012727', 84);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (336, 'Liam', 'Müller', 'liam.müller336@hotmail.com', '+39 19673809', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (757, 'Santiago', 'Schneider', 'santiago.schneider757@hotmail.com', '+20 15684813', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (758, 'Lucas', 'Hassan', 'lucas.hassan758@gmail.com', '+34 57319709', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (759, 'Elena', 'Garcia', 'elena.garcia759@hotmail.com', '+82 92523968', 163);
@@ -1263,7 +1229,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (761, 'Ahmed', 'Silva', 'ahmed.silva761@gmail.com', '+86 46850196', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (762, 'Carlos', 'Nguyen', 'carlos.nguyen762@outlook.com', '+44 95828117', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (763, 'Hiroshi', 'Johansson', 'hiroshi.johansson763@gmail.com', '+81 17698469', 86);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (699, 'Ahmed', 'Schneider', 'ahmed.schneider699@gmail.com', '+46 71428713', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (764, 'Muhammad', 'Brown', 'muhammad.brown764@yahoo.com', '+39 20071854', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (765, 'Sophia', 'Martinez', 'sophia.martinez765@gmail.com', '+55 95565484', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (766, 'Hiroshi', 'Müller', 'hiroshi.müller766@outlook.com', '+61 64520614', 9);
@@ -1277,7 +1242,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (774, 'David', 'Smith', 'david.smith774@outlook.com', '+39 14670638', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (775, 'Olivia', 'Hassan', 'olivia.hassan775@yahoo.com', '+55 26942307', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (776, 'Sophia', 'Silva', 'sophia.silva776@hotmail.com', '+52 19023909', 111);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (185, 'Fatima', 'Yamamoto', 'fatima.yamamoto185@gmail.com', '+61 67723010', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (777, 'Lucas', 'Smith', 'lucas.smith777@outlook.com', '+81 41674763', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (778, 'Fatima', 'Lee', 'fatima.lee778@yahoo.com', '+91 96592295', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (779, 'Sophia', 'Dubois', 'sophia.dubois779@outlook.com', '+91 59167775', 78);
@@ -1300,7 +1264,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (796, 'Isabella', 'Schneider', 'isabella.schneider796@yahoo.com', '+55 52196099', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (797, 'Carlos', 'Hassan', 'carlos.hassan797@hotmail.com', '+92 97182566', 132);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (798, 'Santiago', 'Yamamoto', 'santiago.yamamoto798@yahoo.com', '+44 47405107', 186);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (137, 'Muhammad', 'Nguyen', 'muhammad.nguyen137@icloud.com', '+1 78885632', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (799, 'Carlos', 'Sato', 'carlos.sato799@icloud.com', '+92 43502308', 132);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (800, 'Sara', 'Nguyen', 'sara.nguyen800@icloud.com', '+33 25226815', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (801, 'David', 'Brown', 'david.brown801@hotmail.com', '+52 13478029', 111);
@@ -1339,14 +1302,11 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (834, 'Muhammad', 'Martinez', 'muhammad.martinez834@yahoo.com', '+234 58518659', 127);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (835, 'Lucas', 'Khan', 'lucas.khan835@icloud.com', '+49 78284040', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (836, 'Olivia', 'Khan', 'olivia.khan836@icloud.com', '+91 40097200', 78);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (651, 'Ahmed', 'Johansson', 'ahmed.johansson651@outlook.com', '+61 92518345', 9);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (695, 'Aisha', 'Martinez', 'aisha.martinez695@hotmail.com', '+86 94790150', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (837, 'Fatima', 'Olsen', 'fatima.olsen837@hotmail.com', '+34 26288992', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (838, 'Zhang', 'Garcia', 'zhang.garcia838@yahoo.com', '+7 36975128', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (839, 'Liam', 'Garcia', 'liam.garcia839@gmail.com', '+55 28639738', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (840, 'Olivia', 'Ivanov', 'olivia.ivanov840@icloud.com', '+52 41774192', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (841, 'Elena', 'Sato', 'elena.sato841@hotmail.com', '+44 76306502', 186);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (319, 'Hiroshi', 'Olsen', 'hiroshi.olsen319@yahoo.com', '+55 28419343', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (842, 'Santiago', 'Sato', 'santiago.sato842@yahoo.com', '+55 13527782', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (843, 'David', 'Smith', 'david.smith843@icloud.com', '+1 58438711', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (844, 'Zhang', 'Garcia', 'zhang.garcia844@yahoo.com', '+61 84359498', 9);
@@ -1369,7 +1329,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (861, 'Chen', 'Nguyen', 'chen.nguyen861@icloud.com', '+92 26821075', 132);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (862, 'David', 'Brown', 'david.brown862@gmail.com', '+92 52550733', 132);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (863, 'Zhang', 'Nguyen', 'zhang.nguyen863@icloud.com', '+44 96213226', 186);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (800, 'Sara', 'Nguyen', 'sara.nguyen800@icloud.com', '+33 25226815', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (864, 'Olivia', 'Khan', 'olivia.khan864@icloud.com', '+61 19954260', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (865, 'Zhang', 'Sato', 'zhang.sato865@icloud.com', '+33 70394554', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (866, 'Elena', 'Garcia', 'elena.garcia866@yahoo.com', '+52 72523073', 111);
@@ -1386,8 +1345,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (877, 'Aisha', 'Martinez', 'aisha.martinez877@yahoo.com', '+82 17437386', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (878, 'Liam', 'Khan', 'liam.khan878@hotmail.com', '+1 26664623', 187);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (879, 'Santiago', 'Rossi', 'santiago.rossi879@outlook.com', '+46 79538491', 169);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (366, 'Carlos', 'Silva', 'carlos.silva366@gmail.com', '+46 80325062', 169);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (510, 'Chen', 'Brown', 'chen.brown510@icloud.com', '+86 66828640', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (880, 'Hiroshi', 'Martinez', 'hiroshi.martinez880@yahoo.com', '+34 30537388', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (881, 'Maria', 'Garcia', 'maria.garcia881@hotmail.com', '+39 50818905', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (882, 'Sophia', 'Brown', 'sophia.brown882@outlook.com', '+44 32099899', 186);
@@ -1395,17 +1352,13 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (884, 'Ingrid', 'Smith', 'ingrid.smith884@yahoo.com', '+1 53306792', 32);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (885, 'Olivia', 'Ivanov', 'olivia.ivanov885@icloud.com', '+61 40262109', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (886, 'Sara', 'Müller', 'sara.müller886@yahoo.com', '+34 56442431', 165);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (743, 'Santiago', 'Rossi', 'santiago.rossi743@gmail.com', '+7 53112268', 144);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (742, 'Sara', 'Patel', 'sara.patel742@yahoo.com', '+34 49428661', 165);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (887, 'Chen', 'Garcia', 'chen.garcia887@icloud.com', '+81 79645282', 86);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (888, 'Hiroshi', 'Sato', 'hiroshi.sato888@gmail.com', '+86 48124318', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (889, 'Sara', 'Rossi', 'sara.rossi889@yahoo.com', '+86 20584397', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (890, 'Aisha', 'Lee', 'aisha.lee890@icloud.com', '+20 43635675', 52);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (891, 'Ahmed', 'Martinez', 'ahmed.martinez891@hotmail.com', '+7 36347197', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (892, 'Sara', 'Lee', 'sara.lee892@outlook.com', '+55 95235919', 24);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (349, 'John', 'Hassan', 'john.hassan349@outlook.com', '+44 66061934', 186);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (893, 'Sophia', 'Rossi', 'sophia.rossi893@gmail.com', '+81 83932683', 86);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (125, 'Sophia', 'Sato', 'sophia.sato125@icloud.com', '+39 12118101', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (894, 'Olivia', 'Yamamoto', 'olivia.yamamoto894@yahoo.com', '+49 46836194', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (895, 'Zhang', 'Müller', 'zhang.müller895@icloud.com', '+52 26800072', 111);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (896, 'John', 'Smith', 'john.smith896@hotmail.com', '+34 93889081', 165);
@@ -1434,7 +1387,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (919, 'Zhang', 'Brown', 'zhang.brown919@hotmail.com', '+7 45521514', 144);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (920, 'Muhammad', 'Hassan', 'muhammad.hassan920@yahoo.com', '+82 97393186', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (921, 'Muhammad', 'Schneider', 'muhammad.schneider921@icloud.com', '+61 38294221', 9);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (309, 'Sara', 'Johansson', 'sara.johansson309@yahoo.com', '+49 51395350', 65);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (922, 'Aisha', 'Yamamoto', 'aisha.yamamoto922@outlook.com', '+61 86790955', 9);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (923, 'Zhang', 'Martinez', 'zhang.martinez923@hotmail.com', '+82 65913331', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (924, 'Sara', 'Ivanov', 'sara.ivanov924@icloud.com', '+61 92961108', 9);
@@ -1448,8 +1400,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (932, 'Ahmed', 'Yamamoto', 'ahmed.yamamoto932@icloud.com', '+84 50546385', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (933, 'Ingrid', 'Martinez', 'ingrid.martinez933@yahoo.com', '+55 74819756', 24);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (934, 'Fatima', 'Kim', 'fatima.kim934@gmail.com', '+82 42866956', 163);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (834, 'Muhammad', 'Martinez', 'muhammad.martinez834@yahoo.com', '+234 58518659', 127);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (652, 'John', 'Sato', 'john.sato652@icloud.com', '+33 57354167', 61);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (935, 'Carlos', 'Ivanov', 'carlos.ivanov935@hotmail.com', '+86 64504816', 36);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (936, 'Ahmed', 'Martinez', 'ahmed.martinez936@icloud.com', '+91 49920898', 78);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (937, 'Olivia', 'Müller', 'olivia.müller937@outlook.com', '+44 70873663', 186);
@@ -1462,7 +1412,6 @@ INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (944, 'Liam', 'Patel', 'liam.patel944@outlook.com', '+82 72336371', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (945, 'Olivia', 'Müller', 'olivia.müller945@hotmail.com', '+82 37383505', 163);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (946, 'Ahmed', 'Garcia', 'ahmed.garcia946@icloud.com', '+7 55659873', 144);
-INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (366, 'Carlos', 'Silva', 'carlos.silva366@gmail.com', '+46 80325062', 169);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (947, 'Ahmed', 'Kim', 'ahmed.kim947@hotmail.com', '+84 91424562', 192);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (948, 'Liam', 'Khan', 'liam.khan948@hotmail.com', '+39 29282885', 84);
 INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id) VALUES (949, 'Liam', 'Rossi', 'liam.rossi949@icloud.com', '+1 51954112', 32);
@@ -1701,8 +1650,7 @@ INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, s
 INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (231, 229, '2025-10-17 12:58:00', 112, '2025-12-31 19:33:00', '2026-01-03 08:50:00', 3, 2, 8922, 'Checked Out', 5, '2026-01-03 10:50:00');
 INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (232, 230, '2025-07-06 11:27:00', 154, '2025-08-09 19:56:00', '2025-08-11 10:21:00', 3, 2, 7464, 'Checked Out', 5, '2025-08-11 14:21:00');
 INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (233, 231, '2025-01-27 12:06:00', 152, '2025-08-07 18:14:00', '2025-08-13 10:14:00', 3, 1, 2686, 'Checked Out', 5, '2025-08-13 11:14:00');
-INSERT INTO booking (id, costumer_id, order_date, room_id, arri
-val, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (234, 232, '2024-10-27 17:48:00', 69, '2025-04-12 22:39:00', '2025-04-16 08:03:00', 1, 1, 1483, 'Checked Out', 5, '2025-04-16 11:03:00');
+INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (234, 232, '2024-10-27 17:48:00', 69, '2025-04-12 22:39:00', '2025-04-16 08:03:00', 1, 1, 1483, 'Checked Out', 5, '2025-04-16 11:03:00');
 INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (235, 233, '2025-04-11 18:48:00', 130, '2025-06-07 15:52:00', '2025-06-17 08:34:00', 3, 2, 2760, 'Checked Out', 5, '2025-06-17 10:34:00');
 INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (236, 234, '2024-10-25 15:07:00', 203, '2025-03-08 20:56:00', '2025-03-15 08:57:00', 1, 1, 25038, 'Checked Out', 5, '2025-03-15 10:57:00');
 INSERT INTO booking (id, costumer_id, order_date, room_id, arrival, departure, season_id, occupants, price, status, star_rating, updated_at) VALUES (237, 235, '2024-09-20 18:08:00', 31, '2025-03-15 20:52:00', '2025-03-30 11:24:00', 1, 2, 15003, 'Checked Out', 5, '2025-03-30 13:24:00');
