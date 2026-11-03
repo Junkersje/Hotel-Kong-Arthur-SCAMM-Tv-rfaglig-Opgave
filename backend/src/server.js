@@ -112,10 +112,13 @@ app.use('/api', bookingRoutes);
 
 // 404 handler for unknown routes
 app.use((req, res) => {
+  const message = `Ruten ${req.method} ${req.url} findes ikke`;
   res.status(404).json({
     success: false,
+    message,
+    status_code: 404,
     error: {
-      message: `Ruten ${req.method} ${req.url} findes ikke`,
+      message,
       code: 'NOT_FOUND'
     }
   });
@@ -129,6 +132,8 @@ app.use((err, req, res, next) => {
 
   res.status(statusCode).json({
     success: false,
+    message,
+    status_code: statusCode,
     error: {
       message:
         err.message || 'Der opstod en intern serverfejl',

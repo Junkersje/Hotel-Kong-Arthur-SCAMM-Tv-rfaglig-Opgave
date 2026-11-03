@@ -61,7 +61,7 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 - [x] T019 [US2] Opret REST rute `POST /api/bookings` med HTTP 201 Created og HTTP 400 Bad Request fejlrespons i `backend/src/routes/bookingRoutes.js`
 - [ ] T020 [P] [US1] Byg `BookingList` React-komponent med søgefelt og filtrering i `frontend/src/components/BookingList.jsx`
 - [x] T021 [P] [US2] Byg `BookingForm` React-komponent med validering og dropdown for de 8 værelsestyper i `frontend/src/components/BookingForm.jsx`
-- [ ] T022 [US1] Integrer `BookingList` og `BookingForm` i hovedapplikationen i `frontend/src/App.jsx`
+- [x] T022 [US1] Integrer `BookingList` og `BookingForm` i hovedapplikationen i `frontend/src/App.jsx`
 
 **Checkpoint (MVP)**: Verificér, at en receptionist kan søge i bookinger og oprette en ny gyldig booking, som straks vises i oversigten og persisteres i PostgreSQL.
 
@@ -71,11 +71,11 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 **Mål**: Receptionisten kan ændre datoer, gæsteoplysninger og værelsestype på en eksisterende booking.
 
-- [ ] T023 [US3] Implementer `BookingRepository.getById()` og `BookingRepository.updateBooking()` i `backend/src/repositories/bookingRepository.js`
-- [ ] T024 [US3] Implementer forretningsvalidering for bookingændringer i `BookingService.updateBooking()` i `backend/src/services/bookingService.js`
-- [ ] T025 [US3] Opret REST rute `PUT /api/bookings/:id` med HTTP 200 OK og HTTP 404/400 fejlhåndtering i `backend/src/routes/bookingRoutes.js`
-- [ ] T026 [P] [US3] Byg `EditBookingModal` React-komponent med præ-udfyldte felter og datovalidering i `frontend/src/components/EditBookingModal.jsx`
-- [ ] T027 [US3] Kobl redigerings-knap i `BookingList` til `EditBookingModal` med automatisk refresh af listen i `frontend/src/components/BookingList.jsx`
+- [x] T023 [US3] Implementer `BookingRepository.getById()` og `BookingRepository.updateBooking()` i `backend/src/repositories/bookingRepository.js`
+- [x] T024 [US3] Implementer forretningsvalidering for bookingændringer i `BookingService.updateBooking()` i `backend/src/services/bookingService.js`
+- [x] T025 [US3] Opret REST rute `PUT /api/bookings/:id` med HTTP 200 OK og HTTP 404/400 fejlhåndtering i `backend/src/routes/bookingRoutes.js`
+- [x] T026 [P] [US3] Byg `EditBookingModal` React-komponent med præ-udfyldte felter og datovalidering i `frontend/src/components/EditBookingModal.jsx`
+- [x] T027 [US3] Kobl redigerings-knap i `BookingList` til `EditBookingModal` med automatisk refresh af listen i `frontend/src/components/BookingList.jsx`
 
 **Checkpoint**: Verificér, at en booking kan opdateres (f.eks. forlængelse af ophold), og at den nye afrejsedato straks reflekteres i databasen og UI.
 
@@ -85,11 +85,11 @@ Dette dokument definerer de konkrete, afhængighedsordnede opgaver til implement
 
 **Mål**: Receptionisten kan slette/aflyse en booking via en bekræftelsesdialog (soft delete til status `cancelled`).
 
-- [ ] T028 [US4] Implementer soft delete SQL query (`UPDATE bookings SET status = 'cancelled' WHERE id = ?`) i `backend/src/repositories/bookingRepository.js`
-- [ ] T029 [US4] Implementer forretningslogik i `BookingService.cancelBooking()` i `backend/src/services/bookingService.js`
-- [ ] T030 [US4] Opret REST rute `DELETE /api/bookings/:id` i `backend/src/routes/bookingRoutes.js`
-- [ ] T031 [P] [US4] Byg `DeleteDialog` React-komponent med bekræftelsesadvarsel ("Er du sikker?") i `frontend/src/components/DeleteDialog.jsx`
-- [ ] T032 [US4] Kobl slet-knap i `BookingList` til `DeleteDialog` med øjeblikkelig fjernelse fra den aktive liste i `frontend/src/components/BookingList.jsx`
+- [x] T028 [US4] Implementer soft delete SQL query (`UPDATE bookings SET status = 'cancelled' WHERE id = ?`) i `backend/src/repositories/bookingRepository.js`
+- [x] T029 [US4] Implementer forretningslogik i `BookingService.cancelBooking()` i `backend/src/services/bookingService.js`
+- [x] T030 [US4] Opret REST rute `DELETE /api/bookings/:id` i `backend/src/routes/bookingRoutes.js`
+- [x] T031 [P] [US4] Byg `DeleteDialog` React-komponent med bekræftelsesadvarsel ("Er du sikker?") i `frontend/src/components/DeleteDialog.jsx`
+- [x] T032 [US4] Kobl slet-knap i `BookingList` til `DeleteDialog` med øjeblikkelig fjernelse fra den aktive liste i `frontend/src/components/BookingList.jsx`
 
 **Checkpoint**: Fuld CRUD er nu funktionel i browserfrontenden og backenden. Aflyste bookinger forbliver i PostgreSQL med status `cancelled`.
 
