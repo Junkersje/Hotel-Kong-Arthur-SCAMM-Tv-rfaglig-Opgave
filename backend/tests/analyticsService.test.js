@@ -2,7 +2,7 @@ import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 const mockPool = {
-  query: async () => [[], []]
+  query: async () => ({ rows: [] })
 };
 
 mock.module('../src/config/database.js', {

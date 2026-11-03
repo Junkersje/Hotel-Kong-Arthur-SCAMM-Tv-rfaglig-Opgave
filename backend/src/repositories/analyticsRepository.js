@@ -5,27 +5,53 @@ const db = pool;
 
 /**
  * Repository for Data Analytics & Nøgletal (PostgreSQL DAL)
+ * 
+ * Alle SQL-forespørgsler er tilpasset PostgreSQL-skemaet i database/schema.sql:
+ * - booking: arrival, departure, price, room_id, costumer_id, status
+ * - room & room_type: room(id, room_type_id), room_type(id, name, max_capacity)
+ * - sales & product: sales(id, product_id, quantity, date), product(id, name, category_id, unit_price)
+ * - category: category(id, name)
+ * - costumer & country: costumer(id, country_id), country(id, name)
  */
 const analyticsRepository = {
   db,
 
   /**
-   * Henter samlet værelsesomsætning for ikke-aflyste bookinger.
+   * Sikker forespørgselsafvikler mod PostgreSQL.
+   * Håndterer både standard pg Result { rows }, direkte arrays og legacy mocks.
+   */
+  async _query(sql, params = []) {
+    const targetDb = this?.db || db;
+    const result = await targetDb.query(sql, params);
+    if (result && Array.isArray(result.rows)) {
+      return result.rows;
+    }
+    if (Array.isArray(result)) {
+      if (Array.isArray(result[0])) {
+        return result[0];
+      }
+      return result;
+    }
+    return [];
+  },
+
+  /**
+   * T034: Henter samlet værelsesomsætning for ikke-aflyste bookinger.
    */
   async getTotalRoomRevenue() {
     const sql = `
       SELECT 
-        COALESCE(SUM(total_price), 0)::numeric AS total_room_revenue,
-        COUNT(id)::int AS total_valid_bookings
-      FROM BOOKING
-      WHERE status != 'cancelled'
+        COALESCE(SUM(b.price), 0)::numeric AS total_room_revenue,
+        COUNT(b.id)::int AS total_valid_bookings
+      FROM booking b
+      WHERE b.status != 'cancelled'
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows[0];
+    const rows = await this._query(sql);
+    return rows[0] || { total_room_revenue: 0, total_valid_bookings: 0 };
   },
 
   /**
-   * Henter værelsesomsætning og overnatninger opdelt pr. værelsestype.
+   * T034: Henter værelsesomsætning og overnatninger opdelt pr. værelsestype.
    */
   async getRevenueByRoomType() {
     const sql = `
@@ -33,19 +59,19 @@ const analyticsRepository = {
         rt.id AS room_type_id,
         rt.name AS room_type_name,
         COUNT(b.id)::int AS total_bookings,
-        COALESCE(SUM(b.total_price), 0)::numeric AS total_revenue,
-        COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights_sold
-      FROM ROOM_TYPE rt
-      LEFT JOIN BOOKING b ON rt.id = b.room_type_id AND b.status != 'cancelled'
+        COALESCE(SUM(b.price), 0)::numeric AS total_revenue,
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights_sold
+      FROM room_type rt
+      LEFT JOIN room r ON rt.id = r.room_type_id
+      LEFT JOIN booking b ON r.id = b.room_id AND b.status != 'cancelled'
       GROUP BY rt.id, rt.name
       ORDER BY total_revenue DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
-   * Henter værelsesomsætning opdelt pr. værelsestype og sæson (baseret på check_in_date).
+   * T034: Henter værelsesomsætning opdelt pr. værelsestype og sæson (baseret på arrival).
    */
   async getRevenueByRoomTypeAndSeason() {
     const sql = `
@@ -53,74 +79,77 @@ const analyticsRepository = {
         rt.id AS room_type_id,
         rt.name AS room_type_name,
         CASE 
-          WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (6, 7, 8) THEN 'high'
-          WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (3, 4, 5, 9, 10) THEN 'mid'
+          WHEN EXTRACT(MONTH FROM b.arrival)::int IN (6, 7, 8) THEN 'high'
+          WHEN EXTRACT(MONTH FROM b.arrival)::int IN (3, 4, 5, 9, 10) THEN 'mid'
           ELSE 'low'
         END AS season,
         COUNT(b.id)::int AS total_bookings,
-        COALESCE(SUM(b.total_price), 0)::numeric AS total_revenue
-      FROM ROOM_TYPE rt
-      LEFT JOIN BOOKING b ON rt.id = b.room_type_id AND b.status != 'cancelled'
+        COALESCE(SUM(b.price), 0)::numeric AS total_revenue
+      FROM room_type rt
+      LEFT JOIN room r ON rt.id = r.room_type_id
+      LEFT JOIN booking b ON r.id = b.room_id AND b.status != 'cancelled'
       GROUP BY rt.id, rt.name, season
       ORDER BY rt.id, total_revenue DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
-   * Henter samlet baromsætning.
+   * T034: Henter samlet baromsætning fra sales og product.
    */
   async getTotalBarRevenue() {
     const sql = `
       SELECT 
-        COALESCE(SUM(total_amount), 0)::numeric AS total_bar_revenue,
-        COUNT(id)::int AS total_sales_transactions
-      FROM SALE
+        COALESCE(SUM(s.quantity * p.unit_price), 0)::numeric AS total_bar_revenue,
+        COUNT(DISTINCT s.id)::int AS total_sales_transactions
+      FROM sales s
+      JOIN product p ON s.product_id = p.id
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows[0];
+    const rows = await this._query(sql);
+    return rows[0] || { total_bar_revenue: 0, total_sales_transactions: 0 };
   },
 
   /**
-   * Henter omsætning og solgt antal pr. drink/produkt i baren.
+   * T034: Henter omsætning og solgt antal pr. drink/produkt i baren.
    */
   async getRevenueByProduct() {
     const sql = `
       SELECT 
         p.id AS product_id,
         p.name AS product_name,
-        p.category,
-        COALESCE(SUM(sl.quantity), 0)::int AS total_quantity_sold,
-        COALESCE(SUM(sl.subtotal), 0)::numeric AS total_revenue
-      FROM PRODUCT p
-      LEFT JOIN SALE_LINE sl ON p.id = sl.product_id
-      GROUP BY p.id, p.name, p.category
+        c.name AS category,
+        COALESCE(SUM(s.quantity), 0)::int AS total_quantity_sold,
+        COALESCE(SUM(s.quantity * p.unit_price), 0)::numeric AS total_revenue
+      FROM product p
+      LEFT JOIN category c ON p.category_id = c.id
+      LEFT JOIN sales s ON p.id = s.product_id
+      GROUP BY p.id, p.name, c.name
       ORDER BY total_revenue DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
-   * Henter salgsfordeling på kategorier (Cocktail vs. Kaffe).
+   * T034: Henter salgsfordeling på kategorier (Cocktail vs. Kaffe).
    */
   async getBarCategoryDistribution() {
     const sql = `
       SELECT 
-        p.category,
-        COALESCE(SUM(sl.quantity), 0)::int AS total_items_sold,
-        COALESCE(SUM(sl.subtotal), 0)::numeric AS total_category_revenue
-      FROM PRODUCT p
-      JOIN SALE_LINE sl ON p.id = sl.product_id
-      GROUP BY p.category
+        c.name AS category,
+        COALESCE(SUM(s.quantity), 0)::int AS total_items_sold,
+        COALESCE(SUM(s.quantity * p.unit_price), 0)::numeric AS total_category_revenue
+      FROM category c
+      JOIN product p ON c.id = p.category_id
+      JOIN sales s ON p.id = s.product_id
+      GROUP BY c.name
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
-   * Beregner belægningsgrad for en specifik periode.
+   * T035 [US8]: Beregner belægningsgrad for en specifik periode.
+   * Formel: (Optagne værelsesnætter / (214 * antal dage i perioden)) * 100
+   * 
    * @param {string} startDate - Format 'YYYY-MM-DD'
    * @param {string} endDate - Format 'YYYY-MM-DD'
    */
@@ -132,49 +161,58 @@ const analyticsRepository = {
         ($2::date - $1::date)::int AS period_days,
         ($3::int * ($2::date - $1::date))::int AS total_capacity_room_nights,
         COALESCE(SUM(
-          LEAST(b.check_out_date, $2::date) - GREATEST(b.check_in_date, $1::date)
+          LEAST(b.departure::date, $2::date) - GREATEST(b.arrival::date, $1::date)
         ), 0)::int AS occupied_room_nights,
         ROUND(
           (COALESCE(SUM(
-            LEAST(b.check_out_date, $2::date) - GREATEST(b.check_in_date, $1::date)
+            LEAST(b.departure::date, $2::date) - GREATEST(b.arrival::date, $1::date)
           ), 0)::numeric / NULLIF($3::int * ($2::date - $1::date), 0)) * 100, 2
         )::numeric AS occupancy_rate_percent
-      FROM BOOKING b
+      FROM booking b
       WHERE b.status != 'cancelled'
-        AND b.check_in_date < $2::date
-        AND b.check_out_date > $1::date
+        AND b.arrival::date < $2::date
+        AND b.departure::date > $1::date
     `;
 
-    const { rows } = await (this?.db || db).query(sql, [startDate, endDate, TOTAL_ROOMS]);
-    return rows[0];
+    const rows = await this._query(sql, [startDate, endDate, TOTAL_ROOMS]);
+    return rows[0] || {
+      period_days: 0,
+      total_capacity_room_nights: 0,
+      occupied_room_nights: 0,
+      occupancy_rate_percent: 0
+    };
   },
 
   /**
-   * Henter overordnet belægningsgrad for hele datasættet.
+   * T035 [US8]: Henter overordnet belægningsgrad for hele datasættet.
    */
   async getTotalOccupancySummary() {
     const TOTAL_ROOMS = 214;
 
     const sql = `
       SELECT 
-        MIN(check_in_date) AS earliest_booking,
-        MAX(check_out_date) AS latest_booking,
-        (MAX(check_out_date) - MIN(check_in_date))::int AS total_days_in_dataset,
-        COALESCE(SUM(check_out_date - check_in_date), 0)::int AS total_occupied_room_nights,
+        MIN(b.arrival::date) AS earliest_booking,
+        MAX(b.departure::date) AS latest_booking,
+        (MAX(b.departure::date) - MIN(b.arrival::date))::int AS total_days_in_dataset,
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_occupied_room_nights,
         ROUND(
-          (COALESCE(SUM(check_out_date - check_in_date), 0)::numeric / 
-          NULLIF(COUNT(DISTINCT check_in_date) * $1::int, 0)) * 100, 2
+          (COALESCE(SUM(b.departure::date - b.arrival::date), 0)::numeric / 
+          NULLIF(COUNT(DISTINCT b.arrival::date) * $1::int, 0)) * 100, 2
         )::numeric AS estimated_overall_occupancy_percent
-      FROM BOOKING
-      WHERE status != 'cancelled'
+      FROM booking b
+      WHERE b.status != 'cancelled'
     `;
 
-    const { rows } = await (this?.db || db).query(sql, [TOTAL_ROOMS]);
-    return rows[0];
+    const rows = await this._query(sql, [TOTAL_ROOMS]);
+    return rows[0] || {
+      total_days_in_dataset: 0,
+      total_occupied_room_nights: 0,
+      estimated_overall_occupancy_percent: 0
+    };
   },
 
   /**
-   * Henter månedlig belægningsgrad for hotellet.
+   * T035 [US8]: Henter månedlig belægningsgrad for hotellet baseret på 214 værelser.
    * @param {number} [year] - Valgfrit årstal til filtrering
    */
   async getMonthlyOccupancy(year = null) {
@@ -182,41 +220,40 @@ const analyticsRepository = {
 
     let sql = `
       SELECT 
-        EXTRACT(YEAR FROM b.check_in_date)::int AS year,
-        EXTRACT(MONTH FROM b.check_in_date)::int AS month,
+        EXTRACT(YEAR FROM b.arrival)::int AS year,
+        EXTRACT(MONTH FROM b.arrival)::int AS month,
         COUNT(b.id)::int AS total_bookings,
-        COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights_booked,
-        EXTRACT(DAY FROM (DATE_TRUNC('month', b.check_in_date) + interval '1 month - 1 day'))::int AS days_in_month,
-        (EXTRACT(DAY FROM (DATE_TRUNC('month', b.check_in_date) + interval '1 month - 1 day')) * $1::int)::int AS monthly_capacity_room_nights,
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights_booked,
+        EXTRACT(DAY FROM (DATE_TRUNC('month', b.arrival) + interval '1 month - 1 day'))::int AS days_in_month,
+        (EXTRACT(DAY FROM (DATE_TRUNC('month', b.arrival) + interval '1 month - 1 day')) * $1::int)::int AS monthly_capacity_room_nights,
         ROUND(
-          (COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::numeric / 
-          NULLIF(EXTRACT(DAY FROM (DATE_TRUNC('month', b.check_in_date) + interval '1 month - 1 day')) * $1::int, 0)) * 100, 2
+          (COALESCE(SUM(b.departure::date - b.arrival::date), 0)::numeric / 
+          NULLIF(EXTRACT(DAY FROM (DATE_TRUNC('month', b.arrival) + interval '1 month - 1 day')) * $1::int, 0)) * 100, 2
         )::numeric AS occupancy_rate_percent
-      FROM BOOKING b
+      FROM booking b
       WHERE b.status != 'cancelled'
     `;
 
     const params = [TOTAL_ROOMS];
 
     if (year) {
-      sql += ` AND EXTRACT(YEAR FROM b.check_in_date)::int = $2::int`;
+      sql += ` AND EXTRACT(YEAR FROM b.arrival)::int = $2::int`;
       params.push(year);
     }
 
     sql += `
       GROUP BY 
-        EXTRACT(YEAR FROM b.check_in_date), 
-        EXTRACT(MONTH FROM b.check_in_date), 
-        DATE_TRUNC('month', b.check_in_date)
+        EXTRACT(YEAR FROM b.arrival), 
+        EXTRACT(MONTH FROM b.arrival), 
+        DATE_TRUNC('month', b.arrival)
       ORDER BY year DESC, month DESC
     `;
 
-    const { rows } = await (this?.db || db).query(sql, params);
-    return rows;
+    return await this._query(sql, params);
   },
 
   /**
-   * Henter sæsonmæssig belægningsgrad opdelt pr. sæson (low, mid, high).
+   * T035 [US8]: Henter sæsonmæssig belægningsgrad opdelt pr. sæson (low, mid, high).
    * @param {number} [year] - Valgfrit årstal til filtrering
    */
   async getOccupancyBySeason(year = null) {
@@ -234,46 +271,45 @@ const analyticsRepository = {
       FROM (
         SELECT 
           CASE 
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (6, 7, 8) THEN 'high'
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (3, 4, 5, 9, 10) THEN 'mid'
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (6, 7, 8) THEN 'high'
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (3, 4, 5, 9, 10) THEN 'mid'
             ELSE 'low'
           END AS season,
           CASE 
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (6, 7, 8) THEN 92
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (3, 4, 5, 9, 10) THEN 153
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (6, 7, 8) THEN 92
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (3, 4, 5, 9, 10) THEN 153
             ELSE 120
           END AS season_days,
           COUNT(b.id)::int AS total_bookings,
-          COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights_booked
-        FROM BOOKING b
+          COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights_booked
+        FROM booking b
         WHERE b.status != 'cancelled'
     `;
 
     const params = [TOTAL_ROOMS];
 
     if (year) {
-      sql += ` AND EXTRACT(YEAR FROM b.check_in_date)::int = $2::int`;
+      sql += ` AND EXTRACT(YEAR FROM b.arrival)::int = $2::int`;
       params.push(year);
     }
 
     sql += `
         GROUP BY 
           CASE 
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (6, 7, 8) THEN 'high'
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (3, 4, 5, 9, 10) THEN 'mid'
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (6, 7, 8) THEN 'high'
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (3, 4, 5, 9, 10) THEN 'mid'
             ELSE 'low'
           END,
           CASE 
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (6, 7, 8) THEN 92
-            WHEN EXTRACT(MONTH FROM b.check_in_date)::int IN (3, 4, 5, 9, 10) THEN 153
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (6, 7, 8) THEN 92
+            WHEN EXTRACT(MONTH FROM b.arrival)::int IN (3, 4, 5, 9, 10) THEN 153
             ELSE 120
           END
       ) s
       ORDER BY CASE s.season WHEN 'high' THEN 1 WHEN 'mid' THEN 2 WHEN 'low' THEN 3 ELSE 4 END
     `;
 
-    const { rows } = await (this?.db || db).query(sql, params);
-    return rows;
+    return await this._query(sql, params);
   },
 
   /**
@@ -290,29 +326,28 @@ const analyticsRepository = {
   async getMonthlyRevenue(year = null) {
     let sql = `
       SELECT 
-        EXTRACT(YEAR FROM b.check_in_date)::int AS year,
-        EXTRACT(MONTH FROM b.check_in_date)::int AS month,
+        EXTRACT(YEAR FROM b.arrival)::int AS year,
+        EXTRACT(MONTH FROM b.arrival)::int AS month,
         COUNT(b.id)::int AS total_bookings,
-        COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights_sold,
-        COALESCE(SUM(b.total_price), 0)::numeric AS total_revenue
-      FROM BOOKING b
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights_sold,
+        COALESCE(SUM(b.price), 0)::numeric AS total_revenue
+      FROM booking b
       WHERE b.status != 'cancelled'
     `;
 
     const params = [];
 
     if (year) {
-      sql += ` AND EXTRACT(YEAR FROM b.check_in_date)::int = $1::int`;
+      sql += ` AND EXTRACT(YEAR FROM b.arrival)::int = $1::int`;
       params.push(year);
     }
 
     sql += `
-      GROUP BY EXTRACT(YEAR FROM b.check_in_date), EXTRACT(MONTH FROM b.check_in_date)
+      GROUP BY EXTRACT(YEAR FROM b.arrival), EXTRACT(MONTH FROM b.arrival)
       ORDER BY year DESC, month DESC
     `;
 
-    const { rows } = await (this?.db || db).query(sql, params);
-    return rows;
+    return await this._query(sql, params);
   },
 
   /**
@@ -323,19 +358,18 @@ const analyticsRepository = {
       SELECT 
         COALESCE(cntry.name, 'Ukendt') AS country,
         COUNT(b.id)::int AS total_bookings,
-        COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights,
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights,
         ROUND(
-          COALESCE(AVG(b.check_out_date - b.check_in_date), 0), 2
+          COALESCE(AVG(b.departure::date - b.arrival::date), 0), 2
         )::numeric AS average_length_of_stay
-      FROM BOOKING b
-      JOIN COSTUMER c ON b.costumer_id = c.id
-      LEFT JOIN COUNTRY cntry ON c.country_id = cntry.id
+      FROM booking b
+      JOIN costumer c ON b.costumer_id = c.id
+      LEFT JOIN country cntry ON c.country_id = cntry.id
       WHERE b.status != 'cancelled'
       GROUP BY cntry.name
       ORDER BY average_length_of_stay DESC, total_nights DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   },
 
   /**
@@ -347,17 +381,17 @@ const analyticsRepository = {
         rt.id AS room_type_id,
         rt.name AS room_type_name,
         COUNT(b.id)::int AS total_bookings,
-        COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights,
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights,
         ROUND(
-          COALESCE(AVG(b.check_out_date - b.check_in_date), 0), 2
+          COALESCE(AVG(b.departure::date - b.arrival::date), 0), 2
         )::numeric AS average_length_of_stay
-      FROM ROOM_TYPE rt
-      LEFT JOIN BOOKING b ON rt.id = b.room_type_id AND b.status != 'cancelled'
+      FROM room_type rt
+      LEFT JOIN room r ON rt.id = r.room_type_id
+      LEFT JOIN booking b ON r.id = b.room_id AND b.status != 'cancelled'
       GROUP BY rt.id, rt.name
       ORDER BY average_length_of_stay DESC
     `;
-    const { rows } = await (this?.db || db).query(sql);
-    return rows;
+    return await this._query(sql);
   }
 };
 
