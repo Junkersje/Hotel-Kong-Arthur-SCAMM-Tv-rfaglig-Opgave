@@ -92435,3 +92435,15 @@ INSERT INTO sales (id, product_id, quantity, date) VALUES (36578, 24, 1, '2025-1
 INSERT INTO sales (id, product_id, quantity, date) VALUES (36579, 3, 3, '2025-12-31 23:44:53');
 INSERT INTO sales (id, product_id, quantity, date) VALUES (36579, 18, 3, '2025-12-31 23:44:53');
 INSERT INTO sales (id, product_id, quantity, date) VALUES (36579, 11, 2, '2025-12-31 23:44:53');
+
+
+-- Synkroniser sequences for alle IDENTITY kolonner efter seeding
+SELECT setval(pg_get_serial_sequence('country', 'id'), COALESCE(MAX(id), 1)) FROM country;
+SELECT setval(pg_get_serial_sequence('season', 'id'), COALESCE(MAX(id), 1)) FROM season;
+SELECT setval(pg_get_serial_sequence('room_type', 'id'), COALESCE(MAX(id), 1)) FROM room_type;
+SELECT setval(pg_get_serial_sequence('room', 'id'), COALESCE(MAX(id), 1)) FROM room;
+SELECT setval(pg_get_serial_sequence('room_price', 'id'), COALESCE(MAX(id), 1)) FROM room_price;
+SELECT setval(pg_get_serial_sequence('costumer', 'id'), COALESCE(MAX(id), 1)) FROM costumer;
+SELECT setval(pg_get_serial_sequence('booking', 'id'), COALESCE(MAX(id), 1)) FROM booking;
+SELECT setval(pg_get_serial_sequence('category', 'id'), COALESCE(MAX(id), 1)) FROM category;
+SELECT setval(pg_get_serial_sequence('product', 'id'), COALESCE(MAX(id), 1)) FROM product;

@@ -82,12 +82,11 @@ export async function createBooking(data) {
       if (countryRes.rows && countryRes.rows.length > 0) {
         countryId = countryRes.rows[0].id;
       } else {
-        const nextCountryIdRes = await client.query(`SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM country`);
-        countryId = (nextCountryIdRes.rows && nextCountryIdRes.rows[0]?.next_id) || 1;
-        await client.query(
-          `INSERT INTO country (id, name) VALUES ($1, $2)`,
-          [countryId, country.trim()]
+        const newCountryRes = await client.query(
+          `INSERT INTO country (name) VALUES ($1) RETURNING id`,
+          [country.trim()]
         );
+        countryId = newCountryRes.rows && newCountryRes.rows[0]?.id;
       }
     }
 
@@ -107,13 +106,13 @@ export async function createBooking(data) {
         [first_name.trim(), last_name.trim(), phone_number || null, countryId, customerId]
       );
     } else {
-      const nextCustIdRes = await client.query(`SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM costumer`);
-      customerId = (nextCustIdRes.rows && nextCustIdRes.rows[0]?.next_id) || 1;
-      await client.query(
-        `INSERT INTO costumer (id, first_name, last_name, email, phone_number, country_id)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [customerId, first_name.trim(), last_name.trim(), email.trim(), phone_number || null, countryId]
+      const newCustRes = await client.query(
+        `INSERT INTO costumer (first_name, last_name, email, phone_number, country_id)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [first_name.trim(), last_name.trim(), email.trim(), phone_number || null, countryId]
       );
+      customerId = newCustRes.rows && newCustRes.rows[0]?.id;
     }
 
     // 3. Find et ledigt værelse af den ønskede værelsestype i perioden
@@ -177,19 +176,16 @@ export async function createBooking(data) {
       calculatedPrice = baseRate * nightsAllocation.totalNights;
     }
 
-    // 5. Opret selve bookingen
-    const nextBookingIdRes = await client.query(`SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM booking`);
-    const bookingId = (nextBookingIdRes.rows && nextBookingIdRes.rows[0]?.next_id) || 1;
+    // 5. Opret selve bookingen (auto-genereret ID via PostgreSQL IDENTITY)
     const now = new Date();
-
-    await client.query(
+    const insertBookingRes = await client.query(
       `INSERT INTO booking (
-         id, costumer_id, order_date, room_id, arrival, departure, 
+         costumer_id, order_date, room_id, arrival, departure, 
          season_id, occupants, price, status, star_rating, updated_at
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id, order_date`,
       [
-        bookingId,
         customerId,
         now,
         assignedRoom.id,
@@ -203,6 +199,8 @@ export async function createBooking(data) {
         now,
       ]
     );
+
+    const bookingId = insertBookingRes.rows && insertBookingRes.rows[0]?.id;
 
     // Returner det fulde booking-objekt
     return {
