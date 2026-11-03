@@ -8,10 +8,10 @@ const router = Router();
 // GET /api/bookings
 router.get("/bookings", async (req, res, next) => {
   try {
-    const { q, status, from, to, limit, offset } = req.query;
+    const { search, q, status, from, to, limit, offset } = req.query;
 
     const bookings = await getBookings({
-      q,
+     q: search ?? q,
       status,
       startDate: from,
       endDate: to,
