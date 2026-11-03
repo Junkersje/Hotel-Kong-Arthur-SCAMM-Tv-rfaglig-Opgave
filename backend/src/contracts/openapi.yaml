@@ -15,7 +15,12 @@ paths:
       parameters:
         - name: search
           in: query
-          description: Søgetekst (matcher gæstenavn eller booking-ID)
+          description: Søgetekst (matcher gæstenavn, e-mail, værelsesnummer eller booking-ID)
+          schema:
+            type: string
+        - name: q
+          in: query
+          description: Alias for search (fritekstsøgning på gæstenavn, e-mail, værelsesnummer eller booking-ID)
           schema:
             type: string
         - name: status
@@ -23,7 +28,19 @@ paths:
           description: Filtrér på bookingstatus
           schema:
             type: string
-            enum: [confirmed, cancelled, completed]
+            enum: [confirmed, checked_in, checked_out, completed, cancelled]
+        - name: from
+          in: query
+          description: Filtrér bookinger med afrejsedato fra og med denne dato (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: Filtrér bookinger med ankomstdato til og med denne dato (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
       responses:
         '200':
           description: Liste af bookinger
@@ -109,6 +126,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Booking ikke fundet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Konflikt (f.eks. værelset er allerede booket i perioden eller e-mailen tilhører en anden gæst)
           content:
             application/json:
               schema:
@@ -298,8 +321,21 @@ components:
       properties:
         id:
           type: integer
+        guest_id:
+          type: integer
         guest_name:
           type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
         country:
           type: string
           nullable: true
@@ -307,7 +343,12 @@ components:
           type: integer
         room_type_name:
           type: string
+        room_type_capacity:
+          type: integer
         room_number:
+          type: integer
+          nullable: true
+        floor:
           type: integer
           nullable: true
         check_in_date:
@@ -321,15 +362,21 @@ components:
         total_price:
           type: number
           format: float
+        total_price_dkk:
+          type: number
+          format: float
         status:
           type: string
-          enum: [confirmed, cancelled, completed]
+          enum: [confirmed, checked_in, checked_out, completed, cancelled]
         satisfaction_rating:
           type: integer
           nullable: true
           minimum: 1
           maximum: 5
         created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
 
@@ -377,6 +424,15 @@ components:
       properties:
         guest_name:
           type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
         country:
           type: string
         room_type_id:
@@ -393,11 +449,16 @@ components:
           type: integer
         total_price:
           type: number
+        total_price_dkk:
+          type: number
         status:
           type: string
-          enum: [confirmed, cancelled, completed]
+          enum: [confirmed, checked_in, checked_out, completed, cancelled]
         satisfaction_rating:
           type: integer
+          nullable: true
+          minimum: 1
+          maximum: 5
 
     RoomType:
       type: object
@@ -406,8 +467,14 @@ components:
           type: integer
         name:
           type: string
+        description:
+          type: string
+          nullable: true
         capacity:
           type: integer
+        base_price_dkk:
+          type: number
+          format: float
         base_price_indicative:
           type: string
 
@@ -526,8 +593,18 @@ components:
     ErrorResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: false
         error:
-          type: string
+          oneOf:
+            - type: string
+            - type: object
+              properties:
+                message:
+                  type: string
+                code:
+                  type: string
         message:
           type: string
         status_code:
