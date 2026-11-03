@@ -52,6 +52,7 @@ from sales
 join product on sales.product_id = product.id
 group by year, month
 order by year desc, bar_revenue desc;
+<<<<<<< HEAD
 
 
 
@@ -244,3 +245,5 @@ select
     round((units_sold::numeric / total_units_sold) * 100, 2) as percentage_of_total_sales
 from category_sales
 cross join total_sales;
+=======
+>>>>>>> database-quiries
