@@ -1,16 +1,20 @@
+
 import { query } from './db.js';
 
 export async function getAllTypes() {
     const sql = `
-        SELECT id, name, capacity, description
+        SELECT
+            id,
+            name,
+            max_capacity AS capacity
         FROM ROOM_TYPE
-        ORDER BY capacity ASC, id ASC
+        ORDER BY max_capacity ASC, id ASC
     `;
 
     const roomTypes = await query(sql);
 
     return roomTypes;
-}  
+}
 
 export async function getAll() {
     const sql = `

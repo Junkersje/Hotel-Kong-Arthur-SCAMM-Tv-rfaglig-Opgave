@@ -1,3 +1,4 @@
+
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -33,7 +34,7 @@ test('T014: Filtrering efter status og datoer', async () => {
   calls.length = 0;
 
   await searchBookings({
-    status: 'confirmed',
+    status: 'Checked Out',
     startDate: '2027-06-01',
     endDate: '2027-06-05'
   });
@@ -41,11 +42,14 @@ test('T014: Filtrering efter status og datoer', async () => {
   const { sql, params } = calls[0];
 
   assert.match(sql, /b\.status = \$1/);
-  assert.match(sql, /b\.check_in_date >= \$2/);
-  assert.match(sql, /b\.check_in_date <= \$3/);
+  assert.match(sql, /b\.arrival >= \$2/);
+  assert.match(
+    sql,
+    /b\.arrival < \(\$3::date \+ INTERVAL '1 day'\)/
+  );
 
   assert.deepEqual(params, [
-    'confirmed',
+    'Checked Out',
     '2027-06-01',
     '2027-06-05'
   ]);
@@ -59,7 +63,7 @@ test('T014: Pagination med limit og offset', async () => {
   const { sql } = calls[0];
 
   assert.match(sql, /LIMIT 10 OFFSET 20/);
-  assert.match(sql, /ORDER BY b\.created_at DESC/);
+  assert.match(sql, /ORDER BY b\.order_date DESC/);
 });
 
 test('T014: Begrænser ugyldig pagination', async () => {
