@@ -321,16 +321,17 @@ const analyticsRepository = {
   async getALOSByCountry() {
     const sql = `
       SELECT 
-        g.country,
+        COALESCE(cntry.name, 'Ukendt') AS country,
         COUNT(b.id)::int AS total_bookings,
         COALESCE(SUM(b.check_out_date - b.check_in_date), 0)::int AS total_nights,
         ROUND(
           COALESCE(AVG(b.check_out_date - b.check_in_date), 0), 2
         )::numeric AS average_length_of_stay
       FROM BOOKING b
-      JOIN GUEST g ON b.guest_id = g.id
+      JOIN COSTUMER c ON b.costumer_id = c.id
+      LEFT JOIN COUNTRY cntry ON c.country_id = cntry.id
       WHERE b.status != 'cancelled'
-      GROUP BY g.country
+      GROUP BY cntry.name
       ORDER BY average_length_of_stay DESC, total_nights DESC
     `;
     const { rows } = await (this?.db || db).query(sql);

@@ -1,4 +1,3 @@
-
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -8,7 +7,7 @@ mock.module('../src/repositories/db.js', {
   namedExports: {
     query: async (sql, params = []) => {
       calls.push({ sql, params });
-      return [{ id: 1, guest_name: 'Anna Jensen' }];
+      return [{ id: 1, costumer_name: 'Anna Jensen' }];
     }
   }
 });
@@ -17,7 +16,7 @@ const { searchBookings } = await import(
   '../src/repositories/bookingRepository.js'
 );
 
-test('T014: Søgning efter gæstenavn, email og booking-ID', async () => {
+test('T014: Søgning efter costumernavn, email og booking-ID', async () => {
   calls.length = 0;
 
   const results = await searchBookings({ q: 'Anna' });
@@ -25,8 +24,8 @@ test('T014: Søgning efter gæstenavn, email og booking-ID', async () => {
 
   assert.equal(results.length, 1);
   assert.match(sql, /CAST\(b\.id AS TEXT\) ILIKE \$1/);
-  assert.match(sql, /g\.name ILIKE \$2/);
-  assert.match(sql, /g\.email ILIKE \$3/);
+  assert.match(sql, /c\.first_name.*c\.last_name/);
+  assert.match(sql, /c\.email ILIKE \$3/);
   assert.deepEqual(params, ['%Anna%', '%Anna%', '%Anna%']);
 });
 

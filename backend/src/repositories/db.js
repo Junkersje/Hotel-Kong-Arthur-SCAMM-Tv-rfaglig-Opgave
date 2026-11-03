@@ -8,7 +8,7 @@ const { Pool, types } = pg;
 types.setTypeParser(types.builtins.INT8, (value) => Number.parseInt(value, 10));
 types.setTypeParser(types.builtins.NUMERIC, (value) => Number.parseFloat(value));
 
-const pool = new Pool({
+export const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432', 10),
   user: process.env.DB_USER || 'hotel_admin',
