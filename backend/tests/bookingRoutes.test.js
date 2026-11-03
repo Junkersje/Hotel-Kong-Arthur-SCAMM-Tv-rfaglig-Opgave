@@ -1,25 +1,38 @@
 
 import { describe, test, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import express from 'express';
 
 const calls = [];
 let bookings = [];
 let roomTypes = [];
 let bookingError = null;
 let roomError = null;
+let createBookingError = null;
 
-// Mock services before importing the routes.
+// Mock bookingService
 mock.module('../src/services/bookingService.js', {
   namedExports: {
     getBookings: async (filters) => {
       calls.push({ endpoint: 'bookings', filters });
       if (bookingError) throw bookingError;
       return bookings;
-    }
+    },
+
+    createBooking: async (data) => {
+      calls.push({ endpoint: 'create-booking', data });
+      if (createBookingError) throw createBookingError;
+
+      return {
+        id: 999,
+        customer_name: 'Signe Krogh'
+      };
+    },
+
+    validateCreateBooking: (req, res, next) => next()
   }
 });
 
+// Mock roomService
 mock.module('../src/services/roomService.js', {
   namedExports: {
     getRoomTypes: async () => {
@@ -40,15 +53,19 @@ function reset() {
   roomTypes = [];
   bookingError = null;
   roomError = null;
+  createBookingError = null;
 }
 
-function getHandler(path) {
-  const handler = bookingRoutes.stack.find(
-    (layer) => layer.route?.path === path
-  )?.route?.stack[0]?.handle;
+function getHandler(path, method = 'get') {
+  const route = bookingRoutes.stack.find(
+    (layer) =>
+      layer.route?.path === path &&
+      layer.route?.methods?.[method]
+  );
 
-  assert.ok(handler, `Handler for ${path} findes`);
-  return handler;
+  assert.ok(route, `${method.toUpperCase()} ${path} findes`);
+
+  return route.route.stack[route.route.stack.length - 1].handle;
 }
 
 async function invoke(path, query = {}) {
@@ -58,6 +75,7 @@ async function invoke(path, query = {}) {
   let forwardedError;
 
   const req = { query };
+
   const res = {
     status(code) {
       statusCode = code;
@@ -77,6 +95,7 @@ async function invoke(path, query = {}) {
 }
 
 describe('T016: Booking Routes Unit Tests', () => {
+
   test('GET /bookings returnerer HTTP 200 med array', async () => {
     reset();
     bookings = [{ id: 101, status: 'confirmed' }];
@@ -101,6 +120,7 @@ describe('T016: Booking Routes Unit Tests', () => {
     });
 
     assert.equal(result.statusCode, 200);
+
     assert.deepEqual(calls[0].filters, {
       q: 'Nielsen',
       status: 'confirmed',
@@ -121,6 +141,7 @@ describe('T016: Booking Routes Unit Tests', () => {
 
   test('GET /room-types returnerer HTTP 200 med array', async () => {
     reset();
+
     roomTypes = [
       { id: 1, name: 'Enkeltværelse', max_capacity: 1 },
       { id: 2, name: 'Dobbeltværelse', max_capacity: 2 }
@@ -154,86 +175,84 @@ describe('T016: Booking Routes Unit Tests', () => {
   });
 
   test('POST /bookings opretter en booking og returnerer HTTP 201 Created', async () => {
-    const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
-    assert.ok(postRoute, 'POST /bookings route skal være defineret');
+    reset();
 
-    const mockClient = {
-      query: async (sql) => {
-        if (sql === 'BEGIN' || sql === 'COMMIT') return { rows: [] };
-        if (sql.includes('SELECT id FROM country')) return { rows: [{ id: 1 }] };
-        if (sql.includes('SELECT id FROM costumer')) return { rows: [] };
-        if (sql.includes('COALESCE(MAX(id), 0) + 1 AS next_id FROM costumer')) {
-          return { rows: [{ next_id: 88 }] };
-        }
-        if (sql.includes('INSERT INTO costumer')) return { rows: [{ id: 88 }] };
-        if (sql.includes('FROM room r')) return { rows: [{ id: 201, name: '201', room_type_name: 'Standard Single' }] };
-        if (sql.includes('SELECT id FROM season')) return { rows: [{ id: 1 }] };
-        if (sql.includes('SELECT price_pr_night FROM room_price')) {
-          return { rows: [{ price_pr_night: 1050 }] };
-        }
-        if (sql.includes('COALESCE(MAX(id), 0) + 1 AS next_id FROM booking')) {
-          return { rows: [{ next_id: 999 }] };
-        }
-        if (sql.includes('INSERT INTO booking')) {
-          return {
-            rows: [{
-              id: 999,
-              costumer_id: 88,
-              order_date: new Date(),
-              room_id: 201,
-              arrival: '2026-07-01',
-              departure: '2026-07-03',
-              season_id: 1,
-              occupants: 1,
-              price: 2100,
-              status: 'confirmed',
-              star_rating: 5,
-              updated_at: new Date()
-            }]
-          };
-        }
-        return { rows: [] };
-      },
-      release: () => {}
+    const handler = getHandler('/bookings', 'post');
+
+    const validPayload = {
+      first_name: 'Signe',
+      last_name: 'Krogh',
+      email: 'signe@example.com',
+      phone_number: '+45 99887766',
+      country: 'Danmark',
+      room_type_id: 1,
+      num_guests: 1,
+      check_in_date: '2026-07-01',
+      check_out_date: '2026-07-03'
     };
 
-    db.connect = async () => mockClient;
+    const req = {
+      body: validPayload,
+      validatedBody: validPayload
+    };
 
-    try {
-      const validPayload = {
-        first_name: 'Signe',
-        last_name: 'Krogh',
-        email: 'signe@example.com',
-        phone_number: '+45 99887766',
-        country: 'Danmark',
-        room_type_id: 1,
-        num_guests: 1,
-        check_in_date: '2026-07-01',
-        check_out_date: '2026-07-03'
-      };
+    let statusCode = null;
+    let responseBody = null;
+    let forwardedError;
 
-      const req = { body: validPayload, validatedBody: validPayload };
-      let resStatus = null;
-      let resBody = null;
-      const res = {
-        setHeader: () => {},
-        status: (code) => ({
-          json: (data) => {
-            resStatus = code;
-            resBody = data;
-          }
-        })
-      };
+    const res = {
+      status(code) {
+        statusCode = code;
+        return this;
+      },
+      json(data) {
+        responseBody = data;
+        return this;
+      }
+    };
 
-      const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
-      await routeHandler(req, res);
+    await handler(req, res, (error) => {
+      forwardedError = error;
+    });
 
-      assert.equal(resStatus, 201);
-      assert.equal(resBody.success, true);
-      assert.equal(resBody.data.id, 999);
-      assert.equal(resBody.data.customer_name, 'Signe Krogh');
-    } finally {
-      db.connect = originalConnect;
-    }
+    assert.equal(statusCode, 201);
+    assert.equal(responseBody.success, true);
+    assert.equal(responseBody.data.id, 999);
+    assert.equal(responseBody.data.customer_name, 'Signe Krogh');
+
+    assert.equal(forwardedError, undefined);
+    assert.equal(calls[0].endpoint, 'create-booking');
+    assert.deepEqual(calls[0].data, validPayload);
   });
+
+  test('POST /bookings sender fejl videre til Express', async () => {
+    reset();
+
+    createBookingError = new Error('Booking kunne ikke oprettes');
+
+    const handler = getHandler('/bookings', 'post');
+
+    const req = {
+      body: {},
+      validatedBody: {}
+    };
+
+    let forwardedError;
+
+    const res = {
+      status() {
+        return this;
+      },
+      json() {
+        return this;
+      }
+    };
+
+    await handler(req, res, (error) => {
+      forwardedError = error;
+    });
+
+    assert.equal(forwardedError, createBookingError);
+  });
+
 });
