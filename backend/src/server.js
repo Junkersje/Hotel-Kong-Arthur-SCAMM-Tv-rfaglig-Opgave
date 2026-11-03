@@ -107,7 +107,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// API Routes - T016
+// Booking- og værelsesruter (T016, T018, T019) - T016
 app.use('/api', bookingRoutes);
 
 // 404 handler for unknown routes
