@@ -34,7 +34,22 @@ function parseUtcDate(dateStr) {
   if (!dateStr) return NaN;
   const match = String(dateStr).substring(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (match) {
-    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      return NaN;
+    }
+    const utcMs = Date.UTC(year, month - 1, day);
+    const checkDate = new Date(utcMs);
+    if (
+      checkDate.getUTCFullYear() !== year ||
+      checkDate.getUTCMonth() + 1 !== month ||
+      checkDate.getUTCDate() !== day
+    ) {
+      return NaN;
+    }
+    return utcMs;
   }
   const d = new Date(dateStr);
   return d.getTime();
@@ -211,6 +226,79 @@ export function validateBookingInput(bookingData = {}) {
     isValid: Object.keys(errors).length === 0,
     errors
   };
+}
+
+/**
+ * Filtrerer en liste af bookinger i henhold til søgetekst, statusfilter og datointerval.
+ * Ekskluderer 'cancelled' fra den aktive liste medmindre 'cancelled' eksplicit er valgt.
+ * @param {Array<object>} rawBookings
+ * @param {object} [filters]
+ * @param {string} [filters.searchQuery]
+ * @param {string} [filters.statusFilter]
+ * @param {string} [filters.fromDate]
+ * @param {string} [filters.toDate]
+ * @returns {Array<object>}
+ */
+export function filterBookingsList(
+  rawBookings = [],
+  { searchQuery = '', statusFilter = '', fromDate = '', toDate = '' } = {}
+) {
+  if (!Array.isArray(rawBookings)) return [];
+
+  const normalizedStatus = String(statusFilter || '').trim();
+  const normalizedFrom = String(fromDate || '').trim();
+  const normalizedTo = String(toDate || '').trim();
+  const query = String(searchQuery || '').trim().toLowerCase();
+
+  return rawBookings.filter((raw) => {
+    const booking = raw instanceof BookingModel ? raw : new BookingModel(raw);
+
+    if (normalizedStatus) {
+      if (normalizedStatus === BOOKING_STATUSES.COMPLETED) {
+        if (
+          booking.status !== BOOKING_STATUSES.COMPLETED &&
+          booking.status !== BOOKING_STATUSES.CHECKED_OUT
+        ) {
+          return false;
+        }
+      } else if (booking.status !== normalizedStatus) {
+        return false;
+      }
+    } else if (booking.status === BOOKING_STATUSES.CANCELLED) {
+      // Fjernes fra den aktive liste ved soft delete (US4 / SH-32)
+      return false;
+    }
+
+    if (
+      normalizedFrom &&
+      booking.check_out_date &&
+      booking.check_out_date !== '—' &&
+      booking.check_out_date < normalizedFrom
+    ) {
+      return false;
+    }
+    if (
+      normalizedTo &&
+      booking.check_in_date &&
+      booking.check_in_date !== '—' &&
+      booking.check_in_date > normalizedTo
+    ) {
+      return false;
+    }
+
+    if (!query) {
+      return true;
+    }
+
+    const idMatch = String(booking.id ?? '').toLowerCase().includes(query);
+    const nameMatch = (booking.guest_name || '').toLowerCase().includes(query);
+    const emailMatch = (booking.email || '').toLowerCase().includes(query);
+    const roomMatch = String(booking.room_number ?? '').toLowerCase().includes(query);
+    const roomTypeMatch = (booking.room_type_name || '').toLowerCase().includes(query);
+    const countryMatch = (booking.country || '').toLowerCase().includes(query);
+
+    return idMatch || nameMatch || emailMatch || roomMatch || roomTypeMatch || countryMatch;
+  });
 }
 
 export default BookingModel;

@@ -43,7 +43,7 @@ export const ROOM_TYPE_SPEC_CAPACITIES = {
   8: 4
 };
 
-function formatDateOnly(val) {
+export function formatDateOnly(val) {
   if (!val) return null;
   if (val instanceof Date) {
     const year = val.getFullYear();
@@ -54,7 +54,7 @@ function formatDateOnly(val) {
   return String(val).substring(0, 10);
 }
 
-function splitFullName(fullName = '') {
+export function splitFullName(fullName = '') {
   const trimmed = String(fullName || '').trim();
   if (!trimmed) return { firstName: '', lastName: '' };
   const parts = trimmed.split(/\s+/);
@@ -67,7 +67,7 @@ function splitFullName(fullName = '') {
   };
 }
 
-function mapRowToRoomType(rt) {
+export function mapRowToRoomType(rt) {
   if (!rt) return null;
   const specCapacity = ROOM_TYPE_SPEC_CAPACITIES[rt.id] || 2;
   return {
@@ -81,7 +81,7 @@ function mapRowToRoomType(rt) {
   };
 }
 
-function mapRowToBooking(row) {
+export function mapRowToBooking(row) {
   if (!row) return null;
   const { firstName, lastName } = splitFullName(row.guest_name);
   const totalPrice = Number(row.total_price ?? 0);
@@ -338,7 +338,7 @@ export class BookingRepository {
       const explicitRoomChanged =
         hasExplicitRoom && nextRoomNumber !== Number(existing.room_number);
 
-      if (explicitRoomChanged) {
+      if (explicitRoomChanged || (hasExplicitRoom && roomTypeChanged)) {
         const [roomRows] = await conn.execute(
           'SELECT room_number, room_type_id, status FROM ROOM WHERE room_number = ? LIMIT 1',
           [nextRoomNumber]
@@ -368,7 +368,7 @@ export class BookingRepository {
       }
 
       if (nextStatus !== 'cancelled' && (datesChanged || roomTypeChanged || explicitRoomChanged)) {
-        if (!roomTypeChanged || explicitRoomChanged) {
+        if (!roomTypeChanged || hasExplicitRoom) {
           // Tjek først om det nuværende/valgte værelse er ledigt i den nye periode
           const currentRoomStillAvailable = await this.isRoomAvailable(
             nextRoomNumber,
@@ -379,7 +379,7 @@ export class BookingRepository {
           );
 
           if (!currentRoomStillAvailable) {
-            if (explicitRoomChanged) {
+            if (hasExplicitRoom) {
               const conflictErr = new Error(
                 `Værelse ${nextRoomNumber} er allerede optaget i perioden ${nextCheckIn} til ${nextCheckOut}.`
               );
@@ -423,6 +423,17 @@ export class BookingRepository {
             throw conflictErr;
           }
           nextRoomNumber = availableRoom;
+        }
+      } else if (nextStatus === 'cancelled' && roomTypeChanged && !hasExplicitRoom) {
+        const matchingRoom = await this.findAvailableRoom(
+          nextRoomTypeId,
+          nextCheckIn,
+          nextCheckOut,
+          bookingId,
+          conn
+        );
+        if (matchingRoom) {
+          nextRoomNumber = matchingRoom;
         }
       }
 

@@ -70,7 +70,22 @@ function parseUtcDate(dateStr) {
   if (!dateStr) return NaN;
   const match = String(dateStr).substring(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (match) {
-    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      return NaN;
+    }
+    const utcMs = Date.UTC(year, month - 1, day);
+    const checkDate = new Date(utcMs);
+    if (
+      checkDate.getUTCFullYear() !== year ||
+      checkDate.getUTCMonth() + 1 !== month ||
+      checkDate.getUTCDate() !== day
+    ) {
+      return NaN;
+    }
+    return utcMs;
   }
   const d = new Date(dateStr);
   return d.getTime();
@@ -117,10 +132,55 @@ export class BookingService {
 
   /**
    * Henter og filtrerer bookinger.
+   * Validerer status- og datointervalfiltre i booking-listen.
    * @param {object} [filters]
    * @returns {Promise<Array<object>>}
    */
   async getBookings(filters = {}) {
+    if (filters && typeof filters === 'object') {
+      const status = filters.status !== undefined && filters.status !== null
+        ? String(filters.status).trim()
+        : '';
+      if (status && !ALLOWED_BOOKING_STATUSES.includes(status)) {
+        throw createAppError(
+          `Ugyldig bookingstatus '${status}'. Tilladte værdier: ${ALLOWED_BOOKING_STATUSES.join(', ')}.`,
+          400,
+          'INVALID_STATUS'
+        );
+      }
+
+      const fromDate = filters.from !== undefined && filters.from !== null
+        ? String(filters.from).trim()
+        : '';
+      const toDate = filters.to !== undefined && filters.to !== null
+        ? String(filters.to).trim()
+        : '';
+
+      const isIsoDateString = (str) => /^\d{4}-\d{2}-\d{2}$/.test(str);
+
+      if (fromDate && (!isIsoDateString(fromDate) || Number.isNaN(parseUtcDate(fromDate)))) {
+        throw createAppError(
+          'Ugyldigt datoformat for fra-dato (forventet YYYY-MM-DD).',
+          400,
+          'INVALID_DATE_FILTER'
+        );
+      }
+      if (toDate && (!isIsoDateString(toDate) || Number.isNaN(parseUtcDate(toDate)))) {
+        throw createAppError(
+          'Ugyldigt datoformat for til-dato (forventet YYYY-MM-DD).',
+          400,
+          'INVALID_DATE_FILTER'
+        );
+      }
+      if (fromDate && toDate && parseUtcDate(fromDate) > parseUtcDate(toDate)) {
+        throw createAppError(
+          'Fra-dato må ikke være efter til-dato i booking-listens datointerval.',
+          400,
+          'INVALID_DATE_RANGE'
+        );
+      }
+    }
+
     return await this.bookingRepository.searchBookings(filters);
   }
 
@@ -204,6 +264,25 @@ export class BookingService {
         400,
         'BOOKING_CANCELLED'
       );
+    }
+
+    // 2b. Valider gæstenavn og e-mailformat hvis angivet
+    if (
+      input.guest_name !== undefined &&
+      input.first_name === undefined &&
+      input.last_name === undefined &&
+      String(input.guest_name).trim() === ''
+    ) {
+      throw createAppError('Gæstens navn må ikke være tomt.', 400, 'INVALID_GUEST_NAME');
+    }
+
+    if (
+      input.email !== undefined &&
+      input.email !== null &&
+      String(input.email).trim() !== '' &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(input.email).trim())
+    ) {
+      throw createAppError('Indtast en gyldig e-mailadresse.', 400, 'INVALID_EMAIL');
     }
 
     // 3. Dato-validering (check_out_date > check_in_date)

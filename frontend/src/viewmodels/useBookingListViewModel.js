@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiGet } from '../services/api.js';
-import { BookingModel } from '../models/BookingModel.js';
+import { BookingModel, filterBookingsList } from '../models/BookingModel.js';
 
 const DEBOUNCE_DELAY_MS = 300;
 
@@ -77,42 +77,16 @@ export function useBookingListViewModel(options = {}) {
   }, [enabled, fetchBookings, refreshTrigger]);
 
   // Sikrer at visningen altid matcher aktive filtre og ekskluderer 'cancelled' fra den aktive liste (medmindre 'cancelled' vælges i filteret)
-  const bookings = useMemo(() => {
-    return rawBookings.filter((booking) => {
-      if (statusFilter) {
-        if (statusFilter === 'completed') {
-          if (booking.status !== 'completed' && booking.status !== 'checked_out') {
-            return false;
-          }
-        } else if (booking.status !== statusFilter) {
-          return false;
-        }
-      } else if (booking.status === 'cancelled') {
-        // Fjernes fra den aktive liste ved soft delete (US4 / SH-32)
-        return false;
-      }
-
-      if (fromDate && booking.check_out_date && booking.check_out_date < fromDate) {
-        return false;
-      }
-      if (toDate && booking.check_in_date && booking.check_in_date > toDate) {
-        return false;
-      }
-
-      const query = searchQuery.trim().toLowerCase();
-      if (!query) {
-        return true;
-      }
-      const idMatch = String(booking.id ?? '').toLowerCase().includes(query);
-      const nameMatch = (booking.guest_name || '').toLowerCase().includes(query);
-      const emailMatch = (booking.email || '').toLowerCase().includes(query);
-      const roomMatch = String(booking.room_number ?? '').toLowerCase().includes(query);
-      const roomTypeMatch = (booking.room_type_name || '').toLowerCase().includes(query);
-      const countryMatch = (booking.country || '').toLowerCase().includes(query);
-
-      return idMatch || nameMatch || emailMatch || roomMatch || roomTypeMatch || countryMatch;
-    });
-  }, [rawBookings, searchQuery, statusFilter, fromDate, toDate]);
+  const bookings = useMemo(
+    () =>
+      filterBookingsList(rawBookings, {
+        searchQuery,
+        statusFilter,
+        fromDate,
+        toDate
+      }),
+    [rawBookings, searchQuery, statusFilter, fromDate, toDate]
+  );
 
   const clearFilters = useCallback(() => {
     setSearchQuery('');
