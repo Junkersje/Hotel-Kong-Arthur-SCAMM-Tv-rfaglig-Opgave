@@ -4,8 +4,9 @@ import express from 'express';
 import db from '../src/config/database.js';
 import bookingRoutes from '../src/routes/bookingRoutes.js';
 
-describe('T016: Booking Routes Unit Tests', () => {
+describe('T016 & T019: Booking Routes Unit Tests', () => {
   const originalQuery = db.query;
+  const originalConnect = db.connect;
 
   test('GET /bookings skal returnere HTTP 200 med array af bookinger', async () => {
     const mockBookings = [
@@ -27,7 +28,7 @@ describe('T016: Booking Routes Unit Tests', () => {
       }
     ];
 
-    db.query = async (sql, params) => {
+    db.query = async (sql) => {
       assert.ok(sql.includes('FROM booking b'));
       return { rows: mockBookings };
     };
@@ -51,8 +52,8 @@ describe('T016: Booking Routes Unit Tests', () => {
         }
       };
 
-      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings')?.route?.stack[0]?.handle;
-      assert.ok(handler, 'Route handler for /bookings skal eksistere');
+      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.get)?.route?.stack[0]?.handle;
+      assert.ok(handler, 'Route handler for GET /bookings skal eksistere');
 
       await handler(req, res);
 
@@ -77,7 +78,7 @@ describe('T016: Booking Routes Unit Tests', () => {
     };
 
     try {
-      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings')?.route?.stack[0]?.handle;
+      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.get)?.route?.stack[0]?.handle;
 
       const req = {
         query: {
@@ -128,7 +129,7 @@ describe('T016: Booking Routes Unit Tests', () => {
     };
 
     try {
-      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings')?.route?.stack[0]?.handle;
+      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.get)?.route?.stack[0]?.handle;
       const req = { query: { q: '42' } };
       const res = {
         setHeader: () => {},
@@ -193,7 +194,7 @@ describe('T016: Booking Routes Unit Tests', () => {
     };
 
     try {
-      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings')?.route?.stack[0]?.handle;
+      const handler = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.get)?.route?.stack[0]?.handle;
       let responseStatus = null;
       let responseBody = null;
 
@@ -248,6 +249,90 @@ describe('T016: Booking Routes Unit Tests', () => {
       assert.equal(responseBody.details, 'Tabellen room_type findes ikke');
     } finally {
       db.query = originalQuery;
+    }
+  });
+
+  test('POST /bookings opretter en booking og returnerer HTTP 201 Created', async () => {
+    const postRoute = bookingRoutes.stack.find(s => s.route?.path === '/bookings' && s.route?.methods?.post);
+    assert.ok(postRoute, 'POST /bookings route skal være defineret');
+
+    const mockClient = {
+      query: async (sql) => {
+        if (sql === 'BEGIN' || sql === 'COMMIT') return { rows: [] };
+        if (sql.includes('SELECT id FROM country')) return { rows: [{ id: 1 }] };
+        if (sql.includes('SELECT id FROM costumer')) return { rows: [] };
+        if (sql.includes('COALESCE(MAX(id), 0) + 1 AS next_id FROM costumer')) {
+          return { rows: [{ next_id: 88 }] };
+        }
+        if (sql.includes('INSERT INTO costumer')) return { rows: [{ id: 88 }] };
+        if (sql.includes('FROM room r')) return { rows: [{ id: 201, name: '201', room_type_name: 'Standard Single' }] };
+        if (sql.includes('SELECT id FROM season')) return { rows: [{ id: 1 }] };
+        if (sql.includes('SELECT price_pr_night FROM room_price')) {
+          return { rows: [{ price_pr_night: 1050 }] };
+        }
+        if (sql.includes('COALESCE(MAX(id), 0) + 1 AS next_id FROM booking')) {
+          return { rows: [{ next_id: 999 }] };
+        }
+        if (sql.includes('INSERT INTO booking')) {
+          return {
+            rows: [{
+              id: 999,
+              costumer_id: 88,
+              order_date: new Date(),
+              room_id: 201,
+              arrival: '2026-07-01',
+              departure: '2026-07-03',
+              season_id: 1,
+              occupants: 1,
+              price: 2100,
+              status: 'confirmed',
+              star_rating: 5,
+              updated_at: new Date()
+            }]
+          };
+        }
+        return { rows: [] };
+      },
+      release: () => {}
+    };
+
+    db.connect = async () => mockClient;
+
+    try {
+      const validPayload = {
+        first_name: 'Signe',
+        last_name: 'Krogh',
+        email: 'signe@example.com',
+        phone_number: '+45 99887766',
+        country: 'Danmark',
+        room_type_id: 1,
+        num_guests: 1,
+        check_in_date: '2026-07-01',
+        check_out_date: '2026-07-03'
+      };
+
+      const req = { body: validPayload, validatedBody: validPayload };
+      let resStatus = null;
+      let resBody = null;
+      const res = {
+        setHeader: () => {},
+        status: (code) => ({
+          json: (data) => {
+            resStatus = code;
+            resBody = data;
+          }
+        })
+      };
+
+      const routeHandler = postRoute.route.stack[postRoute.route.stack.length - 1].handle;
+      await routeHandler(req, res);
+
+      assert.equal(resStatus, 201);
+      assert.equal(resBody.success, true);
+      assert.equal(resBody.data.id, 999);
+      assert.equal(resBody.data.customer_name, 'Signe Krogh');
+    } finally {
+      db.connect = originalConnect;
     }
   });
 });

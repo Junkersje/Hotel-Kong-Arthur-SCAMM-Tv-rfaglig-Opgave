@@ -1,5 +1,7 @@
 import express from 'express';
 import db from '../config/database.js';
+import bookingService from '../services/bookingService.js';
+import { validateCreateBooking } from '../validators/bookingValidator.js';
 
 const router = express.Router();
 
@@ -92,6 +94,32 @@ router.get('/bookings', async (req, res) => {
       success: false,
       error: 'Kunne ikke hente bookinger.',
       details: error.message,
+    });
+  }
+});
+
+/**
+ * @route   POST /api/bookings
+ * @desc    Opret en ny booking beskyttet af Zod valideringsmiddleware (T017, T018, T019)
+ * @access  Public / Receptionist
+ */
+router.post('/bookings', validateCreateBooking, async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  try {
+    const bookingData = req.validatedBody || req.body;
+    const newBooking = await bookingService.createBooking(bookingData);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Booking oprettet med succes',
+      data: newBooking,
+    });
+  } catch (error) {
+    console.error('Fejl ved oprettelse af booking:', error);
+    const status = error.statusCode || (error.message?.includes('ledige værelser') ? 409 : 400);
+    return res.status(status).json({
+      success: false,
+      error: error.message || 'Kunne ikke oprette booking.',
     });
   }
 });

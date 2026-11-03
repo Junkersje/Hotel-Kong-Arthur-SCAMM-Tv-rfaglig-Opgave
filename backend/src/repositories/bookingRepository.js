@@ -89,3 +89,47 @@ export async function searchBookings({
 
   return await query(sql, params);
 }
+
+/**
+ * T018: Opretter en bookingrække i booking tabellen
+ */
+export async function createBooking(client, {
+  customerId,
+  roomId,
+  arrival,
+  departure,
+  seasonId,
+  occupants,
+  price,
+  status = 'confirmed',
+  starRating = 5
+}) {
+  const insertSql = `
+    INSERT INTO booking (
+      id, costumer_id, order_date, room_id, arrival, departure,
+      season_id, occupants, price, status, star_rating, updated_at
+    ) VALUES (
+      (SELECT COALESCE(MAX(id), 0) + 1 FROM booking),
+      $1, NOW(), $2, $3::timestamp, $4::timestamp,
+      $5, $6, $7, $8, $9, NOW()
+    )
+    RETURNING *
+  `;
+  const result = await client.query(insertSql, [
+    customerId,
+    roomId,
+    arrival,
+    departure,
+    seasonId,
+    occupants,
+    price,
+    status,
+    starRating
+  ]);
+  return result.rows[0];
+}
+
+export default {
+  searchBookings,
+  createBooking
+};
