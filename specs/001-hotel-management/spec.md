@@ -333,7 +333,7 @@ Som hoteladministrator ønsker jeg at kunne aflæse hotellets gennemsnitlige kun
 
 ### Key Entities
 
-- **Guest**: Repræsenterer hotellets gæst. Vigtige attributter: gæste-ID, fulde navn, nationalitet/kontaktland, kontaktoplysninger.
+- **Costumer**: Repræsenterer hotellets kunde / gæst. Vigtige attributter: kunde-ID, fornavn, efternavn, nationalitet/kontaktland, kontaktoplysninger.
 - **Room**: Repræsenterer et af hotellets 214 fysiske værelser. Vigtige attributter: værelsesnummer, etage, tilknyttet værelsestype, aktuel status (tilgængelig, optaget, under rengøring/vedligeholdelse).
 - **RoomType**: Repræsenterer én af de 8 værelseskategorier. Vigtige attributter: type-ID, typenavn (f.eks. "Spa Executive"), standardkapacitet (1–4 personer), vejledende basispris.
 - **Booking**: Repræsenterer en reservation. Vigtige attributter: booking-ID, tilknyttet gæst, tilknyttet værelse/værelsestype, ankomstdato, afrejsedato, antal gæster, aftalt totalbeløb, reservationsstatus (`confirmed`, `cancelled`, `completed`), oprettelsestidspunkt.
