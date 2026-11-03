@@ -1,14 +1,18 @@
 import db from '../config/database.js';
 import seasonService from './seasonService.js';
-import * as bookingRepository from "../repositories/bookingRepository.js";
-import { createBookingSchema, validateCreateBooking } from "../validators/bookingValidator.js";
+import * as bookingRepository from '../repositories/bookingRepository.js';
+import {
+  createBookingSchema,
+  validateCreateBooking
+} from '../validators/bookingValidator.js';
 
 /**
- * Hjælpefunktion til at afvikle en atomar transaktion med automatisk COMMIT eller ROLLBACK.
- * @param {Function} callback - Async funktion der modtager en dedikeret client
+ * Hjælpefunktion til at afvikle en atomar transaktion med automatisk COMMIT eller ROLLBACK i PostgreSQL.
+ * @param {Function} callback - Async funktion der modtager en dedikeret PostgreSQL client
  */
 export async function withTransaction(callback) {
   const client = await db.connect();
+
   try {
     await client.query('BEGIN');
     const result = await callback(client);
@@ -25,7 +29,7 @@ export async function withTransaction(callback) {
 function formatDate(value) {
   if (value == null) return null;
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value.slice(0, 10);
   }
 
@@ -43,18 +47,17 @@ function calculateNights(checkIn, checkOut) {
   if (!start || !end) return null;
 
   const nights =
-    (Date.parse(end + "T00:00:00Z") -
-      Date.parse(start + "T00:00:00Z")) /
-    86400000;
+    (Date.parse(end + 'T00:00:00Z') -
+      Date.parse(start + 'T00:00:00Z')) / 86400000;
 
-  return Number.isInteger(nights) && nights >= 0
+  return Number.isInteger(nights) && nights > 0
     ? nights
     : null;
 }
 
 /**
  * Opretter en ny booking atomisk i PostgreSQL (T018)
- * @param {Object} data - Validerede bookingdata fra T017
+ * @param {Object} data - Validerede bookingdata
  */
 export async function createBooking(data) {
   const {
@@ -66,35 +69,50 @@ export async function createBooking(data) {
     room_type_id,
     num_guests,
     check_in_date,
-    check_out_date,
+    check_out_date
   } = data;
 
+  const nightsAllocation = seasonService.calculateNightsBySeason(check_in_date, check_out_date);
+  const totalNights = nightsAllocation?.totalNights ?? calculateNights(check_in_date, check_out_date);
+
+  if (!totalNights || totalNights <= 0) {
+    const error = new Error('Afrejsedato skal være efter ankomstdato.');
+    error.statusCode = 400;
+    throw error;
+  }
+
   return await withTransaction(async (client) => {
-    // 1. Håndter Country (Find eller opret)
+    // 1. Håndter Country (Find eksisterende eller opret nyt med PostgreSQL RETURNING)
     let countryId = null;
     if (typeof country === 'number') {
       countryId = country;
     } else if (country) {
+      const countryName = String(country).trim();
       const countryRes = await client.query(
         `SELECT id FROM country WHERE LOWER(name) = LOWER($1)`,
-        [country.trim()]
+        [countryName]
       );
       if (countryRes.rows && countryRes.rows.length > 0) {
         countryId = countryRes.rows[0].id;
       } else {
         const newCountryRes = await client.query(
           `INSERT INTO country (name) VALUES ($1) RETURNING id`,
-          [country.trim()]
+          [countryName]
         );
-        countryId = newCountryRes.rows && newCountryRes.rows[0]?.id;
+        countryId = newCountryRes.rows?.[0]?.id ?? null;
       }
     }
 
-    // 2. Håndter Costumer (Find på email eller opret ny)
+    // 2. Håndter Costumer (Find på email i costumer-tabellen eller opret ny med RETURNING id)
     let customerId;
+    const customerEmail = String(email).trim();
+    const firstName = String(first_name).trim();
+    const lastName = String(last_name).trim();
+    const phone = phone_number ? String(phone_number).trim() : null;
+
     const existingCustomerRes = await client.query(
       `SELECT id FROM costumer WHERE LOWER(email) = LOWER($1)`,
-      [email.trim()]
+      [customerEmail]
     );
 
     if (existingCustomerRes.rows && existingCustomerRes.rows.length > 0) {
@@ -103,20 +121,21 @@ export async function createBooking(data) {
         `UPDATE costumer 
          SET first_name = $1, last_name = $2, phone_number = COALESCE($3, phone_number), country_id = COALESCE($4, country_id)
          WHERE id = $5`,
-        [first_name.trim(), last_name.trim(), phone_number || null, countryId, customerId]
+        [firstName, lastName, phone, countryId, customerId]
       );
     } else {
       const newCustRes = await client.query(
         `INSERT INTO costumer (first_name, last_name, email, phone_number, country_id)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id`,
-        [first_name.trim(), last_name.trim(), email.trim(), phone_number || null, countryId]
+        [firstName, lastName, customerEmail, phone, countryId]
       );
-      customerId = newCustRes.rows && newCustRes.rows[0]?.id;
+      customerId = newCustRes.rows?.[0]?.id;
     }
 
-    // 3. Find et ledigt værelse af den ønskede værelsestype i perioden
+    // 3. Find og lås et ledigt værelse af den ønskede værelsestype i perioden
     // Værelset må IKKE have overlappende bookinger (hvor status != 'cancelled')
+    // Anvender PostgreSQL FOR UPDATE OF r til at forhindre race conditions
     const availableRoomRes = await client.query(
       `SELECT r.id, r.name, rt.name AS room_type_name
        FROM room r
@@ -125,10 +144,11 @@ export async function createBooking(data) {
          AND r.id NOT IN (
            SELECT b.room_id
            FROM booking b
-           WHERE b.status != 'cancelled'
+           WHERE b.status NOT IN ('cancelled', 'canceled')
              AND b.arrival < $3::timestamp
              AND b.departure > $2::timestamp
          )
+       ORDER BY r.id ASC
        LIMIT 1
        FOR UPDATE OF r`,
       [room_type_id, check_in_date, check_out_date]
@@ -142,9 +162,8 @@ export async function createBooking(data) {
 
     const assignedRoom = availableRoomRes.rows[0];
 
-    // 4. Bestem sæson og beregn pris
+    // 4. Bestem sæson og beregn samlet pris ud fra room_price tabellen
     const checkInSeasonCode = seasonService.getSeasonForDate(check_in_date);
-    // Map sæsonkode til season tabel ID (1 = mid, 2 = low, 3 = high)
     const seasonMap = { mid: 1, low: 2, high: 3 };
     let seasonId = seasonMap[checkInSeasonCode] || 1;
     try {
@@ -159,24 +178,21 @@ export async function createBooking(data) {
       // fallback til seasonMap
     }
 
-    // Hent dagspris fra room_price tabellen hvis den findes
+    // Hent dagspris fra PostgreSQL room_price tabellen
     const priceRes = await client.query(
       `SELECT price_pr_night FROM room_price WHERE room_type_id = $1 AND season_id = $2`,
       [room_type_id, seasonId]
     );
 
-    const nightsAllocation = seasonService.calculateNightsBySeason(check_in_date, check_out_date);
     let calculatedPrice = 0;
-
     if (priceRes.rows && priceRes.rows.length > 0) {
-      calculatedPrice = Number(priceRes.rows[0].price_pr_night) * nightsAllocation.totalNights;
+      calculatedPrice = Number(priceRes.rows[0].price_pr_night) * totalNights;
     } else {
-      // Fallback standard estimat pr. nat hvis tabellen ikke har rækken
       const baseRate = 1200;
-      calculatedPrice = baseRate * nightsAllocation.totalNights;
+      calculatedPrice = baseRate * totalNights;
     }
 
-    // 5. Opret selve bookingen (auto-genereret ID via PostgreSQL IDENTITY)
+    // 5. Opret reservation i booking tabellen ved hjælp af PostgreSQL RETURNING
     const now = new Date();
     const insertBookingRes = await client.query(
       `INSERT INTO booking (
@@ -200,27 +216,35 @@ export async function createBooking(data) {
       ]
     );
 
-    const bookingId = insertBookingRes.rows && insertBookingRes.rows[0]?.id;
+    const bookingId = insertBookingRes.rows?.[0]?.id;
 
-    // Returner det fulde booking-objekt
+    // Returner det fulde booking-objekt tilpasset API og frontend
     return {
       id: bookingId,
+      costumer_id: customerId,
       customer_id: customerId,
-      customer_name: `${first_name} ${last_name}`,
-      customer_email: email,
+      guest_id: customerId,
+      customer_name: `${firstName} ${lastName}`,
+      customer_email: customerEmail,
       room: {
         id: assignedRoom.id,
         name: assignedRoom.name,
+        room_number: assignedRoom.name,
         room_type_id,
-        room_type_name: assignedRoom.room_type_name,
+        room_type_name: assignedRoom.room_type_name
       },
       arrival: check_in_date,
       departure: check_out_date,
-      total_nights: nightsAllocation.totalNights,
+      check_in_date,
+      check_out_date,
+      total_nights: totalNights,
+      nights: totalNights,
       occupants: num_guests,
+      num_guests,
       price: calculatedPrice,
+      total_price: calculatedPrice,
       status: 'confirmed',
-      created_at: now,
+      created_at: now
     };
   });
 }
@@ -232,16 +256,18 @@ export async function getBookings(filterParams = {}) {
     filters.q = String(filterParams.q).trim();
   }
 
-  if (filterParams.status != null && filterParams.status !== "") {
+  if (filterParams.status != null && filterParams.status !== '') {
     filters.status = String(filterParams.status).trim();
   }
 
-  for (const key of ["startDate", "endDate"]) {
-    if (filterParams[key] != null && filterParams[key] !== "") {
+  for (const key of ['startDate', 'endDate']) {
+    if (filterParams[key] != null && filterParams[key] !== '') {
       const value = String(filterParams[key]);
 
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-          formatDate(new Date(value)) !== value) {
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        formatDate(new Date(value)) !== value
+      ) {
         throw new Error(`Invalid ${key}`);
       }
 
@@ -249,12 +275,14 @@ export async function getBookings(filterParams = {}) {
     }
   }
 
-  for (const key of ["limit", "offset"]) {
-    if (filterParams[key] != null && filterParams[key] !== "") {
+  for (const key of ['limit', 'offset']) {
+    if (filterParams[key] != null && filterParams[key] !== '') {
       const value = Number(filterParams[key]);
 
-      if (!Number.isSafeInteger(value) ||
-          (key === "limit" ? value <= 0 : value < 0)) {
+      if (
+        !Number.isSafeInteger(value) ||
+        (key === 'limit' ? value <= 0 : value < 0)
+      ) {
         throw new Error(`Invalid ${key}`);
       }
 
@@ -271,20 +299,19 @@ export async function getBookings(filterParams = {}) {
     nights: calculateNights(
       booking.check_in_date,
       booking.check_out_date
-    ),
+    )
   }));
 }
 
 const bookingService = {
   createBooking,
   getBookings,
-  withTransaction,
+  withTransaction
 };
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = bookingService;
-}
-
-export { createBookingSchema, validateCreateBooking };
+export {
+  createBookingSchema,
+  validateCreateBooking
+};
 
 export default bookingService;

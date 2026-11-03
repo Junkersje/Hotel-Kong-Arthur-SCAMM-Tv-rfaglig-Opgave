@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiGet } from './services/api';
 import { Hotel, BookOpen, BarChart3, Database, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import BookingForm from './components/BookingForm';
 
 export default function App() {
   const [health, setHealth] = useState({ status: 'checking', database: 'UNKNOWN' });
@@ -156,6 +157,12 @@ export default function App() {
             </div>
           </div>
         </div>
+
+        {/* Booking Form - T021 */}
+        <div className="mb-8">
+          <BookingForm />
+        </div>
+
 
         {/* Database Verification Status */}
         <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">

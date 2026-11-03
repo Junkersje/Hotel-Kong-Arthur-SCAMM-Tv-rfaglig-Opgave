@@ -35,12 +35,12 @@ export async function searchBookings({
     conditions.push(`b.arrival >= $${params.length}`);
   }
 
- if (endDate) {
-  params.push(endDate);
-  conditions.push(
-    `b.arrival < ($${params.length}::date + INTERVAL '1 day')`
-  );
-}
+  if (endDate) {
+    params.push(endDate);
+    conditions.push(
+      `b.arrival < ($${params.length}::date + INTERVAL '1 day')`
+    );
+  }
 
   const whereClause = conditions.length
     ? `WHERE ${conditions.join(' AND ')}`
