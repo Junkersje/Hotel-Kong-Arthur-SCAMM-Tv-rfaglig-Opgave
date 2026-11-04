@@ -24,7 +24,51 @@ function calculateADR(roomRevenue, soldRoomNights) {
 /**
  * Service-lag for Analytics og Forretningsnøgletal (Business Logic Layer)
  */
+
+/**
+ * Fordeler en bookings overnatninger og omsætning proportionelt over de måneder,
+ * som opholdet dækker (Problem D: ophold hen over månedsskifter).
+ *
+ * @param {string|Date} checkInDate 
+ * @param {string|Date} checkOutDate 
+ * @param {number} [totalPrice=0]
+ * @returns {Array<{ year: number, month: number, nights: number, revenue: number }>}
+ */
+function allocateBookingByMonth(checkInDate, checkOutDate, totalPrice = 0) {
+  const start = new Date(checkInDate);
+  const end = new Date(checkOutDate);
+  const price = Number(totalPrice) || 0;
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+    return [];
+  }
+
+  const msPerDay = 86400000;
+  const totalNights = Math.max(1, Math.round((end - start) / msPerDay));
+  const monthCounts = {};
+
+  const current = new Date(start);
+  while (current < end) {
+    const y = current.getUTCFullYear();
+    const m = current.getUTCMonth() + 1;
+    const key = y + '-' + m;
+    if (!monthCounts[key]) {
+      monthCounts[key] = { year: y, month: m, nights: 0 };
+    }
+    monthCounts[key].nights += 1;
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  return Object.values(monthCounts).map(item => ({
+    year: item.year,
+    month: item.month,
+    nights: item.nights,
+    revenue: Number(((price * item.nights) / totalNights).toFixed(2))
+  }));
+}
+
 const analyticsService = {
+  allocateBookingByMonth,
   analyticsRepository,
   seasonService,
   calculateADR,
@@ -226,6 +270,7 @@ export const getStayLengthAnalytics = analyticsService.getStayLengthAnalytics.bi
 // calculateADR export
 export { calculateADR };
 export const getADRAnalytics = analyticsService.getADRAnalytics.bind(analyticsService);
+export { allocateBookingByMonth };
 
 export { analyticsService };
 export default analyticsService;
