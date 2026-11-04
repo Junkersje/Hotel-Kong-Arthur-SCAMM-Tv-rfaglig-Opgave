@@ -24,6 +24,7 @@ paths:
           schema:
             type: string
             enum: [confirmed, cancelled, completed]
+
       responses:
         '200':
           description: Liste af bookinger
@@ -33,6 +34,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Booking'
+
     post:
       summary: Opret en ny booking
       operationId: createBooking
@@ -42,6 +44,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateBookingRequest'
+
       responses:
         '201':
           description: Booking oprettet
@@ -49,6 +52,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
+
         '400':
           description: Ugyldige data (f.eks. afrejse før ankomst eller for mange gæster)
           content:
@@ -66,6 +70,7 @@ paths:
           required: true
           schema:
             type: integer
+
       responses:
         '200':
           description: Booking fundet
@@ -73,12 +78,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
+
         '404':
           description: Booking ikke fundet
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
     put:
       summary: Opdatér eksisterende booking
       operationId: updateBooking
@@ -94,6 +101,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateBookingRequest'
+
       responses:
         '200':
           description: Booking opdateret
@@ -101,18 +109,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
+
         '400':
           description: Ugyldige ændringer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
         '404':
           description: Booking ikke fundet
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
     delete:
       summary: Slet eller aflys booking (soft delete til status cancelled)
       operationId: deleteBooking
@@ -122,6 +133,7 @@ paths:
           required: true
           schema:
             type: integer
+
       responses:
         '200':
           description: Booking aflyst/slettet (status sat til cancelled)
@@ -129,6 +141,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
+
         '404':
           description: Booking ikke fundet
           content:
@@ -160,6 +173,7 @@ paths:
           schema:
             type: integer
             default: 2026
+
       responses:
         '200':
           description: Nøgletalssummary
@@ -177,6 +191,7 @@ paths:
           in: query
           schema:
             type: integer
+
       responses:
         '200':
           description: Værelsesomsætning grupperet på type og sæson
@@ -201,6 +216,7 @@ paths:
           schema:
             type: string
             enum: [Lavsæson, Mellemsæson, Højsæson]
+
       responses:
         '200':
           description: Landeomsætning
@@ -242,6 +258,7 @@ paths:
           description: Filter på f.eks. HC01 for Helene Christine
           schema:
             type: string
+            
       responses:
         '200':
           description: Barsalgsresultater

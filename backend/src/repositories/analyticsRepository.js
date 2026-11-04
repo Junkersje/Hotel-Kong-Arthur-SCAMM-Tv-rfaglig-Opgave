@@ -40,11 +40,15 @@ const analyticsRepository = {
    */
   async getTotalRoomRevenue() {
     const sql = `
-      SELECT 
-        COALESCE(SUM(b.price), 0)::numeric AS total_room_revenue,
-        COUNT(b.id)::int AS total_valid_bookings
-      FROM booking b
-      WHERE b.status != 'cancelled'
+      select
+        room_type.name as room_type_name,
+        sum(booking.price) as total_revenue
+      from booking
+      join room on booking.room_id = room.id
+      join room_type on room.room_type_id = room_type.id
+      where booking.status = 'completed'
+      group by room_type_name
+      order by total_revenue desc
     `;
     const rows = await this._query(sql);
     return rows[0] || { total_room_revenue: 0, total_valid_bookings: 0 };
