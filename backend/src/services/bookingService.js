@@ -303,9 +303,236 @@ export async function getBookings(filterParams = {}) {
   }));
 }
 
+/**
+ * Opdaterer en eksisterende booking atomisk i PostgreSQL (PUT /api/bookings/:id)
+ * @param {number|string} id - Booking ID
+ * @param {Object} data - Opdaterede bookingdata
+ */
+export async function updateBooking(id, data = {}) {
+  const bookingId = Number.parseInt(id, 10);
+  if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+    const err = new Error('Ugyldigt booking ID.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return await withTransaction(async (client) => {
+    const existingRes = await client.query(
+      `SELECT b.*, c.first_name, c.last_name, c.email, c.phone_number, c.country_id, r.room_type_id AS current_room_type_id, r.name AS current_room_number
+       FROM booking b
+       JOIN costumer c ON b.costumer_id = c.id
+       JOIN room r ON b.room_id = r.id
+       WHERE b.id = $1
+       FOR UPDATE OF b`,
+      [bookingId]
+    );
+
+    if (!existingRes.rows || existingRes.rows.length === 0) {
+      const err = new Error(`Booking #${bookingId} blev ikke fundet.`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const existing = existingRes.rows[0];
+    const nextCheckIn = data.check_in_date ? formatDate(data.check_in_date) : formatDate(existing.arrival);
+    const nextCheckOut = data.check_out_date ? formatDate(data.check_out_date) : formatDate(existing.departure);
+    const totalNights = calculateNights(nextCheckIn, nextCheckOut);
+
+    if (!totalNights || totalNights <= 0) {
+      const err = new Error('Afrejsedato skal være efter ankomstdato.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const nextRoomTypeId = data.room_type_id ? Number(data.room_type_id) : Number(existing.current_room_type_id);
+    const nextGuests = data.num_guests ? Number(data.num_guests) : Number(existing.occupants || 1);
+    const nextStatus = data.status ? String(data.status).trim() : existing.status;
+
+    // Opdater kundeoplysninger hvis angivet
+    let firstName = data.first_name !== undefined ? String(data.first_name).trim() : existing.first_name;
+    let lastName = data.last_name !== undefined ? String(data.last_name).trim() : existing.last_name;
+    if (!data.first_name && !data.last_name && data.guest_name) {
+      const parts = String(data.guest_name).trim().split(/\s+/);
+      firstName = parts[0] || existing.first_name;
+      lastName = parts.slice(1).join(' ') || existing.last_name;
+    }
+    const customerEmail = data.email ? String(data.email).trim() : existing.email;
+    const customerPhone = (data.phone_number ?? data.phone) !== undefined
+      ? String(data.phone_number ?? data.phone).trim()
+      : existing.phone_number;
+
+    let countryId = existing.country_id;
+    let countryName = data.country ? String(data.country).trim() : null;
+    if (countryName) {
+      const countryRes = await client.query(
+        `SELECT id, name FROM country WHERE LOWER(name) = LOWER($1)`,
+        [countryName]
+      );
+      if (countryRes.rows && countryRes.rows.length > 0) {
+        countryId = countryRes.rows[0].id;
+        countryName = countryRes.rows[0].name;
+      } else {
+        const newCountryRes = await client.query(
+          `INSERT INTO country (name) VALUES ($1) RETURNING id, name`,
+          [countryName]
+        );
+        countryId = newCountryRes.rows?.[0]?.id ?? countryId;
+      }
+    }
+
+    await client.query(
+      `UPDATE costumer
+       SET first_name = $1, last_name = $2, email = $3, phone_number = $4, country_id = $5
+       WHERE id = $6`,
+      [firstName, lastName, customerEmail, customerPhone, countryId, existing.costumer_id]
+    );
+
+    // Tjek om værelset skal genallokeres (ved skift af værelsestype eller datointerval)
+    let assignedRoomId = existing.room_id;
+    let assignedRoomNumber = existing.current_room_number;
+    let assignedRoomTypeName = data.room_type_name || null;
+
+    const datesChanged =
+      nextCheckIn !== formatDate(existing.arrival) ||
+      nextCheckOut !== formatDate(existing.departure);
+    const roomTypeChanged = nextRoomTypeId !== Number(existing.current_room_type_id);
+
+    if ((datesChanged || roomTypeChanged) && nextStatus !== 'cancelled') {
+      const availableRoomRes = await client.query(
+        `SELECT r.id, r.name, rt.name AS room_type_name
+         FROM room r
+         JOIN room_type rt ON r.room_type_id = rt.id
+         WHERE r.room_type_id = $1
+           AND r.id NOT IN (
+             SELECT b.room_id
+             FROM booking b
+             WHERE b.id != $4
+               AND b.status NOT IN ('cancelled', 'canceled')
+               AND b.arrival < $3::timestamp
+               AND b.departure > $2::timestamp
+           )
+         ORDER BY CASE WHEN r.id = $5 THEN 0 ELSE 1 END, r.id ASC
+         LIMIT 1
+         FOR UPDATE OF r`,
+        [nextRoomTypeId, nextCheckIn, nextCheckOut, bookingId, existing.room_id]
+      );
+
+      if (!availableRoomRes.rows || availableRoomRes.rows.length === 0) {
+        const err = new Error('Der er desværre ingen ledige værelser af denne type i den valgte periode.');
+        err.statusCode = 409;
+        throw err;
+      }
+
+      assignedRoomId = availableRoomRes.rows[0].id;
+      assignedRoomNumber = availableRoomRes.rows[0].name;
+      assignedRoomTypeName = availableRoomRes.rows[0].room_type_name;
+    }
+
+    // Beregn pris hvis ikke eksplicit sendt eller hvis datoer/værelsestype er ændret
+    let nextPrice = data.total_price !== undefined ? Number(data.total_price) : Number(existing.price);
+    if (datesChanged || roomTypeChanged || Number.isNaN(nextPrice)) {
+      const checkInSeasonCode = seasonService.getSeasonForDate(nextCheckIn);
+      const seasonMap = { mid: 1, low: 2, high: 3 };
+      const seasonId = seasonMap[checkInSeasonCode] || existing.season_id || 1;
+      const priceRes = await client.query(
+        `SELECT price_pr_night FROM room_price WHERE room_type_id = $1 AND season_id = $2`,
+        [nextRoomTypeId, seasonId]
+      );
+      if (priceRes.rows && priceRes.rows.length > 0) {
+        nextPrice = Number(priceRes.rows[0].price_pr_night) * totalNights;
+      } else if (data.total_price !== undefined && !Number.isNaN(Number(data.total_price))) {
+        nextPrice = Number(data.total_price);
+      }
+    }
+
+    const now = new Date();
+    await client.query(
+      `UPDATE booking
+       SET room_id = $1, arrival = $2, departure = $3, occupants = $4, price = $5, status = $6, updated_at = $7
+       WHERE id = $8`,
+      [assignedRoomId, nextCheckIn, nextCheckOut, nextGuests, nextPrice, nextStatus, now, bookingId]
+    );
+
+    return {
+      id: bookingId,
+      costumer_id: existing.costumer_id,
+      guest_id: existing.costumer_id,
+      first_name: firstName,
+      last_name: lastName,
+      guest_name: `${firstName} ${lastName}`.trim(),
+      costumer_name: `${firstName} ${lastName}`.trim(),
+      email: customerEmail,
+      costumer_email: customerEmail,
+      phone: customerPhone,
+      phone_number: customerPhone,
+      country: countryName || data.country || 'Danmark',
+      room_id: assignedRoomId,
+      room_number: assignedRoomNumber,
+      room_type_id: nextRoomTypeId,
+      room_type_name: assignedRoomTypeName,
+      check_in_date: nextCheckIn,
+      check_out_date: nextCheckOut,
+      nights: totalNights,
+      occupants: nextGuests,
+      num_guests: nextGuests,
+      price: nextPrice,
+      total_price: nextPrice,
+      status: nextStatus,
+      created_at: existing.order_date,
+      updated_at: now
+    };
+  });
+}
+
+/**
+ * Aflyser en booking via soft delete (status = 'cancelled') i PostgreSQL (DELETE /api/bookings/:id)
+ * @param {number|string} id - Booking ID
+ */
+export async function cancelBooking(id) {
+  const bookingId = Number.parseInt(id, 10);
+  if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+    const err = new Error('Ugyldigt booking ID.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return await withTransaction(async (client) => {
+    const now = new Date();
+    const res = await client.query(
+      `UPDATE booking
+       SET status = 'cancelled', updated_at = $1
+       WHERE id = $2
+       RETURNING id, costumer_id, room_id, arrival, departure, occupants, price, status, order_date, updated_at`,
+      [now, bookingId]
+    );
+
+    if (!res.rows || res.rows.length === 0) {
+      const err = new Error(`Booking #${bookingId} blev ikke fundet.`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const row = res.rows[0];
+    return {
+      id: row.id,
+      costumer_id: row.costumer_id,
+      room_id: row.room_id,
+      check_in_date: formatDate(row.arrival),
+      check_out_date: formatDate(row.departure),
+      num_guests: row.occupants,
+      total_price: row.price,
+      status: 'cancelled',
+      created_at: row.order_date,
+      updated_at: row.updated_at
+    };
+  });
+}
+
 const bookingService = {
   createBooking,
   getBookings,
+  updateBooking,
+  cancelBooking,
   withTransaction
 };
 

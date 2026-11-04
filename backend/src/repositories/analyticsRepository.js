@@ -1,7 +1,21 @@
-import pool from '../config/database.js';
+import * as dbModule from '../config/database.js';
 
 // Tilpas til databasetilslutning/pool ift. PostgreSQL (node-postgres / pg)
-const db = pool;
+function resolveDb(candidate) {
+  if (!candidate) return null;
+  if (typeof candidate.query === 'function') return candidate;
+  if (candidate.default && typeof candidate.default.query === 'function') return candidate.default;
+  if (candidate.pool && typeof candidate.pool.query === 'function') return candidate.pool;
+  if (candidate.exports?.default && typeof candidate.exports.default.query === 'function') {
+    return candidate.exports.default;
+  }
+  if (candidate.exports?.pool && typeof candidate.exports.pool.query === 'function') {
+    return candidate.exports.pool;
+  }
+  return candidate;
+}
+
+const db = resolveDb(dbModule);
 
 /**
  * Repository for Data Analytics & Nøgletal (PostgreSQL DAL)
@@ -21,7 +35,7 @@ const analyticsRepository = {
    * Håndterer både standard pg Result { rows }, direkte arrays og legacy mocks.
    */
   async _query(sql, params = []) {
-    const targetDb = this?.db || db;
+    const targetDb = resolveDb(this?.db) || resolveDb(dbModule);
     const result = await targetDb.query(sql, params);
     if (result && Array.isArray(result.rows)) {
       return result.rows;

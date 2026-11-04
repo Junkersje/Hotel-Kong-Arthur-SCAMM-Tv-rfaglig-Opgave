@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import analyticsService from '../services/analyticsService.js';
+import analyticsRepository from '../repositories/analyticsRepository.js';
+
 const router = express.Router();
-const analyticsService = require('../services/analyticsService');
-const analyticsRepository = require('../repositories/analyticsRepository');
 
 /**
  * @route   GET /api/analytics/summary
@@ -84,4 +85,8 @@ router.get('/occupancy', async (req, res) => {
   }
 });
 
-module.exports = router;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = router;
+}
+
+export default router;

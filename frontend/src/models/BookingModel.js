@@ -23,11 +23,27 @@ export const STATUS_LABELS = {
 };
 
 export const STATUS_COLORS = {
-  confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-  checked_in: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  checked_out: 'bg-slate-100 text-slate-700 border-slate-200',
-  completed: 'bg-slate-100 text-slate-700 border-slate-200',
-  cancelled: 'bg-rose-50 text-rose-700 border-rose-200'
+  confirmed: 'bg-amber-100 text-amber-900 border-amber-300',
+  checked_in: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+  checked_out: 'bg-sky-100 text-sky-900 border-sky-300',
+  completed: 'bg-sky-100 text-sky-900 border-sky-300',
+  cancelled: 'bg-slate-200 text-slate-600 border-slate-300'
+};
+
+export const STATUS_DOT_COLORS = {
+  confirmed: 'bg-amber-400',
+  checked_in: 'bg-emerald-500',
+  checked_out: 'bg-sky-500',
+  completed: 'bg-sky-500',
+  cancelled: 'bg-slate-400'
+};
+
+export const STATUS_ROW_STYLES = {
+  confirmed: 'border-l-4 border-l-amber-400 bg-amber-50/60 hover:bg-amber-100/70',
+  checked_in: 'border-l-4 border-l-emerald-500 bg-emerald-50/60 hover:bg-emerald-100/70',
+  checked_out: 'border-l-4 border-l-sky-500 bg-sky-50/60 hover:bg-sky-100/70',
+  completed: 'border-l-4 border-l-sky-500 bg-sky-50/60 hover:bg-sky-100/70',
+  cancelled: 'border-l-4 border-l-slate-400 bg-slate-100/80 hover:bg-slate-200/70 text-slate-500'
 };
 
 function parseUtcDate(dateStr) {
@@ -107,12 +123,18 @@ export function formatCurrency(amount) {
  */
 export function getGuestDisplayName(booking) {
   if (!booking) return 'Ukendt gæst';
-  if (booking.guest_name && booking.guest_name.trim()) {
-    return booking.guest_name.trim();
+  if (booking.guest_name && String(booking.guest_name).trim()) {
+    return String(booking.guest_name).trim();
+  }
+  if (booking.costumer_name && String(booking.costumer_name).trim()) {
+    return String(booking.costumer_name).trim();
+  }
+  if (booking.customer_name && String(booking.customer_name).trim()) {
+    return String(booking.customer_name).trim();
   }
   const combined = [booking.first_name, booking.last_name].filter(Boolean).join(' ').trim();
   if (combined) return combined;
-  if (booking.name && booking.name.trim()) return booking.name.trim();
+  if (booking.name && String(booking.name).trim()) return String(booking.name).trim();
   return 'Ukendt gæst';
 }
 
@@ -123,7 +145,7 @@ export function getGuestDisplayName(booking) {
  */
 export function getBookingTotalPrice(booking) {
   if (!booking) return 0;
-  const raw = booking.total_price ?? booking.total_price_dkk ?? 0;
+  const raw = booking.total_price ?? booking.total_price_dkk ?? booking.price ?? 0;
   const parsed = typeof raw === 'number' ? raw : parseFloat(raw);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
@@ -134,23 +156,47 @@ export function getBookingTotalPrice(booking) {
 export class BookingModel {
   constructor(raw = {}) {
     this.id = raw.id;
-    this.guest_id = raw.guest_id ?? null;
+    this.guest_id = raw.guest_id ?? raw.costumer_id ?? raw.customer_id ?? null;
     this.guest_name = getGuestDisplayName(raw);
-    this.first_name = raw.first_name ?? '';
-    this.last_name = raw.last_name ?? '';
-    this.email = raw.email ?? '';
-    this.phone = raw.phone ?? '';
-    this.country = raw.country || 'Ukendt';
-    this.room_type_id = raw.room_type_id;
-    this.room_type_name = raw.room_type_name || (raw.room_type_id ? `Type #${raw.room_type_id}` : 'Ukendt type');
-    this.room_number = raw.room_number ?? null;
-    this.check_in_date = formatDate(raw.check_in_date);
-    this.check_out_date = formatDate(raw.check_out_date);
-    this.num_guests = Number(raw.num_guests) || 1;
+
+    const nameParts =
+      this.guest_name && this.guest_name !== 'Ukendt gæst'
+        ? this.guest_name.split(/\s+/)
+        : [];
+    this.first_name = raw.first_name ?? (nameParts[0] || '');
+    this.last_name = raw.last_name ?? (nameParts.slice(1).join(' ') || '');
+
+    this.email =
+      raw.email ?? raw.costumer_email ?? raw.customer_email ?? raw.guest_email ?? '';
+    this.phone =
+      raw.phone ??
+      raw.phone_number ??
+      raw.costumer_phone ??
+      raw.customer_phone ??
+      raw.guest_phone ??
+      '';
+    this.phone_number = this.phone;
+    this.country =
+      raw.country ||
+      raw.costumer_country ||
+      raw.customer_country ||
+      raw.guest_country ||
+      'Ukendt';
+    this.room_type_id = raw.room_type_id ?? raw.room?.room_type_id;
+    this.room_type_name =
+      raw.room_type_name ||
+      raw.room?.room_type_name ||
+      (this.room_type_id ? `Type #${this.room_type_id}` : 'Ukendt type');
+    this.room_number = raw.room_number ?? raw.room?.room_number ?? raw.room?.name ?? null;
+    this.check_in_date = formatDate(raw.check_in_date ?? raw.arrival);
+    this.check_out_date = formatDate(raw.check_out_date ?? raw.departure);
+    this.num_guests = Number(raw.num_guests ?? raw.occupants) || 1;
     this.total_price = getBookingTotalPrice(raw);
     this.total_price_dkk = this.total_price;
     this.status = raw.status || BOOKING_STATUSES.CONFIRMED;
-    this.satisfaction_rating = raw.satisfaction_rating ?? raw.satisfaction_score ?? null;
+    this.satisfaction_rating =
+      raw.satisfaction_rating ?? raw.satisfaction_score ?? raw.star_rating ?? null;
+    this.created_at = raw.created_at ?? raw.order_date ?? null;
   }
 
   get nights() {
@@ -169,8 +215,21 @@ export class BookingModel {
     return STATUS_COLORS[this.status] || 'bg-slate-100 text-slate-800 border-slate-200';
   }
 
+  get statusDotClass() {
+    return STATUS_DOT_COLORS[this.status] || 'bg-slate-400';
+  }
+
+  get statusRowClass() {
+    return STATUS_ROW_STYLES[this.status] || 'border-l-4 border-l-slate-300 bg-white';
+  }
+
   get formattedPrice() {
     return formatCurrency(this.total_price);
+  }
+
+  get formattedCreatedAt() {
+    if (!this.created_at) return '—';
+    return formatDate(this.created_at);
   }
 }
 
@@ -229,19 +288,75 @@ export function validateBookingInput(bookingData = {}) {
 }
 
 /**
+ * Sorterer bookinger med nyeste (hvornår kunden lavede bookingen: created_at / order_date, ellers id) først.
+ * @param {Array<object>} list
+ * @returns {Array<BookingModel>}
+ */
+export function sortBookingsByNewest(list = []) {
+  return [...list].sort((a, b) => {
+    const timeA = a?.created_at ? new Date(a.created_at).getTime() : NaN;
+    const timeB = b?.created_at ? new Date(b.created_at).getTime() : NaN;
+
+    const validA = !Number.isNaN(timeA);
+    const validB = !Number.isNaN(timeB);
+
+    if (validA && validB && timeA !== timeB) {
+      return timeB - timeA;
+    }
+    if (validA && !validB) return -1;
+    if (!validA && validB) return 1;
+
+    return (Number(b?.id) || 0) - (Number(a?.id) || 0);
+  });
+}
+
+/**
+ * Finder hvilket søgekriterie (ID, navn, email, mobilnr.) der matchede søgningen til visning af relevans.
+ * @param {BookingModel|object} raw
+ * @param {string} searchQuery
+ * @returns {string|null}
+ */
+export function getBookingMatchReason(raw, searchQuery = '') {
+  const query = String(searchQuery || '').trim().toLowerCase();
+  if (!query) return null;
+  const booking = raw instanceof BookingModel ? raw : new BookingModel(raw);
+  const cleanQuery = query.replace(/^#/, '');
+
+  if (String(booking.id ?? '').toLowerCase() === cleanQuery) {
+    return 'Eksakt ID';
+  }
+  if (String(booking.id ?? '').toLowerCase().includes(cleanQuery)) {
+    return 'Booking ID';
+  }
+  if ((booking.guest_name || '').toLowerCase().includes(query)) {
+    return 'Fulde navn';
+  }
+  if ((booking.email || '').toLowerCase().includes(query)) {
+    return 'E-mail';
+  }
+  const normalizedPhone = String(booking.phone ?? '').replace(/\s+/g, '').toLowerCase();
+  const normalizedPhoneQuery = query.replace(/\s+/g, '');
+  if (normalizedPhone && normalizedPhone.includes(normalizedPhoneQuery)) {
+    return 'Mobil nr.';
+  }
+  return 'Match';
+}
+
+/**
  * Filtrerer en liste af bookinger i henhold til søgetekst, statusfilter og datointerval.
- * Ekskluderer 'cancelled' fra den aktive liste medmindre 'cancelled' eksplicit er valgt.
+ * Ekskluderer 'cancelled' fra den aktive liste medmindre 'cancelled' eller includeCancelled eksplicit er valgt.
  * @param {Array<object>} rawBookings
  * @param {object} [filters]
  * @param {string} [filters.searchQuery]
  * @param {string} [filters.statusFilter]
  * @param {string} [filters.fromDate]
  * @param {string} [filters.toDate]
+ * @param {boolean} [filters.includeCancelled]
  * @returns {Array<object>}
  */
 export function filterBookingsList(
   rawBookings = [],
-  { searchQuery = '', statusFilter = '', fromDate = '', toDate = '' } = {}
+  { searchQuery = '', statusFilter = '', fromDate = '', toDate = '', includeCancelled = false } = {}
 ) {
   if (!Array.isArray(rawBookings)) return [];
 
@@ -249,11 +364,13 @@ export function filterBookingsList(
   const normalizedFrom = String(fromDate || '').trim();
   const normalizedTo = String(toDate || '').trim();
   const query = String(searchQuery || '').trim().toLowerCase();
+  const cleanIdQuery = query.replace(/^#/, '');
+  const compactPhoneQuery = query.replace(/\s+/g, '');
 
   return rawBookings.filter((raw) => {
     const booking = raw instanceof BookingModel ? raw : new BookingModel(raw);
 
-    if (normalizedStatus) {
+    if (normalizedStatus && normalizedStatus !== 'all') {
       if (normalizedStatus === BOOKING_STATUSES.COMPLETED) {
         if (
           booking.status !== BOOKING_STATUSES.COMPLETED &&
@@ -264,8 +381,8 @@ export function filterBookingsList(
       } else if (booking.status !== normalizedStatus) {
         return false;
       }
-    } else if (booking.status === BOOKING_STATUSES.CANCELLED) {
-      // Fjernes fra den aktive liste ved soft delete (US4 / SH-32)
+    } else if (!includeCancelled && normalizedStatus !== 'all' && booking.status === BOOKING_STATUSES.CANCELLED) {
+      // Fjernes fra den aktive liste ved soft delete (US4 / SH-32) medmindre alle/cancelled er valgt
       return false;
     }
 
@@ -290,14 +407,30 @@ export function filterBookingsList(
       return true;
     }
 
-    const idMatch = String(booking.id ?? '').toLowerCase().includes(query);
+    const idMatch = String(booking.id ?? '').toLowerCase().includes(cleanIdQuery);
     const nameMatch = (booking.guest_name || '').toLowerCase().includes(query);
+    const firstNameMatch = (booking.first_name || '').toLowerCase().includes(query);
+    const lastNameMatch = (booking.last_name || '').toLowerCase().includes(query);
     const emailMatch = (booking.email || '').toLowerCase().includes(query);
+    const phoneRaw = String(booking.phone || booking.phone_number || '').toLowerCase();
+    const phoneMatch =
+      phoneRaw.includes(query) ||
+      (compactPhoneQuery.length > 0 && phoneRaw.replace(/\s+/g, '').includes(compactPhoneQuery));
     const roomMatch = String(booking.room_number ?? '').toLowerCase().includes(query);
     const roomTypeMatch = (booking.room_type_name || '').toLowerCase().includes(query);
     const countryMatch = (booking.country || '').toLowerCase().includes(query);
 
-    return idMatch || nameMatch || emailMatch || roomMatch || roomTypeMatch || countryMatch;
+    return (
+      idMatch ||
+      nameMatch ||
+      firstNameMatch ||
+      lastNameMatch ||
+      emailMatch ||
+      phoneMatch ||
+      roomMatch ||
+      roomTypeMatch ||
+      countryMatch
+    );
   });
 }
 

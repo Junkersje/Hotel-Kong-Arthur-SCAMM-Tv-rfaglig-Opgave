@@ -5,9 +5,9 @@ export async function getAllTypes() {
         SELECT
             id,
             name,
-            capacity
+            max_capacity AS capacity
         FROM ROOM_TYPE
-        ORDER BY capacity ASC, id ASC
+        ORDER BY max_capacity ASC, id ASC
     `;
 
   const roomTypes = await query(sql);
@@ -17,16 +17,14 @@ export async function getAllTypes() {
 export async function getAll() {
     const sql = `
         SELECT
-            r.room_number,
+            r.id,
+            r.name AS room_number,
             r.room_type_id,
-            r.floor,
-            r.status,
             rt.name AS room_type_name,
-            rt.capacity,
-            rt.description
+            rt.max_capacity AS capacity
         FROM ROOM r
         JOIN ROOM_TYPE rt ON r.room_type_id = rt.id
-        ORDER BY r.room_number ASC
+        ORDER BY r.name ASC, r.id ASC
     `;
 
     const rooms = await query(sql);
