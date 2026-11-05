@@ -83,9 +83,28 @@ Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-s
 | :--- | :---: | :--- | :--- |
 | **Frontend UI** | `3000` | Receptionsportal (React SPA serveret via Nginx) | [http://localhost:3000](http://localhost:3000) |
 | **Backend REST API** | `5000` | 3-lags Express.js REST API | [http://localhost:5000/api/health](http://localhost:5000/api/health) |
+| **Tableau Web Data Connector** | `5000` | Web Data Connector (WDC 2.3) til live Tableau Desktop integration | [http://localhost:5000/tableau-wdc.html](http://localhost:5000/tableau-wdc.html) |
 | **Swagger UI** | `8080` | Interaktiv OpenAPI 3.0 dokumentation og sandkasse | [http://localhost:8080](http://localhost:8080) |
 | **Backend Swagger Docs** | `5000` | Swagger UI serveret direkte fra Node.js | [http://localhost:5000/api-docs](http://localhost:5000/api-docs) |
 | **PostgreSQL 15 Database** | `5432` | Persistent relationel database (`hotel_kong_arthur`) | `localhost:5432` |
+
+---
+
+## 📊 Tableau Integration via Web Data Connector (WDC)
+
+Som fastsat i [Constitution Princip IV](.specify/memory/constitution.md) henter Tableau data direkte fra REST API'et uden brug af direkte databasekobling eller statiske CSV-filer:
+
+1. **Åbn Tableau Desktop** (eller Tableau Prep / Simulator).
+2. Vælg **Web Data Connector** under *Forbind* &gt; *Til en server*.
+3. Angiv connector-adressen: `http://localhost:5000/tableau-wdc.html`.
+4. Klik på **Hent Data til Tableau**. Connectoren udstiller 6 datatabeller:
+   - `hotel_summary`: Hovednøgletal, værelsesomsætning, barandel, samlet belægning og ADR baseret på 214 værelser.
+   - `monthly_occupancy`: Månedlige belægningsprocenter og solgte nætter.
+   - `room_type_analytics`: Omsætning, solgte nætter, ADR og ALOS for de 8 værelsestyper.
+   - `country_analytics`: Gæstefordeling og gennemsnitlig opholdslængde (ALOS) pr. land.
+   - `bar_sales_breakdown`: Cocktail- og kaffe-omsætning pr. produkt og kategori.
+   - `recent_bookings`: Individuelle bookinger med kundeland, værelsesdetaljer og rating.
+5. Ved ændringer foretaget i browserfrontenden (opret/ret/slet booking) opdateres Tableau på **under 30 sekunder** ved højreklik &gt; *Opdater (Refresh)*.
 
 ---
 

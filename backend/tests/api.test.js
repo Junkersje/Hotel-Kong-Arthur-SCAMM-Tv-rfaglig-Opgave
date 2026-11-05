@@ -88,4 +88,77 @@ describe('Hotel Kong Arthur — Integration Tests', () => {
       assert.equal(data.error?.code, 'NOT_FOUND');
     });
   });
+
+  describe('Tableau WDC & Analytics REST Endpoints (T050)', () => {
+    test('GET /tableau-wdc.html skal returnere HTTP 200 og indeholde Tableau WDC 2.3 scripts', async () => {
+      const res = await fetch(`${baseUrl}/tableau-wdc.html`);
+      assert.equal(res.status, 200);
+      const text = await res.text();
+      assert.ok(text.includes('tableauwdc-2.3.latest.js'), 'Skal inkludere Tableau WDC 2.3 bibliotek');
+      assert.ok(text.includes('hotel_summary'), 'Skal definere hotel_summary schema');
+      assert.ok(text.includes('room_type_analytics'), 'Skal definere room_type_analytics schema');
+      assert.ok(text.includes('country_analytics'), 'Skal definere country_analytics schema');
+      assert.ok(text.includes('bar_sales_breakdown'), 'Skal definere bar_sales_breakdown schema');
+      assert.ok(text.includes('recent_bookings'), 'Skal definere recent_bookings schema');
+    });
+
+    test('GET / skal indeholde tableau_wdc link', async () => {
+      const res = await fetch(`${baseUrl}/`);
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      assert.equal(data.tableau_wdc, '/tableau-wdc.html');
+    });
+
+    test('GET /api/analytics/summary skal returnere 200 og financials + occupancy', async () => {
+      const res = await fetch(`${baseUrl}/api/analytics/summary`);
+      assert.equal(res.status, 200);
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(json.data?.financials?.totalRevenue !== undefined);
+      assert.equal(json.data?.occupancy?.totalRoomsCapacity, 214);
+    });
+
+    test('GET /api/analytics/revenue-by-room-type skal returnere de 8 værelsestyper', async () => {
+      const res = await fetch(`${baseUrl}/api/analytics/revenue-by-room-type`);
+      assert.equal(res.status, 200);
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(Array.isArray(json.data));
+      assert.equal(json.data.length, 8);
+    });
+
+    test('GET /api/analytics/revenue-by-country skal returnere lande med ALOS', async () => {
+      const res = await fetch(`${baseUrl}/api/analytics/revenue-by-country`);
+      assert.equal(res.status, 200);
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(Array.isArray(json.data));
+    });
+
+    test('GET /api/analytics/adr skal returnere ADR metrics', async () => {
+      const res = await fetch(`${baseUrl}/api/analytics/adr`);
+      assert.equal(res.status, 200);
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(json.data?.overallADR !== undefined);
+      assert.ok(Array.isArray(json.data?.byRoomType));
+    });
+
+    test('GET /api/analytics/bar-performance skal returnere produkter og kategori-fordeling', async () => {
+      const res = await fetch(`${baseUrl}/api/analytics/bar-performance`);
+      assert.equal(res.status, 200);
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(Array.isArray(json.data?.products));
+      assert.ok(Array.isArray(json.data?.categoryDistribution));
+    });
+
+    test('GET /api/analytics/helene-breakdown skal returnere cocktail vs kaffe fordeling', async () => {
+      const res = await fetch(`${baseUrl}/api/analytics/helene-breakdown`);
+      assert.equal(res.status, 200);
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(json.data?.categories);
+    });
+  });
 });

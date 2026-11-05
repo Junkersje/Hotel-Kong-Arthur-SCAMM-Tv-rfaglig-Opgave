@@ -85,6 +85,136 @@ router.get('/occupancy', async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/analytics/revenue-by-room-type
+ * @desc    Omsætning og solgte nætter fordelt på værelsestyper
+ */
+router.get('/revenue-by-room-type', async (req, res) => {
+  try {
+    const data = await analyticsService.getRoomTypeBreakdown();
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error('Fejl ved hentning af revenue-by-room-type:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Kunne ikke hente omsætning pr. værelsestype.',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/revenue-by-country
+ * @desc    Gæstefordeling og gennemsnitlig opholdslængde fordelt på lande
+ */
+router.get('/revenue-by-country', async (req, res) => {
+  try {
+    const stayLength = await analyticsService.getStayLengthAnalytics();
+    return res.status(200).json({
+      success: true,
+      data: stayLength.byCountry,
+    });
+  } catch (error) {
+    console.error('Fejl ved hentning af revenue-by-country:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Kunne ikke hente analyse for lande.',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/adr
+ * @desc    Gennemsnitlig dagspris (ADR) på tværs af hotellet, værelsestyper og måneder
+ */
+router.get('/adr', async (req, res) => {
+  try {
+    const year = req.query.year ? parseInt(req.query.year, 10) : null;
+    const adrData = await analyticsService.getADRAnalytics(year);
+    return res.status(200).json({
+      success: true,
+      data: adrData,
+    });
+  } catch (error) {
+    console.error('Fejl ved hentning af ADR analyse:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Kunne ikke beregne ADR.',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/stay-length
+ * @desc    Gennemsnitlig opholdslængde (ALOS) pr. land og pr. værelsestype
+ */
+router.get('/stay-length', async (req, res) => {
+  try {
+    const stayLength = await analyticsService.getStayLengthAnalytics();
+    return res.status(200).json({
+      success: true,
+      data: stayLength,
+    });
+  } catch (error) {
+    console.error('Fejl ved hentning af stay-length:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Kunne ikke hente gennemsnitlig opholdslængde.',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/bar-performance
+ * @desc    Cocktailbar performance (produkter, salg og kategori-fordeling)
+ */
+router.get(['/bar-performance', '/bar-sales', '/drinks-revenue'], async (req, res) => {
+  try {
+    const barData = await analyticsService.getBarPerformance();
+    return res.status(200).json({
+      success: true,
+      data: barData,
+    });
+  } catch (error) {
+    console.error('Fejl ved hentning af bar-performance:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Kunne ikke hente bardata.',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/helene-breakdown
+ * @desc    Procentfordeling af cocktails vs. kaffe
+ */
+router.get('/helene-breakdown', async (req, res) => {
+  try {
+    const barData = await analyticsService.getBarPerformance();
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalItemsSold: barData.totalItemsSold,
+        categories: barData.categoryDistribution,
+      },
+    });
+  } catch (error) {
+    console.error('Fejl ved hentning af helene-breakdown:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Kunne ikke hente Helene Christine breakdown.',
+      details: error.message,
+    });
+  }
+});
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = router;
 }

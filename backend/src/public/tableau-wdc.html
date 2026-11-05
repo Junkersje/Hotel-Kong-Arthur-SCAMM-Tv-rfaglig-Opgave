@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Kong Arthur — Tableau Web Data Connector (WDC)</title>
+  
+  <!-- Tableau WDC Library v2.3 -->
+  <script src="https://connectors.tableau.com/libs/tableauwdc-2.3.latest.js" type="text/javascript"></script>
+
+  <style>
+    :root {
+      --primary: #1e293b;
+      --primary-accent: #0f172a;
+      --brand-gold: #c59b27;
+      --brand-gold-hover: #b0891e;
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 860px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #ffffff;
+      padding: 32px 40px;
+      position: relative;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(197, 155, 39, 0.2);
+      border: 1px solid rgba(197, 155, 39, 0.4);
+      color: #fde047;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #94a3b8;
+      font-size: 14px;
+      max-width: 650px;
+      line-height: 1.5;
+    }
+
+    .content {
+      padding: 36px 40px;
+    }
+
+    .status-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .status-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .status-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .schema-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .schema-card {
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .schema-card:hover {
+      border-color: var(--brand-gold);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .schema-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .schema-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--brand-gold);
+      color: #ffffff;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .btn-primary:hover {
+      background: var(--brand-gold-hover);
+      box-shadow: 0 4px 12px rgba(197, 155, 39, 0.3);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .instructions-box {
+      margin-top: 36px;
+      padding: 20px 24px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border-left: 4px solid var(--brand-gold);
+      font-size: 13px;
+      line-height: 1.6;
+      color: #475569;
+    }
+
+    .instructions-box h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .instructions-box ol {
+      padding-left: 20px;
+    }
+
+    .instructions-box li {
+      margin-bottom: 4px;
+    }
+
+    .preview-section {
+      margin-top: 30px;
+      display: none;
+    }
+
+    .preview-section.active {
+      display: block;
+    }
+
+    .preview-header {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    pre.code-preview {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      max-height: 280px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="header-badge">Tableau Web Data Connector 2.3</div>
+      <h1>Hotel Kong Arthur Analytics</h1>
+      <p>API-drevet dataadapter, der overfører live drifts- og forretningsnøgletal direkte fra REST API'et til Tableau uden manuelle CSV-eksporter.</p>
+    </div>
+
+    <div class="content">
+      <!-- Status Card -->
+      <div class="status-card">
+        <div class="status-left">
+          <div class="status-dot"></div>
+          <div>
+            <div class="status-title">REST API Forbindelse</div>
+            <div class="status-subtitle" id="apiEndpointLabel">Henter fra /api/analytics/*</div>
+          </div>
+        </div>
+        <span style="font-size: 12px; color: #64748b; font-weight: 500;">Live Prototype (PostgreSQL 15)</span>
+      </div>
+
+      <!-- Tabeller til Tableau -->
+      <h2 style="font-size: 16px; font-weight: 700; margin-bottom: 14px; color: #1e293b;">Eksponerede Datatabeller</h2>
+      <div class="schema-grid">
+        <div class="schema-card">
+          <div class="schema-name">📊 hotel_summary</div>
+          <div class="schema-desc">Hovednøgletal: Værelsesomsætning, baromsætning, belægningsgrad og ADR (214 værelser).</div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-name">📅 monthly_occupancy</div>
+          <div class="schema-desc">Månedlig belægningsgrad, antal bookinger og solgte værelsesnætter.</div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-name">🛏️ room_type_analytics</div>
+          <div class="schema-desc">Omsætning, solgte nætter, ADR og ALOS fordelt på de 8 værelsestyper.</div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-name">🌍 country_analytics</div>
+          <div class="schema-desc">Gæstefordeling og gennemsnitlig opholdslængde (ALOS) pr. oprindelsesland.</div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-name">🍸 bar_sales_breakdown</div>
+          <div class="schema-desc">Lobbybar-omsætning pr. drink samt fordeling mellem cocktails og kaffe.</div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-name">📋 recent_bookings</div>
+          <div class="schema-desc">Live bookingdata med kundedata, værelse, pris, status og tilfredshedsscore.</div>
+        </div>
+      </div>
+
+      <!-- Knapper -->
+      <div class="btn-group">
+        <button id="submitButton" class="btn btn-primary" type="button">
+          📥 Hent Data til Tableau
+        </button>
+        <button id="previewButton" class="btn btn-secondary" type="button">
+          🔍 Test Forhåndsvisning i Browser
+        </button>
+      </div>
+
+      <!-- Browser Preview Section -->
+      <div id="previewSection" class="preview-section">
+        <div class="preview-header">
+          <span>Live API Data-eksempel:</span>
+          <span style="font-size: 12px; font-weight: normal; color: #64748b;" id="previewStatus"></span>
+        </div>
+        <pre id="previewContent" class="code-preview">Indlæser forhåndsvisning...</pre>
+      </div>
+
+      <!-- Brugervejledning -->
+      <div class="instructions-box">
+        <h3>Sådan forbindes i Tableau Desktop:</h3>
+        <ol>
+          <li>Åbn <strong>Tableau Desktop</strong> eller <strong>Tableau Prep</strong>.</li>
+          <li>Under <em>Forbind / Til en server</em>, vælg <strong>Web Data Connector</strong> (eller <em>Webforbindelse</em>).</li>
+          <li>Indtast URL: <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;" id="wdcUrlDisplay">http://localhost:5000/tableau-wdc.html</code></li>
+          <li>Klik på <strong>Hent Data til Tableau</strong> i vinduet.</li>
+          <li>Træk de ønskede tabeller (f.eks. <em>hotel_summary</em> eller <em>room_type_analytics</em>) ind på dit datalærred.</li>
+          <li>Ved ændringer i browserfrontenden kan data i Tableau opdateres på <strong>under 30 sekunder</strong> ved højreklik &gt; <em>Opdater (Refresh)</em>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Hotel Kong Arthur (SCAMM) — Eksamensprojekt Software Arkitektur &amp; Data &bull; Spec-Kit Overensstemmelse
+  </footer>
+
+  <script type="text/javascript">
+    (function () {
+      // 1. Initialiser WDC Connector
+      var myConnector = (typeof tableau !== 'undefined' && tableau.makeConnector)
+        ? tableau.makeConnector()
+        : {};
+
+      // 2. Definer Tableau Schema (Tabeller & Kolonner)
+      myConnector.getSchema = function (schemaCallback) {
+        // Table 1: hotel_summary
+        var summaryCols = [
+          { id: "totalRevenue", alias: "Samlet Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "roomRevenue", alias: "Værelsesomsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "barRevenue", alias: "Baromsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "roomRevenuePercentage", alias: "Værelse Omsætningsandel (%)", dataType: tableau.dataTypeEnum.float },
+          { id: "barRevenuePercentage", alias: "Bar Omsætningsandel (%)", dataType: tableau.dataTypeEnum.float },
+          { id: "adr", alias: "ADR - Gennemsnitlig Dagspris (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "occupiedRoomNights", alias: "Solgte Værelsesnætter", dataType: tableau.dataTypeEnum.int },
+          { id: "estimatedOverallOccupancyPercent", alias: "Samlet Belægningsgrad (%)", dataType: tableau.dataTypeEnum.float },
+          { id: "totalRoomsCapacity", alias: "Samlet Værelseskapacitet", dataType: tableau.dataTypeEnum.int },
+          { id: "bookingsCount", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
+          { id: "barTransactionsCount", alias: "Antal Bar Transaktioner", dataType: tableau.dataTypeEnum.int },
+          { id: "generatedAt", alias: "Data Genereret Tidspunkt", dataType: tableau.dataTypeEnum.datetime }
+        ];
+
+        var summaryTable = {
+          id: "hotel_summary",
+          alias: "Hotel Kong Arthur Hovednøgletal",
+          columns: summaryCols
+        };
+
+        // Table 2: monthly_occupancy
+        var monthlyCols = [
+          { id: "year", alias: "År", dataType: tableau.dataTypeEnum.int },
+          { id: "month", alias: "Måned", dataType: tableau.dataTypeEnum.int },
+          { id: "totalBookings", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
+          { id: "totalNightsBooked", alias: "Bookede Nætter", dataType: tableau.dataTypeEnum.int },
+          { id: "daysInMonth", alias: "Dage i Måned", dataType: tableau.dataTypeEnum.int },
+          { id: "occupancyRate", alias: "Månedlig Belægningsgrad (%)", dataType: tableau.dataTypeEnum.float }
+        ];
+
+        var monthlyTable = {
+          id: "monthly_occupancy",
+          alias: "Månedlig Belægning",
+          columns: monthlyCols
+        };
+
+        // Table 3: room_type_analytics
+        var roomTypeCols = [
+          { id: "roomTypeId", alias: "Værelsestype ID", dataType: tableau.dataTypeEnum.int },
+          { id: "roomTypeName", alias: "Værelsestype Navn", dataType: tableau.dataTypeEnum.string },
+          { id: "maxCapacity", alias: "Maks Personkapacitet", dataType: tableau.dataTypeEnum.int },
+          { id: "totalBookings", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
+          { id: "totalRevenue", alias: "Samlet Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "totalNightsSold", alias: "Solgte Værelsesnætter", dataType: tableau.dataTypeEnum.int },
+          { id: "adr", alias: "ADR pr Værelsestype (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "alos", alias: "Gns Opholdslængde ALOS (dage)", dataType: tableau.dataTypeEnum.float }
+        ];
+
+        var roomTypeTable = {
+          id: "room_type_analytics",
+          alias: "Værelsestype Økonomi & Belægning",
+          columns: roomTypeCols
+        };
+
+        // Table 4: country_analytics
+        var countryCols = [
+          { id: "country", alias: "Gæstens Oprindelsesland", dataType: tableau.dataTypeEnum.string },
+          { id: "totalBookings", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
+          { id: "totalNights", alias: "Samlede Nætter", dataType: tableau.dataTypeEnum.int },
+          { id: "alos", alias: "Gennemsnitlig Opholdslængde ALOS (dage)", dataType: tableau.dataTypeEnum.float }
+        ];
+
+        var countryTable = {
+          id: "country_analytics",
+          alias: "Geografisk Gæstefordeling & ALOS",
+          columns: countryCols
+        };
+
+        // Table 5: bar_sales_breakdown
+        var barCols = [
+          { id: "productId", alias: "Produkt ID", dataType: tableau.dataTypeEnum.int },
+          { id: "productName", alias: "Produktnavn / Drink", dataType: tableau.dataTypeEnum.string },
+          { id: "category", alias: "Kategori (cocktail / coffee)", dataType: tableau.dataTypeEnum.string },
+          { id: "unitPrice", alias: "Enhedspris (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "quantitySold", alias: "Solgt Antal (stk)", dataType: tableau.dataTypeEnum.int },
+          { id: "totalRevenue", alias: "Total Baromsætning (DKK)", dataType: tableau.dataTypeEnum.float }
+        ];
+
+        var barTable = {
+          id: "bar_sales_breakdown",
+          alias: "Barsalg & Drink Performance",
+          columns: barCols
+        };
+
+        // Table 6: recent_bookings
+        var bookingCols = [
+          { id: "id", alias: "Booking ID", dataType: tableau.dataTypeEnum.int },
+          { id: "costumerName", alias: "Kundenavn", dataType: tableau.dataTypeEnum.string },
+          { id: "costumerCountry", alias: "Land", dataType: tableau.dataTypeEnum.string },
+          { id: "roomNumber", alias: "Værelsesnummer", dataType: tableau.dataTypeEnum.string },
+          { id: "roomTypeName", alias: "Værelsestype", dataType: tableau.dataTypeEnum.string },
+          { id: "checkInDate", alias: "Ankomstdato", dataType: tableau.dataTypeEnum.date },
+          { id: "checkOutDate", alias: "Afrejsedato", dataType: tableau.dataTypeEnum.date },
+          { id: "occupants", alias: "Antal Gæster", dataType: tableau.dataTypeEnum.int },
+          { id: "totalPrice", alias: "Totalpris (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "status", alias: "Bookingstatus", dataType: tableau.dataTypeEnum.string },
+          { id: "starRating", alias: "Kundetilfredshed (1-5 stjerner)", dataType: tableau.dataTypeEnum.int },
+          { id: "nights", alias: "Opholdslængde (Nætter)", dataType: tableau.dataTypeEnum.int }
+        ];
+
+        var bookingTable = {
+          id: "recent_bookings",
+          alias: "Individuelle Bookinger & Feedback",
+          columns: bookingCols
+        };
+
+        schemaCallback([summaryTable, monthlyTable, roomTypeTable, countryTable, barTable, bookingTable]);
+      };
+
+      // 3. Hent Data fra REST API
+      myConnector.getData = function (table, doneCallback) {
+        var origin = window.location.origin;
+
+        if (table.tableInfo.id === "hotel_summary") {
+          fetch(origin + "/api/analytics/summary")
+            .then(function (res) { return res.json(); })
+            .then(function (json) {
+              if (json && json.data) {
+                var d = json.data;
+                var row = {
+                  totalRevenue: d.financials ? d.financials.totalRevenue : 0,
+                  roomRevenue: d.financials ? d.financials.roomRevenue : 0,
+                  barRevenue: d.financials ? d.financials.barRevenue : 0,
+                  roomRevenuePercentage: d.financials ? d.financials.roomRevenuePercentage : 0,
+                  barRevenuePercentage: d.financials ? d.financials.barRevenuePercentage : 0,
+                  adr: d.financials ? d.financials.adr : 0,
+                  occupiedRoomNights: d.occupancy ? d.occupancy.occupiedRoomNights : 0,
+                  estimatedOverallOccupancyPercent: d.occupancy ? d.occupancy.estimatedOverallOccupancyPercent : 0,
+                  totalRoomsCapacity: d.occupancy ? d.occupancy.totalRoomsCapacity : 214,
+                  bookingsCount: d.bookingsCount || 0,
+                  barTransactionsCount: d.barTransactionsCount || 0,
+                  generatedAt: d.generatedAt || new Date().toISOString()
+                };
+                table.appendRows([row]);
+              }
+              doneCallback();
+            })
+            .catch(function (err) {
+              console.error("Fejl ved hentning af hotel_summary:", err);
+              doneCallback();
+            });
+        } else if (table.tableInfo.id === "monthly_occupancy") {
+          fetch(origin + "/api/analytics/occupancy")
+            .then(function (res) { return res.json(); })
+            .then(function (json) {
+              var rows = [];
+              var list = Array.isArray(json.data) ? json.data : [];
+              list.forEach(function (item) {
+                rows.push({
+                  year: Number(item.year) || 0,
+                  month: Number(item.month) || 0,
+                  totalBookings: Number(item.total_bookings) || 0,
+                  totalNightsBooked: Number(item.total_nights_booked) || 0,
+                  daysInMonth: Number(item.days_in_month) || 0,
+                  occupancyRate: Number(item.occupancy_rate_percent) || 0
+                });
+              });
+              table.appendRows(rows);
+              doneCallback();
+            })
+            .catch(function (err) {
+              console.error("Fejl ved hentning af monthly_occupancy:", err);
+              doneCallback();
+            });
+        } else if (table.tableInfo.id === "room_type_analytics") {
+          Promise.all([
+            fetch(origin + "/api/analytics/revenue-by-room-type").then(function (r) { return r.json(); }),
+            fetch(origin + "/api/analytics/adr").then(function (r) { return r.json(); }),
+            fetch(origin + "/api/analytics/stay-length").then(function (r) { return r.json(); })
+          ]).then(function (results) {
+            var roomTypes = (results[0] && results[0].data) || [];
+            var adrData = (results[1] && results[1].data && results[1].data.byRoomType) || [];
+            var alosData = (results[2] && results[2].data && results[2].data.byRoomType) || [];
+
+            var adrMap = {};
+            adrData.forEach(function (a) { adrMap[a.roomTypeId] = a.adr; });
+
+            var alosMap = {};
+            alosData.forEach(function (al) { alosMap[al.roomTypeId] = al.alos; });
+
+            var rows = roomTypes.map(function (rt) {
+              return {
+                roomTypeId: Number(rt.room_type_id),
+                roomTypeName: rt.room_type_name,
+                maxCapacity: Number(rt.max_capacity) || 0,
+                totalBookings: Number(rt.total_bookings) || 0,
+                totalRevenue: Number(rt.total_revenue) || 0,
+                totalNightsSold: Number(rt.total_nights_sold) || 0,
+                adr: Number(adrMap[rt.room_type_id]) || 0,
+                alos: Number(alosMap[rt.room_type_id]) || 0
+              };
+            });
+
+            table.appendRows(rows);
+            doneCallback();
+          }).catch(function (err) {
+            console.error("Fejl ved hentning af room_type_analytics:", err);
+            doneCallback();
+          });
+        } else if (table.tableInfo.id === "country_analytics") {
+          fetch(origin + "/api/analytics/revenue-by-country")
+            .then(function (res) { return res.json(); })
+            .then(function (json) {
+              var rows = [];
+              var list = Array.isArray(json.data) ? json.data : [];
+              list.forEach(function (c) {
+                rows.push({
+                  country: c.country || "Ukendt",
+                  totalBookings: Number(c.totalBookings) || 0,
+                  totalNights: Number(c.totalNights) || 0,
+                  alos: Number(c.alos) || 0
+                });
+              });
+              table.appendRows(rows);
+              doneCallback();
+            })
+            .catch(function (err) {
+              console.error("Fejl ved hentning af country_analytics:", err);
+              doneCallback();
+            });
+        } else if (table.tableInfo.id === "bar_sales_breakdown") {
+          fetch(origin + "/api/analytics/bar-performance")
+            .then(function (res) { return res.json(); })
+            .then(function (json) {
+              var rows = [];
+              var products = (json.data && json.data.products) || [];
+              products.forEach(function (p) {
+                rows.push({
+                  productId: Number(p.product_id),
+                  productName: p.product_name,
+                  category: p.category,
+                  unitPrice: Number(p.unit_price) || 0,
+                  quantitySold: Number(p.total_quantity_sold) || 0,
+                  totalRevenue: Number(p.total_revenue) || 0
+                });
+              });
+              table.appendRows(rows);
+              doneCallback();
+            })
+            .catch(function (err) {
+              console.error("Fejl ved hentning af bar_sales_breakdown:", err);
+              doneCallback();
+            });
+        } else if (table.tableInfo.id === "recent_bookings") {
+          fetch(origin + "/api/bookings?limit=500")
+            .then(function (res) { return res.json(); })
+            .then(function (json) {
+              var rows = [];
+              var list = Array.isArray(json) ? json : (json.data || []);
+              list.forEach(function (b) {
+                rows.push({
+                  id: Number(b.id),
+                  costumerName: b.costumer_name || (b.first_name + " " + b.last_name),
+                  costumerCountry: b.costumer_country || "Ukendt",
+                  roomNumber: String(b.room_number || ""),
+                  roomTypeName: b.room_type_name || "",
+                  checkInDate: b.check_in_date ? b.check_in_date.split("T")[0] : "",
+                  checkOutDate: b.check_out_date ? b.check_out_date.split("T")[0] : "",
+                  occupants: Number(b.occupants) || 1,
+                  totalPrice: Number(b.total_price) || 0,
+                  status: b.status || "confirmed",
+                  starRating: Number(b.star_rating) || 5,
+                  nights: Number(b.nights) || 1
+                });
+              });
+              table.appendRows(rows);
+              doneCallback();
+            })
+            .catch(function (err) {
+              console.error("Fejl ved hentning af recent_bookings:", err);
+              doneCallback();
+            });
+        } else {
+          doneCallback();
+        }
+      };
+
+      // 4. Registrer connector hos Tableau
+      if (typeof tableau !== 'undefined' && tableau.registerConnector) {
+        tableau.registerConnector(myConnector);
+      }
+
+      // 5. DOM Event Listeners & UI Binding
+      document.addEventListener("DOMContentLoaded", function () {
+        var submitBtn = document.getElementById("submitButton");
+        var previewBtn = document.getElementById("previewButton");
+        var previewSec = document.getElementById("previewSection");
+        var previewContent = document.getElementById("previewContent");
+        var previewStatus = document.getElementById("previewStatus");
+        var wdcUrlDisplay = document.getElementById("wdcUrlDisplay");
+
+        if (wdcUrlDisplay) {
+          wdcUrlDisplay.textContent = window.location.href;
+        }
+
+        // Hent Data til Tableau
+        if (submitBtn) {
+          submitBtn.addEventListener("click", function () {
+            if (typeof tableau !== 'undefined' && tableau.submit) {
+              tableau.connectionName = "Hotel Kong Arthur REST API Live Feed";
+              tableau.submit();
+            } else {
+              alert("Bemærk: Du kører i en standard webbrowser uden for Tableau Desktop.\n\nKlik på 'Test Forhåndsvisning i Browser' for at afprøve REST API dataforbindelsen interaktivt!");
+            }
+          });
+        }
+
+        // Test Forhåndsvisning i almindelig browser
+        if (previewBtn) {
+          previewBtn.addEventListener("click", function () {
+            previewSec.classList.add("active");
+            previewStatus.textContent = "Henter data...";
+            previewContent.textContent = "Foretrækker HTTP GET kald til /api/analytics/summary og /api/analytics/bar-performance...";
+
+            Promise.all([
+              fetch(window.location.origin + "/api/analytics/summary").then(function (r) { return r.json(); }),
+              fetch(window.location.origin + "/api/analytics/bar-performance").then(function (r) { return r.json(); })
+            ]).then(function (results) {
+              var summary = results[0];
+              var bar = results[1];
+              var combined = {
+                status: "OK - REST API Svar modtaget",
+                timestamp: new Date().toISOString(),
+                hotelSummary: summary.data,
+                cocktailVsCoffeeDistribution: bar.data ? bar.data.categoryDistribution : null,
+                totalBarItemsSold: bar.data ? bar.data.totalItemsSold : null
+              };
+              previewContent.textContent = JSON.stringify(combined, null, 2);
+              previewStatus.textContent = "200 OK — Data er gyldig og klar til Tableau";
+            }).catch(function (err) {
+              previewContent.textContent = "Fejl ved kontakt til API: " + err.message;
+              previewStatus.textContent = "Fejl";
+            });
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

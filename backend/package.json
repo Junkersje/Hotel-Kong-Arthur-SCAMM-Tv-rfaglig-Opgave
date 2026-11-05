@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --experimental-test-module-mocks --test \"tests/*.test.js\""
+    "test": "node --experimental-test-module-mocks --test tests/analyticsRepository.test.js tests/analyticsService.test.js tests/api.test.js tests/bookingCreation.test.js tests/bookingRepository.test.js tests/bookingRoutes.test.js tests/bookingService.test.js tests/bookingValidator.test.js tests/roomRepository.test.js tests/roomService.test.js tests/seasonService.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
