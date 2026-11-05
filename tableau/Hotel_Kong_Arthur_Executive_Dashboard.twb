@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8' ?>
 
 <!-- build 20262.26.0912.1023 -->
-<workbook original-version='18.1' source-build='2026.2.3' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+<workbook original-version='18.1' source-build='2026.2.3 (20262.26.0912.1023)' source-platform='win' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
   <document-format-change-manifest>
     <AccessibleZoneTabOrder />
     <AnimationOnByDefault />
@@ -191,12 +191,13 @@
           </metadata-record>
         </metadata-records>
       </connection>
-      <column caption='Samlet Omsætning' datatype='real' name='[totalRevenue]' role='measure' type='quantitative' />
-      <column caption='Værelsesomsætning' datatype='real' name='[roomRevenue]' role='measure' type='quantitative' />
-      <column caption='Baromsætning' datatype='real' name='[barRevenue]' role='measure' type='quantitative' />
+      <aliases enabled='yes' />
+      <column caption='Total Omsætning (DKK)' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[totalRevenue]' role='measure' type='quantitative' />
+      <column caption='Værelsesomsætning (DKK)' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[roomRevenue]' role='measure' type='quantitative' />
+      <column caption='Baromsætning (DKK)' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[barRevenue]' role='measure' type='quantitative' />
       <column caption='Værelsesandel (%)' datatype='real' name='[roomRevenuePercentage]' role='measure' type='quantitative' />
       <column caption='Barandel (%)' datatype='real' name='[barRevenuePercentage]' role='measure' type='quantitative' />
-      <column caption='ADR (Gns. Dagspris)' datatype='real' name='[adr]' role='measure' type='quantitative' />
+      <column caption='Average Daily Rate (ADR)' datatype='real' default-format='C1030kr. #,##0.00;kr. -#,##0.00' name='[adr]' role='measure' type='quantitative' />
       <column caption='Solgte Værelsesnætter' datatype='integer' name='[occupiedRoomNights]' role='measure' type='quantitative' />
       <column caption='Belægningsgrad (%)' datatype='real' name='[estimatedOverallOccupancyPercent]' role='measure' type='quantitative' />
       <column caption='Værelseskapacitet (214)' datatype='integer' name='[totalRoomsCapacity]' role='measure' type='quantitative' />
@@ -253,6 +254,7 @@
         <rows>[federated.hotel_master_kpis].[Multiple Values]</rows>
         <cols />
       </table>
+      <simple-id uuid='{698B4CAD-7C81-4731-8580-40A83D4F928E}' />
     </worksheet>
 
     <!-- Sheet 2: Omsætningsfordeling Værelser vs Bar -->
@@ -285,13 +287,14 @@
             </view>
             <mark class='Bar' />
             <encodings>
-              <color column='[federated.hotel_master_kpis].[Multiple Values]' />
+              <color column='[Multiple Values]' />
             </encodings>
           </pane>
         </panes>
         <rows>[federated.hotel_master_kpis].[Multiple Values]</rows>
         <cols />
       </table>
+      <simple-id uuid='{A0DD9D50-3A37-4793-AC55-9EED7ABC7F76}' />
     </worksheet>
 
     <!-- Sheet 3: Cocktails vs Kaffe -->
@@ -324,13 +327,14 @@
             </view>
             <mark class='Pie' />
             <encodings>
-              <color column='[federated.hotel_master_kpis].[Multiple Values]' />
+              <color column='[Multiple Values]' />
             </encodings>
           </pane>
         </panes>
         <rows />
         <cols />
       </table>
+      <simple-id uuid='{C673ADA0-9E64-4411-BAC1-EF9580C85A1C}' />
     </worksheet>
   </worksheets>
 
@@ -356,20 +360,95 @@
           <zone h='48000' id='5' name='3. Helene Christine (Cocktails vs Kaffe)' w='48000' x='51000' y='50000' />
         </zone>
       </zones>
+      <devicelayouts />
+      <simple-id uuid='{8E03741F-A010-460B-BC17-FBEC23A6E935}' />
     </dashboard>
   </dashboards>
 
-  <windows>
-    <window class='worksheet' name='1. Hovednøgletal' />
-    <window class='worksheet' name='2. Omsætningsfordeling (Værelser vs Bar)' />
-    <window class='worksheet' name='3. Helene Christine (Cocktails vs Kaffe)' />
+  <windows source-height='30'>
+    <window class='worksheet' name='1. Hovednøgletal'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{8E4B93E7-CA50-488E-83BC-70F18B2F4575}' />
+    </window>
+    <window class='worksheet' name='2. Omsætningsfordeling (Værelser vs Bar)'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{BEEF5C68-9A59-4745-ACB1-E35267CD7F69}' />
+    </window>
+    <window class='worksheet' name='3. Helene Christine (Cocktails vs Kaffe)'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{24A03501-7ADD-4A5A-93AA-C903A163CEB7}' />
+    </window>
     <window class='dashboard' maximized='true' name='Executive Dashboard'>
       <viewpoints>
-        <viewpoint name='1. Hovednøgletal' />
-        <viewpoint name='2. Omsætningsfordeling (Værelser vs Bar)' />
-        <viewpoint name='3. Helene Christine (Cocktails vs Kaffe)' />
+        <viewpoint name='1. Hovednøgletal'>
+          <zoom type='entire-view' />
+        </viewpoint>
+        <viewpoint name='2. Omsætningsfordeling (Værelser vs Bar)'>
+          <zoom type='entire-view' />
+        </viewpoint>
+        <viewpoint name='3. Helene Christine (Cocktails vs Kaffe)'>
+          <zoom type='entire-view' />
+        </viewpoint>
       </viewpoints>
       <active id='-1' />
+      <simple-id uuid='{24E5716C-8D87-4851-B3D6-A05CA477DDB8}' />
     </window>
   </windows>
 </workbook>
