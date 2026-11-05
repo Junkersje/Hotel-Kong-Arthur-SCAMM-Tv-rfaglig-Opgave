@@ -360,7 +360,19 @@
           <zone h='48000' id='5' name='3. Helene Christine (Cocktails vs Kaffe)' w='48000' x='51000' y='50000' />
         </zone>
       </zones>
-      <devicelayouts />
+      <devicelayouts>
+        <devicelayout auto-generated='true' name='Phone'>
+          <size maxheight='900' minheight='900' sizing-mode='vscroll' />
+          <zones>
+            <zone h='100000' id='6' type-v2='layout-basic' w='100000' x='0' y='0'>
+              <zone h='12000' id='2' type-v2='title' w='98000' x='1000' y='1000' />
+              <zone h='35000' id='3' name='1. Hovednøgletal' w='98000' x='1000' y='14000' />
+              <zone h='48000' id='4' name='2. Omsætningsfordeling (Værelser vs Bar)' w='48000' x='1000' y='50000' />
+              <zone h='48000' id='5' name='3. Helene Christine (Cocktails vs Kaffe)' w='48000' x='51000' y='50000' />
+            </zone>
+          </zones>
+        </devicelayout>
+      </devicelayouts>
       <simple-id uuid='{8E03741F-A010-460B-BC17-FBEC23A6E935}' />
     </dashboard>
   </dashboards>
