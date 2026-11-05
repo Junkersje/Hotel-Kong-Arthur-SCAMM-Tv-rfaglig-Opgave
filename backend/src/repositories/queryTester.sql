@@ -168,7 +168,6 @@ join room_type on room.room_type_id = room_type.id
 group by room_type_name
 order by total_bookings desc
 limit 3;
-;
 
 /*room type with the most bookings sorted by season*/
 with season_room_popularity as (
@@ -204,7 +203,7 @@ select
     sum(sales.quantity * product.unit_price) as total_revenue,
     sum(sales.quantity) as total_items_sold
 from sales
-join product on sales.product_id = product.id;
+join product on sales.product_id = product.id
 order by total_revenue desc;
 
 /*products that produce the most revenue overall*/
