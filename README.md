@@ -94,17 +94,15 @@ Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-s
 
 Som fastsat i [Constitution Princip IV](.specify/memory/constitution.md) henter Tableau data direkte fra REST API'et uden brug af direkte databasekobling eller statiske CSV-filer:
 
-1. **Åbn Tableau Desktop** (eller Tableau Prep / Simulator).
-2. Vælg **Web Data Connector** under *Forbind* &gt; *Til en server*.
-3. Angiv connector-adressen: `http://localhost:5000/tableau-wdc.html`.
-4. Klik på **Hent Data til Tableau**. Connectoren udstiller 6 datatabeller:
-   - `hotel_summary`: Hovednøgletal, værelsesomsætning, barandel, samlet belægning og ADR baseret på 214 værelser.
-   - `monthly_occupancy`: Månedlige belægningsprocenter og solgte nætter.
-   - `room_type_analytics`: Omsætning, solgte nætter, ADR og ALOS for de 8 værelsestyper.
-   - `country_analytics`: Gæstefordeling og gennemsnitlig opholdslængde (ALOS) pr. land.
-   - `bar_sales_breakdown`: Cocktail- og kaffe-omsætning pr. produkt og kategori.
-   - `recent_bookings`: Individuelle bookinger med kundeland, værelsesdetaljer og rating.
-5. Ved ændringer foretaget i browserfrontenden (opret/ret/slet booking) opdateres Tableau på **under 30 sekunder** ved højreklik &gt; *Opdater (Refresh)*.
+1. **Færdigbygget Workbook (Option B)**:  
+   Åbn [tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb) direkte i Tableau Desktop.
+2. **Trin-for-trin Vejledning (Option A)**:  
+   Følg [docs/tableau_dashboard_guide.md](./docs/tableau_dashboard_guide.md) for detaljerede instruktioner til opbygning af alle sheets og dashboards fra bunden.
+3. **Manuel Forbindelse via WDC**:  
+   - Åbn Tableau Desktop og vælg **Web Data Connector**.
+   - Forbind til `http://localhost:5000/tableau-wdc.html`.
+   - Vælg `hotel_master_kpis` eller en specifik tabel og klik **Indlæs data til Tableau**.
+4. Ved ændringer foretaget i browserfrontenden (opret/ret/slet booking) opdateres Tableau på **under 30 sekunder** ved højreklik &gt; *Opdater (Refresh)* eller tasten <kbd>F5</kbd>.
 
 ---
 
