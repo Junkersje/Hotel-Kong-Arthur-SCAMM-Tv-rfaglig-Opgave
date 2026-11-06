@@ -237,6 +237,18 @@
             <column-instance column='[estimatedOverallOccupancyPercent]' derivation='Sum' name='[sum:estimatedOverallOccupancyPercent:qk]' pivot='key' type='quantitative' />
             <column-instance column='[adr]' derivation='Sum' name='[sum:adr:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
+          <filter class='categorical' column='[federated.hotel_master_kpis].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:totalRevenue:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:roomRevenue:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:barRevenue:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:estimatedOverallOccupancyPercent:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:adr:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <slices>
+            <column>[federated.hotel_master_kpis].[:Measure Names]</column>
+          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -245,14 +257,19 @@
             <view>
               <breakdown value='auto' />
             </view>
-            <mark class='Text' />
+            <mark class='Automatic' />
             <encodings>
-              <text column='[Multiple Values]' />
+              <text column='[federated.hotel_master_kpis].[Multiple Values]' />
             </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
           </pane>
         </panes>
-        <rows>[federated.hotel_master_kpis].[Multiple Values]</rows>
-        <cols />
+        <rows />
+        <cols>[federated.hotel_master_kpis].[:Measure Names]</cols>
       </table>
       <simple-id uuid='{698B4CAD-7C81-4731-8580-40A83D4F928E}' />
     </worksheet>
@@ -277,6 +294,15 @@
             <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
             <column-instance column='[barRevenue]' derivation='Sum' name='[sum:barRevenue:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
+          <filter class='categorical' column='[federated.hotel_master_kpis].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:roomRevenue:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:barRevenue:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <slices>
+            <column>[federated.hotel_master_kpis].[:Measure Names]</column>
+          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -287,12 +313,18 @@
             </view>
             <mark class='Bar' />
             <encodings>
-              <color column='[Multiple Values]' />
+              <color column='[federated.hotel_master_kpis].[:Measure Names]' />
+              <text column='[federated.hotel_master_kpis].[Multiple Values]' />
             </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
           </pane>
         </panes>
         <rows>[federated.hotel_master_kpis].[Multiple Values]</rows>
-        <cols />
+        <cols>[federated.hotel_master_kpis].[:Measure Names]</cols>
       </table>
       <simple-id uuid='{A0DD9D50-3A37-4793-AC55-9EED7ABC7F76}' />
     </worksheet>
@@ -317,6 +349,15 @@
             <column-instance column='[cocktailRevenue]' derivation='Sum' name='[sum:cocktailRevenue:qk]' pivot='key' type='quantitative' />
             <column-instance column='[coffeeRevenue]' derivation='Sum' name='[sum:coffeeRevenue:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
+          <filter class='categorical' column='[federated.hotel_master_kpis].[:Measure Names]'>
+            <groupfilter function='union' user:op='manual'>
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:cocktailRevenue:qk]&quot;' />
+              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:coffeeRevenue:qk]&quot;' />
+            </groupfilter>
+          </filter>
+          <slices>
+            <column>[federated.hotel_master_kpis].[:Measure Names]</column>
+          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -327,8 +368,15 @@
             </view>
             <mark class='Pie' />
             <encodings>
-              <color column='[Multiple Values]' />
+              <color column='[federated.hotel_master_kpis].[:Measure Names]' />
+              <wedge-size column='[federated.hotel_master_kpis].[Multiple Values]' />
+              <text column='[federated.hotel_master_kpis].[Multiple Values]' />
             </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
           </pane>
         </panes>
         <rows />
