@@ -426,10 +426,12 @@
           columns: masterCols
         };
 
-        // Table: room_type_analytics
+        // Table: room_type_analytics (De 8 officielle værelsestyper med års- og sæsonfiltrering)
         var roomTypeCols = [
           { id: "roomTypeId", alias: "Værelsestype ID", dataType: tableau.dataTypeEnum.int },
           { id: "roomTypeName", alias: "Værelsestype Navn", dataType: tableau.dataTypeEnum.string },
+          { id: "year", alias: "År", dataType: tableau.dataTypeEnum.int },
+          { id: "season", alias: "Sæson", dataType: tableau.dataTypeEnum.string },
           { id: "maxCapacity", alias: "Maks Personkapacitet", dataType: tableau.dataTypeEnum.int },
           { id: "totalBookings", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
           { id: "totalRevenue", alias: "Samlet Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
@@ -570,40 +572,31 @@
             doneCallback();
           });
         } else if (table.tableInfo.id === "room_type_analytics") {
-          Promise.all([
-            fetch(base + "/api/analytics/revenue-by-room-type").then(function (r) { return r.json(); }),
-            fetch(base + "/api/analytics/adr").then(function (r) { return r.json(); }),
-            fetch(base + "/api/analytics/stay-length").then(function (r) { return r.json(); })
-          ]).then(function (results) {
-            var roomTypes = (results[0] && results[0].data) || [];
-            var adrData = (results[1] && results[1].data && results[1].data.byRoomType) || [];
-            var alosData = (results[2] && results[2].data && results[2].data.byRoomType) || [];
+          fetch(base + "/api/analytics/revenue-by-room-type?detailed=true")
+            .then(function (r) { return r.json(); })
+            .then(function (json) {
+              var roomTypes = (json && json.data) || [];
+              var rows = roomTypes.map(function (rt) {
+                return {
+                  roomTypeId: Number(rt.room_type_id),
+                  roomTypeName: String(rt.room_type_name || ""),
+                  year: Number(rt.year) || 2025,
+                  season: String(rt.season || "Lavsæson"),
+                  maxCapacity: Number(rt.max_capacity) || 0,
+                  totalBookings: Number(rt.total_bookings) || 0,
+                  totalRevenue: Number(rt.total_revenue) || 0,
+                  totalNightsSold: Number(rt.total_nights_sold) || 0,
+                  adr: Number(rt.adr) || 0,
+                  alos: Number(rt.alos) || 0
+                };
+              });
 
-            var adrMap = {};
-            adrData.forEach(function (a) { adrMap[a.roomTypeId] = a.adr; });
-
-            var alosMap = {};
-            alosData.forEach(function (al) { alosMap[al.roomTypeId] = al.alos; });
-
-            var rows = roomTypes.map(function (rt) {
-              return {
-                roomTypeId: Number(rt.room_type_id),
-                roomTypeName: String(rt.room_type_name || ""),
-                maxCapacity: Number(rt.max_capacity) || 0,
-                totalBookings: Number(rt.total_bookings) || 0,
-                totalRevenue: Number(rt.total_revenue) || 0,
-                totalNightsSold: Number(rt.total_nights_sold) || 0,
-                adr: Number(adrMap[rt.room_type_id]) || 0,
-                alos: Number(alosMap[rt.room_type_id]) || 0
-              };
+              table.appendRows(rows);
+              doneCallback();
+            }).catch(function (err) {
+              console.error("Fejl ved hentning af room_type_analytics:", err);
+              doneCallback();
             });
-
-            table.appendRows(rows);
-            doneCallback();
-          }).catch(function (err) {
-            console.error("Fejl ved hentning af room_type_analytics:", err);
-            doneCallback();
-          });
         } else if (table.tableInfo.id === "bar_sales_breakdown") {
           fetch(base + "/api/analytics/bar-performance")
             .then(function (res) { return res.json(); })

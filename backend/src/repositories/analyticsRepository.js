@@ -66,22 +66,70 @@ const analyticsRepository = {
 
   /**
    * T034: Henter værelsesomsætning og overnatninger opdelt pr. værelsestype.
+   * Understøtter valgfri filtrering på årstal.
+   * @param {number} [year] - Valgfrit årstal (f.eks. 2025 eller 2026)
    */
-  async getRevenueByRoomType() {
-    const sql = `
+  async getRevenueByRoomType(year = null) {
+    let sql = `
       SELECT 
         rt.id AS room_type_id,
         rt.name AS room_type_name,
+        rt.max_capacity,
         COUNT(b.id)::int AS total_bookings,
         COALESCE(SUM(b.price), 0)::numeric AS total_revenue,
         COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights_sold
       FROM room_type rt
       LEFT JOIN room r ON rt.id = r.room_type_id
       LEFT JOIN booking b ON r.id = b.room_id AND b.status != 'cancelled'
-      GROUP BY rt.id, rt.name
+    `;
+    const params = [];
+    if (year) {
+      sql += ` AND EXTRACT(YEAR FROM b.arrival)::int = $1::int`;
+      params.push(year);
+    }
+    sql += `
+      GROUP BY rt.id, rt.name, rt.max_capacity
       ORDER BY total_revenue DESC
     `;
-    return await this._query(sql);
+    return await this._query(sql, params);
+  },
+
+  /**
+   * US-14 & US-15: Henter værelsesomsætning opdelt pr. værelsestype, år og sæson.
+   * Muliggør interaktiv Tableau-filtrering på år og sæson med ADR og ALOS.
+   * @param {number} [year] - Valgfrit årstal
+   */
+  async getRoomTypeAnnualAnalytics(year = null) {
+    let sql = `
+      SELECT 
+        rt.id AS room_type_id,
+        rt.name AS room_type_name,
+        rt.max_capacity,
+        COALESCE(EXTRACT(YEAR FROM b.arrival)::int, 2025) AS year,
+        CASE 
+          WHEN EXTRACT(MONTH FROM b.arrival)::int IN (6, 7, 8) THEN 'Højsæson'
+          WHEN EXTRACT(MONTH FROM b.arrival)::int IN (3, 4, 5, 9, 10) THEN 'Mellemsæson'
+          ELSE 'Lavsæson'
+        END AS season,
+        COUNT(b.id)::int AS total_bookings,
+        COALESCE(SUM(b.price), 0)::numeric AS total_revenue,
+        COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_nights_sold,
+        ROUND(COALESCE(SUM(b.price) / NULLIF(SUM(b.departure::date - b.arrival::date), 0), 0), 2)::numeric AS adr,
+        ROUND(COALESCE(AVG(b.departure::date - b.arrival::date), 0), 2)::numeric AS alos
+      FROM room_type rt
+      LEFT JOIN room r ON rt.id = r.room_type_id
+      LEFT JOIN booking b ON r.id = b.room_id AND b.status != 'cancelled'
+    `;
+    const params = [];
+    if (year) {
+      sql += ` AND EXTRACT(YEAR FROM b.arrival)::int = $1::int`;
+      params.push(year);
+    }
+    sql += `
+      GROUP BY rt.id, rt.name, rt.max_capacity, EXTRACT(YEAR FROM b.arrival), season
+      ORDER BY year DESC, total_revenue DESC
+    `;
+    return await this._query(sql, params);
   },
 
   /**
@@ -417,6 +465,7 @@ if (typeof module !== 'undefined' && module.exports) {
 // Named exports til test og modulær anvendelse
 export const getTotalRoomRevenue = analyticsRepository.getTotalRoomRevenue.bind(analyticsRepository);
 export const getRevenueByRoomType = analyticsRepository.getRevenueByRoomType.bind(analyticsRepository);
+export const getRoomTypeAnnualAnalytics = analyticsRepository.getRoomTypeAnnualAnalytics.bind(analyticsRepository);
 export const getRevenueByRoomTypeAndSeason = analyticsRepository.getRevenueByRoomTypeAndSeason.bind(analyticsRepository);
 export const getTotalBarRevenue = analyticsRepository.getTotalBarRevenue.bind(analyticsRepository);
 export const getRevenueByProduct = analyticsRepository.getRevenueByProduct.bind(analyticsRepository);

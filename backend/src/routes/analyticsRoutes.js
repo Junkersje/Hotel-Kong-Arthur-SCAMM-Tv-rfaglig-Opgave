@@ -87,11 +87,16 @@ router.get('/occupancy', async (req, res) => {
 
 /**
  * @route   GET /api/analytics/revenue-by-room-type
- * @desc    Omsætning og solgte nætter fordelt på værelsestyper
+ * @desc    Omsætning og solgte nætter fordelt på værelsestyper (valgfrit filtreret på år og sæson)
  */
 router.get('/revenue-by-room-type', async (req, res) => {
   try {
-    const data = await analyticsService.getRoomTypeBreakdown();
+    const year = req.query.year ? parseInt(req.query.year, 10) : null;
+    const isDetailed = req.query.detailed === 'true' || req.query.breakdown === 'annual';
+    const data = isDetailed
+      ? await analyticsService.getRoomTypeAnnualAnalytics(year)
+      : await analyticsService.getRoomTypeBreakdown(year);
+
     return res.status(200).json({
       success: true,
       data,
