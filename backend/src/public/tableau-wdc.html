@@ -513,22 +513,9 @@
           columns: bookingCols
         };
 
-        if (mode === "room_type_analytics") {
-          schemaCallback([roomTypeTable]);
-        } else if (mode === "bar_sales_breakdown") {
-          schemaCallback([barTable]);
-        } else if (mode === "country_analytics") {
-          schemaCallback([countryTable]);
-        } else if (mode === "monthly_occupancy") {
-          schemaCallback([monthlyTable]);
-        } else if (mode === "recent_bookings") {
-          schemaCallback([bookingTable]);
-        } else if (mode === "all_tables") {
-          schemaCallback([masterTable, roomTypeTable, barTable, countryTable, monthlyTable, bookingTable]);
-        } else {
-          // Default: hotel_master_kpis
-          schemaCallback([masterTable]);
-        }
+        // Udstil altid alle tilgængelige tabeller til Tableau Desktop, så alle datasources i projektet
+        // kan initialiseres og danne extracts uden fejl:
+        schemaCallback([masterTable, roomTypeTable, barTable, countryTable, monthlyTable, bookingTable]);
       };
 
       // 4. Hent Data
