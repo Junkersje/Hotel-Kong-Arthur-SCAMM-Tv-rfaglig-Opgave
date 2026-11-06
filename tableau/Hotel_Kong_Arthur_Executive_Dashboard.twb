@@ -216,7 +216,7 @@
       <layout-options>
         <title>
           <formatted-text>
-            <run fontcolor='#1e293b' fontname='Arial' fontsize='16' bold='true'>Hotel Kong Arthur — Hovednøgletal (KPI Scorecard)</run>
+            <run fontcolor='#1e293b' fontname='Arial' fontsize='16' bold='true'>Hotel Kong Arthur — Hovednøgletal (Total, Værelser, Bar, ADR)</run>
           </formatted-text>
         </title>
       </layout-options>
@@ -229,26 +229,12 @@
             <column datatype='real' name='[totalRevenue]' role='measure' type='quantitative' />
             <column datatype='real' name='[roomRevenue]' role='measure' type='quantitative' />
             <column datatype='real' name='[barRevenue]' role='measure' type='quantitative' />
-            <column datatype='real' name='[estimatedOverallOccupancyPercent]' role='measure' type='quantitative' />
             <column datatype='real' name='[adr]' role='measure' type='quantitative' />
             <column-instance column='[totalRevenue]' derivation='Sum' name='[sum:totalRevenue:qk]' pivot='key' type='quantitative' />
             <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
             <column-instance column='[barRevenue]' derivation='Sum' name='[sum:barRevenue:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[estimatedOverallOccupancyPercent]' derivation='Sum' name='[sum:estimatedOverallOccupancyPercent:qk]' pivot='key' type='quantitative' />
             <column-instance column='[adr]' derivation='Sum' name='[sum:adr:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
-          <filter class='categorical' column='[federated.hotel_master_kpis].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:totalRevenue:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:roomRevenue:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:barRevenue:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:estimatedOverallOccupancyPercent:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:adr:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <slices>
-            <column>[federated.hotel_master_kpis].[:Measure Names]</column>
-          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -258,9 +244,6 @@
               <breakdown value='auto' />
             </view>
             <mark class='Automatic' />
-            <encodings>
-              <text column='[federated.hotel_master_kpis].[Multiple Values]' />
-            </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-labels-show' value='true' />
@@ -269,7 +252,7 @@
           </pane>
         </panes>
         <rows />
-        <cols>[federated.hotel_master_kpis].[:Measure Names]</cols>
+        <cols>([federated.hotel_master_kpis].[sum:totalRevenue:qk] / [federated.hotel_master_kpis].[sum:roomRevenue:qk] / [federated.hotel_master_kpis].[sum:barRevenue:qk] / [federated.hotel_master_kpis].[sum:adr:qk])</cols>
       </table>
       <simple-id uuid='{698B4CAD-7C81-4731-8580-40A83D4F928E}' />
     </worksheet>
@@ -294,15 +277,6 @@
             <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
             <column-instance column='[barRevenue]' derivation='Sum' name='[sum:barRevenue:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
-          <filter class='categorical' column='[federated.hotel_master_kpis].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:roomRevenue:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:barRevenue:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <slices>
-            <column>[federated.hotel_master_kpis].[:Measure Names]</column>
-          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -312,10 +286,6 @@
               <breakdown value='auto' />
             </view>
             <mark class='Bar' />
-            <encodings>
-              <color column='[federated.hotel_master_kpis].[:Measure Names]' />
-              <text column='[federated.hotel_master_kpis].[Multiple Values]' />
-            </encodings>
             <style>
               <style-rule element='mark'>
                 <format attr='mark-labels-show' value='true' />
@@ -323,8 +293,8 @@
             </style>
           </pane>
         </panes>
-        <rows>[federated.hotel_master_kpis].[Multiple Values]</rows>
-        <cols>[federated.hotel_master_kpis].[:Measure Names]</cols>
+        <rows />
+        <cols>([federated.hotel_master_kpis].[sum:roomRevenue:qk] / [federated.hotel_master_kpis].[sum:barRevenue:qk])</cols>
       </table>
       <simple-id uuid='{A0DD9D50-3A37-4793-AC55-9EED7ABC7F76}' />
     </worksheet>
@@ -349,15 +319,6 @@
             <column-instance column='[cocktailRevenue]' derivation='Sum' name='[sum:cocktailRevenue:qk]' pivot='key' type='quantitative' />
             <column-instance column='[coffeeRevenue]' derivation='Sum' name='[sum:coffeeRevenue:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
-          <filter class='categorical' column='[federated.hotel_master_kpis].[:Measure Names]'>
-            <groupfilter function='union' user:op='manual'>
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:cocktailRevenue:qk]&quot;' />
-              <groupfilter function='member' level='[:Measure Names]' member='&quot;[federated.hotel_master_kpis].[sum:coffeeRevenue:qk]&quot;' />
-            </groupfilter>
-          </filter>
-          <slices>
-            <column>[federated.hotel_master_kpis].[:Measure Names]</column>
-          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -366,12 +327,7 @@
             <view>
               <breakdown value='auto' />
             </view>
-            <mark class='Pie' />
-            <encodings>
-              <color column='[federated.hotel_master_kpis].[:Measure Names]' />
-              <wedge-size column='[federated.hotel_master_kpis].[Multiple Values]' />
-              <text column='[federated.hotel_master_kpis].[Multiple Values]' />
-            </encodings>
+            <mark class='Bar' />
             <style>
               <style-rule element='mark'>
                 <format attr='mark-labels-show' value='true' />
@@ -380,7 +336,7 @@
           </pane>
         </panes>
         <rows />
-        <cols />
+        <cols>([federated.hotel_master_kpis].[sum:cocktailRevenue:qk] / [federated.hotel_master_kpis].[sum:coffeeRevenue:qk])</cols>
       </table>
       <simple-id uuid='{C673ADA0-9E64-4411-BAC1-EF9580C85A1C}' />
     </worksheet>
