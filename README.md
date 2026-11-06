@@ -83,9 +83,26 @@ Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-s
 | :--- | :---: | :--- | :--- |
 | **Frontend UI** | `3000` | Receptionsportal (React SPA serveret via Nginx) | [http://localhost:3000](http://localhost:3000) |
 | **Backend REST API** | `5000` | 3-lags Express.js REST API | [http://localhost:5000/api/health](http://localhost:5000/api/health) |
+| **Tableau Web Data Connector** | `5000` | Web Data Connector (WDC 2.3) til live Tableau Desktop integration | [http://localhost:5000/tableau-wdc.html](http://localhost:5000/tableau-wdc.html) |
 | **Swagger UI** | `8080` | Interaktiv OpenAPI 3.0 dokumentation og sandkasse | [http://localhost:8080](http://localhost:8080) |
 | **Backend Swagger Docs** | `5000` | Swagger UI serveret direkte fra Node.js | [http://localhost:5000/api-docs](http://localhost:5000/api-docs) |
 | **PostgreSQL 15 Database** | `5432` | Persistent relationel database (`hotel_kong_arthur`) | `localhost:5432` |
+
+---
+
+## 📊 Tableau Integration via Web Data Connector (WDC)
+
+Som fastsat i [Constitution Princip IV](.specify/memory/constitution.md) henter Tableau data direkte fra REST API'et uden brug af direkte databasekobling eller statiske CSV-filer:
+
+1. **Færdigbygget Workbook (Option B)**:  
+   Åbn [tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb) direkte i Tableau Desktop.
+2. **Trin-for-trin Vejledning (Option A)**:  
+   Følg [docs/tableau_dashboard_guide.md](./docs/tableau_dashboard_guide.md) for detaljerede instruktioner til opbygning af alle sheets og dashboards fra bunden.
+3. **Manuel Forbindelse via WDC**:  
+   - Åbn Tableau Desktop og vælg **Web Data Connector**.
+   - Forbind til `http://localhost:5000/tableau-wdc.html`.
+   - Vælg `hotel_master_kpis` eller en specifik tabel og klik **Indlæs data til Tableau**.
+4. Ved ændringer foretaget i browserfrontenden (opret/ret/slet booking) opdateres Tableau på **under 30 sekunder** ved højreklik &gt; *Opdater (Refresh)* eller tasten <kbd>F5</kbd>.
 
 ---
 

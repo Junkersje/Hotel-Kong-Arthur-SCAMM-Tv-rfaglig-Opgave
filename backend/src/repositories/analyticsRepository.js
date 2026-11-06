@@ -54,15 +54,11 @@ const analyticsRepository = {
    */
   async getTotalRoomRevenue() {
     const sql = `
-      select
-        room_type.name as room_type_name,
-        sum(booking.price) as total_revenue
-      from booking
-      join room on booking.room_id = room.id
-      join room_type on room.room_type_id = room_type.id
-      where booking.status = 'completed'
-      group by room_type_name
-      order by total_revenue desc
+      SELECT 
+        COALESCE(SUM(b.price), 0)::numeric AS total_room_revenue,
+        COUNT(b.id)::int AS total_valid_bookings
+      FROM booking b
+      WHERE b.status != 'cancelled'
     `;
     const rows = await this._query(sql);
     return rows[0] || { total_room_revenue: 0, total_valid_bookings: 0 };
@@ -158,7 +154,7 @@ const analyticsRepository = {
         COALESCE(SUM(s.quantity * p.unit_price), 0)::numeric AS total_category_revenue
       FROM category c
       JOIN product p ON c.id = p.category_id
-      JOIN sales s ON p.id = s.product_id
+      LEFT JOIN sales s ON p.id = s.product_id
       GROUP BY c.name
     `;
     return await this._query(sql);
@@ -215,7 +211,7 @@ const analyticsRepository = {
         COALESCE(SUM(b.departure::date - b.arrival::date), 0)::int AS total_occupied_room_nights,
         ROUND(
           (COALESCE(SUM(b.departure::date - b.arrival::date), 0)::numeric / 
-          NULLIF(COUNT(DISTINCT b.arrival::date) * $1::int, 0)) * 100, 2
+          NULLIF((MAX(b.departure::date) - MIN(b.arrival::date)) * $1::int, 0)) * 100, 2
         )::numeric AS estimated_overall_occupancy_percent
       FROM booking b
       WHERE b.status != 'cancelled'
@@ -381,10 +377,10 @@ const analyticsRepository = {
           COALESCE(AVG(b.departure::date - b.arrival::date), 0), 2
         )::numeric AS average_length_of_stay
       FROM booking b
-      JOIN costumer c ON b.costumer_id = c.id
+      LEFT JOIN costumer c ON b.costumer_id = c.id
       LEFT JOIN country cntry ON c.country_id = cntry.id
       WHERE b.status != 'cancelled'
-      GROUP BY cntry.name
+      GROUP BY COALESCE(cntry.name, 'Ukendt')
       ORDER BY average_length_of_stay DESC, total_nights DESC
     `;
     return await this._query(sql);

@@ -23,6 +23,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Request logging (development/diagnostics)
 app.use((req, res, next) => {
@@ -104,7 +105,8 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Hotel Kong Arthur API is running',
     docs: '/api-docs',
-    health: '/api/health'
+    health: '/api/health',
+    tableau_wdc: '/tableau-wdc.html'
   });
 });
 
@@ -133,14 +135,14 @@ app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
 
   const statusCode = err.status || err.statusCode || 500;
+  const errorMessage = err.message || 'Der opstod en intern serverfejl';
 
   res.status(statusCode).json({
     success: false,
-    message,
+    message: errorMessage,
     status_code: statusCode,
     error: {
-      message:
-        err.message || 'Der opstod en intern serverfejl',
+      message: errorMessage,
       code: err.code || 'INTERNAL_SERVER_ERROR'
     }
   });
