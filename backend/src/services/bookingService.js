@@ -1,6 +1,8 @@
 import db from '../config/database.js';
 import seasonService from './seasonService.js';
 import * as bookingRepository from '../repositories/bookingRepository.js';
+import * as roomRepository from '../repositories/roomRepository.js';
+import { withTransaction as dbWithTransaction } from '../repositories/db.js';
 import {
   createBookingSchema,
   validateCreateBooking
@@ -11,19 +13,21 @@ import {
  * @param {Function} callback - Async funktion der modtager en dedikeret PostgreSQL client
  */
 export async function withTransaction(callback) {
-  const client = await db.connect();
-
-  try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
+  if (typeof db.connect === 'function') {
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await callback(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
+  return await dbWithTransaction(callback);
 }
 
 function formatDate(value) {
@@ -57,6 +61,9 @@ function calculateNights(checkIn, checkOut) {
 
 /**
  * Opretter en ny booking atomisk i PostgreSQL (T018)
+ * Forretningslogik og transaktionsstyring orkestreres her, mens
+ * al dataadgang er fuldstændigt uddelegeret til repositories.
+ * 
  * @param {Object} data - Validerede bookingdata
  */
 export async function createBooking(data) {
@@ -82,141 +89,79 @@ export async function createBooking(data) {
   }
 
   return await withTransaction(async (client) => {
-    // 1. Håndter Country (Find eksisterende eller opret nyt med PostgreSQL RETURNING)
+    // 1. Håndter Country via repository
     let countryId = null;
-    if (typeof country === 'number') {
-      countryId = country;
-    } else if (country) {
-      const countryName = String(country).trim();
-      const countryRes = await client.query(
-        `SELECT id FROM country WHERE LOWER(name) = LOWER($1)`,
-        [countryName]
-      );
-      if (countryRes.rows && countryRes.rows.length > 0) {
-        countryId = countryRes.rows[0].id;
-      } else {
-        const newCountryRes = await client.query(
-          `INSERT INTO country (name) VALUES ($1) RETURNING id`,
-          [countryName]
-        );
-        countryId = newCountryRes.rows?.[0]?.id ?? null;
-      }
+    if (country) {
+      countryId = await bookingRepository.findOrCreateCountry(country, client);
     }
 
-    // 2. Håndter Costumer (Find på email i costumer-tabellen eller opret ny med RETURNING id)
-    let customerId;
+    // 2. Håndter Costumer via repository
     const customerEmail = String(email).trim();
     const firstName = String(first_name).trim();
     const lastName = String(last_name).trim();
     const phone = phone_number ? String(phone_number).trim() : null;
 
-    const existingCustomerRes = await client.query(
-      `SELECT id FROM costumer WHERE LOWER(email) = LOWER($1)`,
-      [customerEmail]
-    );
-
-    if (existingCustomerRes.rows && existingCustomerRes.rows.length > 0) {
-      customerId = existingCustomerRes.rows[0].id;
-      await client.query(
-        `UPDATE costumer 
-         SET first_name = $1, last_name = $2, phone_number = COALESCE($3, phone_number), country_id = COALESCE($4, country_id)
-         WHERE id = $5`,
-        [firstName, lastName, phone, countryId, customerId]
-      );
-    } else {
-      const newCustRes = await client.query(
-        `INSERT INTO costumer (first_name, last_name, email, phone_number, country_id)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
-        [firstName, lastName, customerEmail, phone, countryId]
-      );
-      customerId = newCustRes.rows?.[0]?.id;
-    }
+    const customerId = await bookingRepository.findOrCreateCustomer({
+      firstName,
+      lastName,
+      email: customerEmail,
+      phoneNumber: phone,
+      countryId
+    }, client);
 
     // 3. Find og lås et ledigt værelse af den ønskede værelsestype i perioden
-    // Værelset må IKKE have overlappende bookinger (hvor status != 'cancelled')
-    // Anvender PostgreSQL FOR UPDATE OF r til at forhindre race conditions
-    const availableRoomRes = await client.query(
-      `SELECT r.id, r.name, rt.name AS room_type_name
-       FROM room r
-       JOIN room_type rt ON r.room_type_id = rt.id
-       WHERE r.room_type_id = $1
-         AND r.id NOT IN (
-           SELECT b.room_id
-           FROM booking b
-           WHERE b.status NOT IN ('cancelled', 'canceled')
-             AND b.arrival < $3::timestamp
-             AND b.departure > $2::timestamp
-         )
-       ORDER BY r.id ASC
-       LIMIT 1
-       FOR UPDATE OF r`,
-      [room_type_id, check_in_date, check_out_date]
-    );
+    // Anvender PostgreSQL FOR UPDATE OF r via repository til at forhindre race conditions
+    const assignedRoom = await roomRepository.findAndLockAvailableRoom({
+      roomTypeId: room_type_id,
+      checkIn: check_in_date,
+      checkOut: check_out_date
+    }, client);
 
-    if (!availableRoomRes.rows || availableRoomRes.rows.length === 0) {
+    if (!assignedRoom) {
       const err = new Error('Der er desværre ingen ledige værelser af denne type i den valgte periode.');
       err.statusCode = 409; // Conflict
       throw err;
     }
 
-    const assignedRoom = availableRoomRes.rows[0];
-
-    // 4. Bestem sæson og beregn samlet pris ud fra room_price tabellen
+    // 4. Bestem sæson og beregn samlet pris ud fra room_price tabellen via repository
     const checkInSeasonCode = seasonService.getSeasonForDate(check_in_date);
     const seasonMap = { mid: 1, low: 2, high: 3 };
     let seasonId = seasonMap[checkInSeasonCode] || 1;
     try {
-      const seasonRes = await client.query(
-        `SELECT id FROM season WHERE LOWER(name) = LOWER($1) LIMIT 1`,
-        [checkInSeasonCode]
-      );
-      if (seasonRes.rows && seasonRes.rows.length > 0) {
-        seasonId = seasonRes.rows[0].id;
+      const dbSeason = await roomRepository.getSeasonByName(checkInSeasonCode, client);
+      if (dbSeason?.id) {
+        seasonId = dbSeason.id;
       }
     } catch {
       // fallback til seasonMap
     }
 
-    // Hent dagspris fra PostgreSQL room_price tabellen
-    const priceRes = await client.query(
-      `SELECT price_pr_night FROM room_price WHERE room_type_id = $1 AND season_id = $2`,
-      [room_type_id, seasonId]
-    );
-
+    const priceRow = await roomRepository.getRoomPrice(room_type_id, seasonId, client);
     let calculatedPrice = 0;
-    if (priceRes.rows && priceRes.rows.length > 0) {
-      calculatedPrice = Number(priceRes.rows[0].price_pr_night) * totalNights;
+    if (priceRow && priceRow.price_pr_night != null) {
+      calculatedPrice = Number(priceRow.price_pr_night) * totalNights;
     } else {
       const baseRate = 1200;
       calculatedPrice = baseRate * totalNights;
     }
 
-    // 5. Opret reservation i booking tabellen ved hjælp af PostgreSQL RETURNING
+    // 5. Opret reservation i booking tabellen via repository
     const now = new Date();
-    const insertBookingRes = await client.query(
-      `INSERT INTO booking (
-         costumer_id, order_date, room_id, arrival, departure, 
-         season_id, occupants, price, status, star_rating, updated_at
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING id, order_date`,
-      [
-        customerId,
-        now,
-        assignedRoom.id,
-        check_in_date,
-        check_out_date,
-        seasonId,
-        num_guests,
-        calculatedPrice,
-        'confirmed',
-        5, // Standard rating
-        now,
-      ]
-    );
+    const insertRes = await bookingRepository.insertBooking({
+      costumerId: customerId,
+      orderDate: now,
+      roomId: assignedRoom.id,
+      arrival: check_in_date,
+      departure: check_out_date,
+      seasonId,
+      occupants: num_guests,
+      price: calculatedPrice,
+      status: 'confirmed',
+      starRating: 5,
+      updatedAt: now
+    }, client);
 
-    const bookingId = insertBookingRes.rows?.[0]?.id;
+    const bookingId = insertRes?.id;
 
     // Returner det fulde booking-objekt tilpasset API og frontend
     return {
@@ -305,6 +250,8 @@ export async function getBookings(filterParams = {}) {
 
 /**
  * Opdaterer en eksisterende booking atomisk i PostgreSQL (PUT /api/bookings/:id)
+ * Dataadgang uddelegeret til repositories.
+ * 
  * @param {number|string} id - Booking ID
  * @param {Object} data - Opdaterede bookingdata
  */
@@ -317,23 +264,14 @@ export async function updateBooking(id, data = {}) {
   }
 
   return await withTransaction(async (client) => {
-    const existingRes = await client.query(
-      `SELECT b.*, c.first_name, c.last_name, c.email, c.phone_number, c.country_id, r.room_type_id AS current_room_type_id, r.name AS current_room_number
-       FROM booking b
-       JOIN costumer c ON b.costumer_id = c.id
-       JOIN room r ON b.room_id = r.id
-       WHERE b.id = $1
-       FOR UPDATE OF b`,
-      [bookingId]
-    );
+    const existing = await bookingRepository.getBookingById(bookingId, { lock: true }, client);
 
-    if (!existingRes.rows || existingRes.rows.length === 0) {
+    if (!existing) {
       const err = new Error(`Booking #${bookingId} blev ikke fundet.`);
       err.statusCode = 404;
       throw err;
     }
 
-    const existing = existingRes.rows[0];
     const nextCheckIn = data.check_in_date ? formatDate(data.check_in_date) : formatDate(existing.arrival);
     const nextCheckOut = data.check_out_date ? formatDate(data.check_out_date) : formatDate(existing.departure);
     const totalNights = calculateNights(nextCheckIn, nextCheckOut);
@@ -364,28 +302,16 @@ export async function updateBooking(id, data = {}) {
     let countryId = existing.country_id;
     let countryName = data.country ? String(data.country).trim() : null;
     if (countryName) {
-      const countryRes = await client.query(
-        `SELECT id, name FROM country WHERE LOWER(name) = LOWER($1)`,
-        [countryName]
-      );
-      if (countryRes.rows && countryRes.rows.length > 0) {
-        countryId = countryRes.rows[0].id;
-        countryName = countryRes.rows[0].name;
-      } else {
-        const newCountryRes = await client.query(
-          `INSERT INTO country (name) VALUES ($1) RETURNING id, name`,
-          [countryName]
-        );
-        countryId = newCountryRes.rows?.[0]?.id ?? countryId;
-      }
+      countryId = await bookingRepository.findOrCreateCountry(countryName, client);
     }
 
-    await client.query(
-      `UPDATE costumer
-       SET first_name = $1, last_name = $2, email = $3, phone_number = $4, country_id = $5
-       WHERE id = $6`,
-      [firstName, lastName, customerEmail, customerPhone, countryId, existing.costumer_id]
-    );
+    await bookingRepository.updateCustomer(existing.costumer_id, {
+      firstName,
+      lastName,
+      email: customerEmail,
+      phoneNumber: customerPhone,
+      countryId
+    }, client);
 
     // Tjek om værelset skal genallokeres (ved skift af værelsestype eller datointerval)
     let assignedRoomId = existing.room_id;
@@ -398,34 +324,23 @@ export async function updateBooking(id, data = {}) {
     const roomTypeChanged = nextRoomTypeId !== Number(existing.current_room_type_id);
 
     if ((datesChanged || roomTypeChanged) && nextStatus !== 'cancelled') {
-      const availableRoomRes = await client.query(
-        `SELECT r.id, r.name, rt.name AS room_type_name
-         FROM room r
-         JOIN room_type rt ON r.room_type_id = rt.id
-         WHERE r.room_type_id = $1
-           AND r.id NOT IN (
-             SELECT b.room_id
-             FROM booking b
-             WHERE b.id != $4
-               AND b.status NOT IN ('cancelled', 'canceled')
-               AND b.arrival < $3::timestamp
-               AND b.departure > $2::timestamp
-           )
-         ORDER BY CASE WHEN r.id = $5 THEN 0 ELSE 1 END, r.id ASC
-         LIMIT 1
-         FOR UPDATE OF r`,
-        [nextRoomTypeId, nextCheckIn, nextCheckOut, bookingId, existing.room_id]
-      );
+      const availableRoom = await roomRepository.findAndLockAvailableRoom({
+        roomTypeId: nextRoomTypeId,
+        checkIn: nextCheckIn,
+        checkOut: nextCheckOut,
+        excludeBookingId: bookingId,
+        preferRoomId: existing.room_id
+      }, client);
 
-      if (!availableRoomRes.rows || availableRoomRes.rows.length === 0) {
+      if (!availableRoom) {
         const err = new Error('Der er desværre ingen ledige værelser af denne type i den valgte periode.');
         err.statusCode = 409;
         throw err;
       }
 
-      assignedRoomId = availableRoomRes.rows[0].id;
-      assignedRoomNumber = availableRoomRes.rows[0].name;
-      assignedRoomTypeName = availableRoomRes.rows[0].room_type_name;
+      assignedRoomId = availableRoom.id;
+      assignedRoomNumber = availableRoom.name;
+      assignedRoomTypeName = availableRoom.room_type_name;
     }
 
     // Beregn pris hvis ikke eksplicit sendt eller hvis datoer/værelsestype er ændret
@@ -434,24 +349,24 @@ export async function updateBooking(id, data = {}) {
       const checkInSeasonCode = seasonService.getSeasonForDate(nextCheckIn);
       const seasonMap = { mid: 1, low: 2, high: 3 };
       const seasonId = seasonMap[checkInSeasonCode] || existing.season_id || 1;
-      const priceRes = await client.query(
-        `SELECT price_pr_night FROM room_price WHERE room_type_id = $1 AND season_id = $2`,
-        [nextRoomTypeId, seasonId]
-      );
-      if (priceRes.rows && priceRes.rows.length > 0) {
-        nextPrice = Number(priceRes.rows[0].price_pr_night) * totalNights;
+      const priceRow = await roomRepository.getRoomPrice(nextRoomTypeId, seasonId, client);
+      if (priceRow && priceRow.price_pr_night != null) {
+        nextPrice = Number(priceRow.price_pr_night) * totalNights;
       } else if (data.total_price !== undefined && !Number.isNaN(Number(data.total_price))) {
         nextPrice = Number(data.total_price);
       }
     }
 
     const now = new Date();
-    await client.query(
-      `UPDATE booking
-       SET room_id = $1, arrival = $2, departure = $3, occupants = $4, price = $5, status = $6, updated_at = $7
-       WHERE id = $8`,
-      [assignedRoomId, nextCheckIn, nextCheckOut, nextGuests, nextPrice, nextStatus, now, bookingId]
-    );
+    await bookingRepository.updateBooking(bookingId, {
+      roomId: assignedRoomId,
+      arrival: nextCheckIn,
+      departure: nextCheckOut,
+      occupants: nextGuests,
+      price: nextPrice,
+      status: nextStatus,
+      updatedAt: now
+    }, client);
 
     return {
       id: bookingId,
@@ -460,24 +375,26 @@ export async function updateBooking(id, data = {}) {
       first_name: firstName,
       last_name: lastName,
       guest_name: `${firstName} ${lastName}`.trim(),
-      costumer_name: `${firstName} ${lastName}`.trim(),
       email: customerEmail,
-      costumer_email: customerEmail,
       phone: customerPhone,
       phone_number: customerPhone,
-      country: countryName || data.country || 'Danmark',
+      country: countryName || data.country || null,
+      country_id: countryId,
       room_id: assignedRoomId,
       room_number: assignedRoomNumber,
       room_type_id: nextRoomTypeId,
       room_type_name: assignedRoomTypeName,
       check_in_date: nextCheckIn,
       check_out_date: nextCheckOut,
-      nights: totalNights,
-      occupants: nextGuests,
+      arrival: nextCheckIn,
+      departure: nextCheckOut,
       num_guests: nextGuests,
-      price: nextPrice,
+      occupants: nextGuests,
       total_price: nextPrice,
+      price: nextPrice,
       status: nextStatus,
+      nights: totalNights,
+      total_nights: totalNights,
       created_at: existing.order_date,
       updated_at: now
     };
@@ -485,7 +402,7 @@ export async function updateBooking(id, data = {}) {
 }
 
 /**
- * Aflyser en booking via soft delete (status = 'cancelled') i PostgreSQL (DELETE /api/bookings/:id)
+ * Aflyser en booking atomisk via bookingRepository (DELETE /api/bookings/:id)
  * @param {number|string} id - Booking ID
  */
 export async function cancelBooking(id) {
@@ -497,22 +414,14 @@ export async function cancelBooking(id) {
   }
 
   return await withTransaction(async (client) => {
-    const now = new Date();
-    const res = await client.query(
-      `UPDATE booking
-       SET status = 'cancelled', updated_at = $1
-       WHERE id = $2
-       RETURNING id, costumer_id, room_id, arrival, departure, occupants, price, status, order_date, updated_at`,
-      [now, bookingId]
-    );
+    const row = await bookingRepository.cancelBooking(bookingId, client);
 
-    if (!res.rows || res.rows.length === 0) {
+    if (!row) {
       const err = new Error(`Booking #${bookingId} blev ikke fundet.`);
       err.statusCode = 404;
       throw err;
     }
 
-    const row = res.rows[0];
     return {
       id: row.id,
       costumer_id: row.costumer_id,
