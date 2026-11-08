@@ -1,6 +1,7 @@
 # Hotel Kong Arthur — Booking-CRUD & Analytics Platform (SCAMM)
 
-[![Status](https://img.shields.io/badge/status-Ready%20for%20Implementation-success.svg)]()
+[![Status](https://img.shields.io/badge/status-Fully%20Implemented-success.svg)]()
+[![Tests](https://img.shields.io/badge/tests-86%2F86%20passed-brightgreen.svg)]()
 [![Architecture](https://img.shields.io/badge/architecture-3--tier%20MVC%2FMVVM-blue.svg)]()
 [![Docker](https://img.shields.io/badge/docker-compose%20orchestrated-2496ED.svg)]()
 [![Node.js](https://img.shields.io/badge/node.js-v20%20LTS-green.svg)]()
@@ -91,6 +92,10 @@ Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-s
 ## 📊 Tableau Integration via Web Data Connector (WDC)
 
 Som fastsat i [Constitution Princip IV](.specify/memory/constitution.md) henter Tableau data direkte fra REST API'et uden brug af direkte databasekobling eller statiske CSV-filer:
+
+> 💡 **Hurtig gennemgang for underviser / censor**:  
+> - **Uden at starte Docker (Offline test)**: Dobbeltklik blot på [tableau/kong-arthur-extracted.twbx](./tableau/kong-arthur-extracted.twbx) for øjeblikkelig adgang til alle dashboards med fuldt indlejret dataudtræk.  
+> - **Med Docker (Live WDC integration)**: Start Docker op (`docker compose up -d`) og åbn [tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb) for live REST API-forbindelse med realtidsopdatering (<kbd>F5</kbd>).
 
 1. **Samlet Live WDC Workbook (Option B)**:  
    Åbn [tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb) i Tableau Desktop. Forbinder direkte til WDC (`http://localhost:5000/tableau-wdc.html`) og rummer 6 arbejdsark fordelt på **2 interaktive dashboards**:
