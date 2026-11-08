@@ -18,10 +18,15 @@ Dette bibliotek indeholder artefakter og ressourcer til ledelsesdashboardet i Ta
 - **`Hotel_Kong_Arthur_Room_Types_Dashboard.twb`**:  
   Fristående version af Værelses- & Sæsonanalysen for individuel gennemgang.
 
+- **`kong-arthur-extracted.twbx`**:  
+  Pakket Tableau Workbook (`.twbx`) med **fuldt integreret dataudtræk** indlejret direkte i filen.  
+  Denne version anvendes, hvis der ikke er adgang til live API-forbindelsen eller Docker – data og dashboards virker 100% offline uden behov for Web Data Connector.
+
 > **Bemærk for lokal åbning**:  
 > Filerne er automatisk synkroniseret til din lokale Tableau-mappe:  
 > - `C:\Users\mathi\Documents\My Tableau Repository\Workbooks\Hotel_Kong_Arthur_Executive_Dashboard.twb`  
 > - `C:\Users\mathi\Documents\My Tableau Repository\Workbooks\Hotel_Kong_Arthur_Room_Types_Dashboard.twb`  
+> - `C:\Users\mathi\Documents\My Tableau Repository\Workbooks\kong-arthur-extracted.twbx`  
 > Du kan åbne dem direkte i Tableau Desktop via File -> Open.
 
 ## Manuel trin-for-trin guide (Option A)
