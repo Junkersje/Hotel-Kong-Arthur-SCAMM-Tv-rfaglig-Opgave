@@ -66,8 +66,8 @@ Før en PR merges ind i `development` og din Jira ticket flyttes til **Done**, s
   - `docker-compose up --build -d` kører fejlfrit lokalt på din maskine.
   - Ingen manglende moduler eller brækkede imports.
 - [ ] **Sikkerhed & Hemmeligheder**:
-  - Ingen hardcodede adgangskoder eller API-nøgler i koden (brug `.env`).
-  - `.env` må **aldrig** committes til Git (kun `.env.example`).
+  - Ingen personfølsomme data eller hemmeligheder hardcoded i koden.
+  - Standardmiljøvariable orkestreres automatisk via Docker Compose (ingen `.env`-filer committes til Git).
 - [ ] **Jira Sporbarhed**:
   - Jira ticket-nøglen (f.eks. `SH-15`) indgår i branch-navnet eller commit-beskeden.
   - Checklisten i `specs/001-hotel-management/tasks.md` er opdateret til `[x]`.

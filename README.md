@@ -63,17 +63,15 @@ cd Hotel-Kong-Arthur-SCAMM-Tv-rfaglig-Opgave
 git checkout development
 ```
 
-### 2. Opret miljøvariabler:
+### 2. Start hele systemet med én kommando:
 ```bash
-cp .env.example .env
-```
-
-### 3. Start hele systemet med én kommando:
-```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-swagger-ui`) oprettes, forbindes og starter automatisk op. Databasen initialiseres automatisk med samtlige tabeller, 214 værelser, 30 produkter og 1.000 eksempelbookinger.
+
+> **Zero Configuration**:  
+> Systemet er orkestreret via Docker Compose med indbyggede standardmiljøvariable. Der er **ikke** behov for at oprette eller konfigurere en lokal `.env`-fil for at køre systemet.
 
 ---
 
