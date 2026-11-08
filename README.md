@@ -21,7 +21,7 @@ graph TD
     subgraph Klienter["Klientlag (Præsentation)"]
         Browser["React 18 Single Page App<br/>(Port 3000 - Nginx)"]
         Swagger["Swagger UI Portal<br/>(Port 8080)"]
-        Tableau["Tableau Desktop<br/>(Web Data Connector)"]
+        Tableau["Tableau Desktop<br/>(WDC Live / Pakket .twbx)"]
     end
 
     subgraph BackendApp["Applikationslag (3-Lags Node.js Express - Port 5000)"]
@@ -92,15 +92,18 @@ Alle 4 containere (`hotel-postgres`, `hotel-backend`, `hotel-frontend`, `hotel-s
 
 Som fastsat i [Constitution Princip IV](.specify/memory/constitution.md) henter Tableau data direkte fra REST API'et uden brug af direkte databasekobling eller statiske CSV-filer:
 
-1. **Færdigbygget Workbook (Option B)**:  
-   Åbn [tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb) direkte i Tableau Desktop.
-2. **Trin-for-trin Vejledning (Option A)**:  
-   Følg [docs/tableau_dashboard_guide.md](./docs/tableau_dashboard_guide.md) for detaljerede instruktioner til opbygning af alle sheets og dashboards fra bunden.
-3. **Manuel Forbindelse via WDC**:  
-   - Åbn Tableau Desktop og vælg **Web Data Connector**.
-   - Forbind til `http://localhost:5000/tableau-wdc.html`.
-   - Vælg `hotel_master_kpis` eller en specifik tabel og klik **Indlæs data til Tableau**.
-4. Ved ændringer foretaget i browserfrontenden (opret/ret/slet booking) opdateres Tableau på **under 30 sekunder** ved højreklik &gt; *Opdater (Refresh)* eller tasten <kbd>F5</kbd>.
+1. **Samlet Live WDC Workbook (Option B)**:  
+   Åbn [tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Executive_Dashboard.twb) i Tableau Desktop. Forbinder direkte til WDC (`http://localhost:5000/tableau-wdc.html`) og rummer 6 arbejdsark fordelt på **2 interaktive dashboards**:
+   - *Executive Dashboard* (Hovednøgletal, Værelser vs. Bar, Helene Christine Cocktail/Kaffesalg, ADR).
+   - *Værelses- & Sæsonanalyse* (Omsætning pr. værelsestype med årsfiltrering for 2024–2026, sæsonfordeling og ALOS).
+2. **Offline Pakket Workbook (`.twbx`)**:  
+   Åbn [tableau/kong-arthur-extracted.twbx](./tableau/kong-arthur-extracted.twbx) for fuld offline adgang. Alle data er indlejret direkte i projektmappen, så dashboards kan vises øjeblikkeligt uden en aktiv Docker-forbindelse.
+3. **Fristående Værelsesanalyse (`.twb`)**:  
+   [tableau/Hotel_Kong_Arthur_Room_Types_Dashboard.twb](./tableau/Hotel_Kong_Arthur_Room_Types_Dashboard.twb) til fokuseret analyse af de 8 værelsestyper og sæsoner.
+4. **Trin-for-trin Vejledning (Option A)**:  
+   Følg [docs/tableau_dashboard_guide.md](./docs/tableau_dashboard_guide.md) for detaljerede instruktioner til opbygning af alle sheets og dashboards manuelt fra bunden.
+5. **Realtidsopdatering**:  
+   Ved ændringer foretaget i browserfrontenden (opret/ret/slet booking) opdateres Tableau på **under 30 sekunder** ved højreklik &gt; *Opdater (Refresh)* eller tasten <kbd>F5</kbd>.
 
 ---
 
@@ -120,12 +123,13 @@ Systemet er opdelt i 5 uafhængige, parallelle spor:
 
 ## 📊 Databasens Grundbestand
 
-Databasen initialiseres med faktiske og konsistente data:
+Databasen initialiseres automatisk via PostgreSQL seed med konsistente produktionslignende data:
 * **Værelser**: Præcis **214 fysiske værelser** fordelt over 5 etager.
 * **Værelsestyper**: 8 officielle kategorier (Standard Single, Grand Lit, Standard Double, Superior Double, Junior Suite, Spa Executive, Suite, LOFT Suite).
 * **Varer**: 20 signaturcocktails og 10 specialkaffer med priser i DKK.
 * **Personale**: Bartender & receptionist Helene Christine (ID: `EMP-01`) m.fl.
-* **Historik**: 1.000 seedede reservationer og 1.200 barsalgstransaktioner med gæster fra 20+ lande.
+* **Historik**: **1.001 reservationer** (950 unikke gæster fra 196 lande) og **89.971 barsalgstransaktioner** (2024–2026).
+* **Sæsonpriser**: 3 sæsoner (Lav, Mellem, Høj) med 24 differentierede værelsespriser.
 
 ---
 
@@ -135,17 +139,20 @@ For fejlfinding og verifikation af containerne:
 
 ```bash
 # Tjek containerstatus og healthchecks
-docker-compose ps
+docker compose ps
 
 # Følg backend-logs i realtid
-docker-compose logs -f backend
+docker compose logs -f backend
+
+# Kør test-suiten (86 tests) i backend-containeren
+docker exec hotel-backend npm test
 
 # Fuld genstart med bibeholdelse af data på volume
-docker-compose restart
+docker compose restart
 
 # Nulstil alt inkl. database-volumen (ren genstart)
-docker-compose down -v
-docker-compose up --build -d
+docker compose down -v
+docker compose up --build -d
 ```
 
 Se retningslinjer for branches, commits og PR's i [CONTRIBUTE.md](./CONTRIBUTE.md).  
