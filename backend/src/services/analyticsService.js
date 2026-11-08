@@ -132,11 +132,24 @@ const analyticsService = {
   },
 
   /**
-   * Henter værelsesomsætning fordelt på værelsestyper.
+   * Henter værelsesomsætning fordelt på værelsestyper (valgfrit filtreret på år).
+   * @param {number} [year] - Valgfrit årstal (f.eks. 2025 eller 2026)
    */
-  async getRoomTypeBreakdown() {
+  async getRoomTypeBreakdown(year = null) {
     const repo = this?.analyticsRepository || analyticsRepository;
-    return await repo.getRevenueByRoomType();
+    return await repo.getRevenueByRoomType(year);
+  },
+
+  /**
+   * US-14 & US-15: Henter detaljeret værelsesomsætning opdelt på år og sæson.
+   * @param {number} [year] - Valgfrit årstal
+   */
+  async getRoomTypeAnnualAnalytics(year = null) {
+    const repo = this?.analyticsRepository || analyticsRepository;
+    if (typeof repo.getRoomTypeAnnualAnalytics === 'function') {
+      return await repo.getRoomTypeAnnualAnalytics(year);
+    }
+    return await repo.getRevenueByRoomType(year);
   },
 
   /**

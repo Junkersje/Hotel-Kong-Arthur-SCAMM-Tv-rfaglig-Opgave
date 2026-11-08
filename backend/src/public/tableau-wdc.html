@@ -394,18 +394,30 @@
       myConnector.getSchema = function (schemaCallback) {
         var mode = getSelectedMode();
 
-        // Table: hotel_master_kpis
+        // Table: hotel_master_kpis (Unified Master Datasource: Både Hovednøgletal og Værelsestyper)
         var masterCols = [
-          { id: "totalRevenue", alias: "Samlet Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
-          { id: "roomRevenue", alias: "Værelsesomsætning (DKK)", dataType: tableau.dataTypeEnum.float },
-          { id: "barRevenue", alias: "Baromsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          // Værelsesniveau (til Værelsesanalyser Sheet 4, 5, 6)
+          { id: "roomTypeId", alias: "Værelsestype ID", dataType: tableau.dataTypeEnum.int },
+          { id: "roomTypeName", alias: "Værelsestype Navn", dataType: tableau.dataTypeEnum.string },
+          { id: "year", alias: "År", dataType: tableau.dataTypeEnum.int },
+          { id: "season", alias: "Sæson", dataType: tableau.dataTypeEnum.string },
+          { id: "roomRevenue", alias: "Værelsesomsætning pr Type (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "totalBookings", alias: "Antal Bookinger pr Type", dataType: tableau.dataTypeEnum.int },
+          { id: "totalNightsSold", alias: "Solgte Værelsesnætter pr Type", dataType: tableau.dataTypeEnum.int },
+          { id: "adr", alias: "ADR pr Værelsestype (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "alos", alias: "Gns Opholdslængde ALOS (dage)", dataType: tableau.dataTypeEnum.float },
+
+          // Hotel Hovednøgletal (til Executive Dashboard Sheet 1, 2, 3)
+          { id: "totalRevenue", alias: "Samlet Hotelomsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "totalHotelRoomRevenue", alias: "Samlet Værelsesomsætning (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "barRevenue", alias: "Samlet Baromsætning (DKK)", dataType: tableau.dataTypeEnum.float },
           { id: "roomRevenuePercentage", alias: "Værelse Omsætningsandel (%)", dataType: tableau.dataTypeEnum.float },
           { id: "barRevenuePercentage", alias: "Bar Omsætningsandel (%)", dataType: tableau.dataTypeEnum.float },
-          { id: "adr", alias: "ADR - Gennemsnitlig Dagspris (DKK)", dataType: tableau.dataTypeEnum.float },
-          { id: "occupiedRoomNights", alias: "Solgte Værelsesnætter", dataType: tableau.dataTypeEnum.int },
+          { id: "overallADR", alias: "Hotel ADR - Gennemsnitlig Dagspris (DKK)", dataType: tableau.dataTypeEnum.float },
+          { id: "occupiedRoomNights", alias: "Hotel Solgte Nætter", dataType: tableau.dataTypeEnum.int },
           { id: "estimatedOverallOccupancyPercent", alias: "Samlet Belægningsgrad (%)", dataType: tableau.dataTypeEnum.float },
           { id: "totalRoomsCapacity", alias: "Samlet Værelseskapacitet", dataType: tableau.dataTypeEnum.int },
-          { id: "bookingsCount", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
+          { id: "bookingsCount", alias: "Antal Bookinger i alt", dataType: tableau.dataTypeEnum.int },
           { id: "barTransactionsCount", alias: "Antal Bar Transaktioner", dataType: tableau.dataTypeEnum.int },
           { id: "cocktailRevenue", alias: "Cocktail Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
           { id: "coffeeRevenue", alias: "Kaffe Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
@@ -426,10 +438,12 @@
           columns: masterCols
         };
 
-        // Table: room_type_analytics
+        // Table: room_type_analytics (De 8 officielle værelsestyper med års- og sæsonfiltrering)
         var roomTypeCols = [
           { id: "roomTypeId", alias: "Værelsestype ID", dataType: tableau.dataTypeEnum.int },
           { id: "roomTypeName", alias: "Værelsestype Navn", dataType: tableau.dataTypeEnum.string },
+          { id: "year", alias: "År", dataType: tableau.dataTypeEnum.int },
+          { id: "season", alias: "Sæson", dataType: tableau.dataTypeEnum.string },
           { id: "maxCapacity", alias: "Maks Personkapacitet", dataType: tableau.dataTypeEnum.int },
           { id: "totalBookings", alias: "Antal Bookinger", dataType: tableau.dataTypeEnum.int },
           { id: "totalRevenue", alias: "Samlet Omsætning (DKK)", dataType: tableau.dataTypeEnum.float },
@@ -511,22 +525,9 @@
           columns: bookingCols
         };
 
-        if (mode === "room_type_analytics") {
-          schemaCallback([roomTypeTable]);
-        } else if (mode === "bar_sales_breakdown") {
-          schemaCallback([barTable]);
-        } else if (mode === "country_analytics") {
-          schemaCallback([countryTable]);
-        } else if (mode === "monthly_occupancy") {
-          schemaCallback([monthlyTable]);
-        } else if (mode === "recent_bookings") {
-          schemaCallback([bookingTable]);
-        } else if (mode === "all_tables") {
-          schemaCallback([masterTable, roomTypeTable, barTable, countryTable, monthlyTable, bookingTable]);
-        } else {
-          // Default: hotel_master_kpis
-          schemaCallback([masterTable]);
-        }
+        // Udstil altid alle tilgængelige tabeller til Tableau Desktop, så alle datasources i projektet
+        // kan initialiseres og danne extracts uden fejl:
+        schemaCallback([masterTable, roomTypeTable, barTable, countryTable, monthlyTable, bookingTable]);
       };
 
       // 4. Hent Data
@@ -536,74 +537,95 @@
         if (table.tableInfo.id === "hotel_master_kpis" || table.tableInfo.id === "hotel_summary") {
           Promise.all([
             fetch(base + "/api/analytics/summary").then(function (r) { return r.json(); }),
-            fetch(base + "/api/analytics/bar-performance").then(function (r) { return r.json(); })
+            fetch(base + "/api/analytics/bar-performance").then(function (r) { return r.json(); }),
+            fetch(base + "/api/analytics/revenue-by-room-type?detailed=true").then(function (r) { return r.json(); })
           ]).then(function (results) {
             var summary = results[0] && results[0].data;
             var bar = results[1] && results[1].data;
+            var roomTypes = results[2] && results[2].data;
 
             var cocktailCat = bar && bar.categoryDistribution && bar.categoryDistribution.find(function (c) { return c.category === "cocktail"; });
             var coffeeCat = bar && bar.categoryDistribution && bar.categoryDistribution.find(function (c) { return c.category === "coffee"; });
 
-            var row = {
-              totalRevenue: Number(summary && summary.financials ? summary.financials.totalRevenue : 0),
-              roomRevenue: Number(summary && summary.financials ? summary.financials.roomRevenue : 0),
-              barRevenue: Number(summary && summary.financials ? summary.financials.barRevenue : 0),
-              roomRevenuePercentage: Number(summary && summary.financials ? summary.financials.roomRevenuePercentage : 0),
-              barRevenuePercentage: Number(summary && summary.financials ? summary.financials.barRevenuePercentage : 0),
-              adr: Number(summary && summary.financials ? summary.financials.adr : 0),
-              occupiedRoomNights: Number(summary && summary.occupancy ? summary.occupancy.occupiedRoomNights : 0),
-              estimatedOverallOccupancyPercent: Number(summary && summary.occupancy ? summary.occupancy.estimatedOverallOccupancyPercent : 0),
-              totalRoomsCapacity: Number(summary && summary.occupancy ? summary.occupancy.totalRoomsCapacity : 214),
-              bookingsCount: Number(summary ? summary.bookingsCount : 0),
-              barTransactionsCount: Number(summary ? summary.barTransactionsCount : 0),
-              cocktailRevenue: Number(cocktailCat ? cocktailCat.totalRevenue : 0),
-              coffeeRevenue: Number(coffeeCat ? coffeeCat.totalRevenue : 0),
-              cocktailSalesPercent: Number(cocktailCat ? cocktailCat.percentageOfTotalSales : 0),
-              coffeeSalesPercent: Number(coffeeCat ? coffeeCat.percentageOfTotalSales : 0),
-              generatedAt: (summary && summary.generatedAt) || new Date().toISOString()
-            };
+            var totalRev = Number(summary && summary.financials ? summary.financials.totalRevenue : 0);
+            var totalRoomRev = Number(summary && summary.financials ? summary.financials.roomRevenue : 0);
+            var barRev = Number(summary && summary.financials ? summary.financials.barRevenue : 0);
+            var roomPct = Number(summary && summary.financials ? summary.financials.roomRevenuePercentage : 0);
+            var barPct = Number(summary && summary.financials ? summary.financials.barRevenuePercentage : 0);
+            var overallAdr = Number(summary && summary.financials ? summary.financials.adr : 0);
+            var occupiedNights = Number(summary && summary.occupancy ? summary.occupancy.occupiedRoomNights : 0);
+            var occPercent = Number(summary && summary.occupancy ? summary.occupancy.estimatedOverallOccupancyPercent : 0);
+            var capacity = Number(summary && summary.occupancy ? summary.occupancy.totalRoomsCapacity : 214);
+            var bookCount = Number(summary ? summary.bookingsCount : 0);
+            var barTxCount = Number(summary ? summary.barTransactionsCount : 0);
+            var cktRev = Number(cocktailCat ? cocktailCat.totalRevenue : 0);
+            var cofRev = Number(coffeeCat ? coffeeCat.totalRevenue : 0);
+            var cktPct = Number(cocktailCat ? cocktailCat.percentageOfTotalSales : 0);
+            var cofPct = Number(coffeeCat ? coffeeCat.percentageOfTotalSales : 0);
+            var genAt = (summary && summary.generatedAt) || new Date().toISOString();
 
-            table.appendRows([row]);
-            doneCallback();
-          }).catch(function (err) {
-            console.error("Fejl ved hentning af hotel_master_kpis:", err);
-            doneCallback();
-          });
-        } else if (table.tableInfo.id === "room_type_analytics") {
-          Promise.all([
-            fetch(base + "/api/analytics/revenue-by-room-type").then(function (r) { return r.json(); }),
-            fetch(base + "/api/analytics/adr").then(function (r) { return r.json(); }),
-            fetch(base + "/api/analytics/stay-length").then(function (r) { return r.json(); })
-          ]).then(function (results) {
-            var roomTypes = (results[0] && results[0].data) || [];
-            var adrData = (results[1] && results[1].data && results[1].data.byRoomType) || [];
-            var alosData = (results[2] && results[2].data && results[2].data.byRoomType) || [];
-
-            var adrMap = {};
-            adrData.forEach(function (a) { adrMap[a.roomTypeId] = a.adr; });
-
-            var alosMap = {};
-            alosData.forEach(function (al) { alosMap[al.roomTypeId] = al.alos; });
-
-            var rows = roomTypes.map(function (rt) {
+            var rows = (roomTypes || []).map(function (rt) {
               return {
                 roomTypeId: Number(rt.room_type_id),
                 roomTypeName: String(rt.room_type_name || ""),
-                maxCapacity: Number(rt.max_capacity) || 0,
+                year: Number(rt.year) || 2025,
+                season: String(rt.season || "Lavsæson"),
+                roomRevenue: Number(rt.total_revenue) || 0,
                 totalBookings: Number(rt.total_bookings) || 0,
-                totalRevenue: Number(rt.total_revenue) || 0,
                 totalNightsSold: Number(rt.total_nights_sold) || 0,
-                adr: Number(adrMap[rt.room_type_id]) || 0,
-                alos: Number(alosMap[rt.room_type_id]) || 0
+                adr: Number(rt.adr) || 0,
+                alos: Number(rt.alos) || 0,
+                totalRevenue: totalRev,
+                totalHotelRoomRevenue: totalRoomRev,
+                barRevenue: barRev,
+                roomRevenuePercentage: roomPct,
+                barRevenuePercentage: barPct,
+                overallADR: overallAdr,
+                occupiedRoomNights: occupiedNights,
+                estimatedOverallOccupancyPercent: occPercent,
+                totalRoomsCapacity: capacity,
+                bookingsCount: bookCount,
+                barTransactionsCount: barTxCount,
+                cocktailRevenue: cktRev,
+                coffeeRevenue: cofRev,
+                cocktailSalesPercent: cktPct,
+                coffeeSalesPercent: cofPct,
+                generatedAt: genAt
               };
             });
 
             table.appendRows(rows);
             doneCallback();
           }).catch(function (err) {
-            console.error("Fejl ved hentning af room_type_analytics:", err);
+            console.error("Fejl ved hentning af hotel_master_kpis:", err);
             doneCallback();
           });
+        } else if (table.tableInfo.id === "room_type_analytics") {
+          fetch(base + "/api/analytics/revenue-by-room-type?detailed=true")
+            .then(function (r) { return r.json(); })
+            .then(function (json) {
+              var roomTypes = (json && json.data) || [];
+              var rows = roomTypes.map(function (rt) {
+                return {
+                  roomTypeId: Number(rt.room_type_id),
+                  roomTypeName: String(rt.room_type_name || ""),
+                  year: Number(rt.year) || 2025,
+                  season: String(rt.season || "Lavsæson"),
+                  maxCapacity: Number(rt.max_capacity) || 0,
+                  totalBookings: Number(rt.total_bookings) || 0,
+                  totalRevenue: Number(rt.total_revenue) || 0,
+                  totalNightsSold: Number(rt.total_nights_sold) || 0,
+                  adr: Number(rt.adr) || 0,
+                  alos: Number(rt.alos) || 0
+                };
+              });
+
+              table.appendRows(rows);
+              doneCallback();
+            }).catch(function (err) {
+              console.error("Fejl ved hentning af room_type_analytics:", err);
+              doneCallback();
+            });
         } else if (table.tableInfo.id === "bar_sales_breakdown") {
           fetch(base + "/api/analytics/bar-performance")
             .then(function (res) { return res.json(); })

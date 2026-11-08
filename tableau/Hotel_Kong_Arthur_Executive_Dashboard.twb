@@ -20,7 +20,8 @@
     <preference name='ui.shelf.height' value='26' />
   </preferences>
   <datasources>
-    <datasource caption='Kong Arthur - Hovednøgletal (REST API)' inline='true' name='federated.hotel_master_kpis' version='18.1'>
+    <!-- Enkelt Unified Master Datakilde til hele projektet -->
+    <datasource caption='Kong Arthur - Master Analytics (REST API)' inline='true' name='federated.hotel_master_kpis' version='18.1'>
       <connection class='federated'>
         <named-connections>
           <named-connection caption='Hotel Kong Arthur WDC' name='webdata-direct.kong_arthur_wdc'>
@@ -29,6 +30,96 @@
         </named-connections>
         <relation connection='webdata-direct.kong_arthur_wdc' name='hotel_master_kpis' table='[hotel_master_kpis]' type='table' />
         <metadata-records>
+          <metadata-record class='column'>
+            <remote-name>roomTypeId</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[roomTypeId]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>roomTypeId</remote-alias>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>roomTypeName</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[roomTypeName]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>roomTypeName</remote-alias>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>year</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[year]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>year</remote-alias>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>season</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[season]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>season</remote-alias>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>roomRevenue</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[roomRevenue]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>roomRevenue</remote-alias>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>totalBookings</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[totalBookings]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>totalBookings</remote-alias>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>totalNightsSold</remote-name>
+            <remote-type>20</remote-type>
+            <local-name>[totalNightsSold]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>totalNightsSold</remote-alias>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>adr</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[adr]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>adr</remote-alias>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>alos</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[alos]</local-name>
+            <parent-name>[hotel_master_kpis]</parent-name>
+            <remote-alias>alos</remote-alias>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
           <metadata-record class='column'>
             <remote-name>totalRevenue</remote-name>
             <remote-type>5</remote-type>
@@ -40,11 +131,11 @@
             <contains-null>true</contains-null>
           </metadata-record>
           <metadata-record class='column'>
-            <remote-name>roomRevenue</remote-name>
+            <remote-name>totalHotelRoomRevenue</remote-name>
             <remote-type>5</remote-type>
-            <local-name>[roomRevenue]</local-name>
+            <local-name>[totalHotelRoomRevenue]</local-name>
             <parent-name>[hotel_master_kpis]</parent-name>
-            <remote-alias>roomRevenue</remote-alias>
+            <remote-alias>totalHotelRoomRevenue</remote-alias>
             <local-type>real</local-type>
             <aggregation>Sum</aggregation>
             <contains-null>true</contains-null>
@@ -80,11 +171,11 @@
             <contains-null>true</contains-null>
           </metadata-record>
           <metadata-record class='column'>
-            <remote-name>adr</remote-name>
+            <remote-name>overallADR</remote-name>
             <remote-type>5</remote-type>
-            <local-name>[adr]</local-name>
+            <local-name>[overallADR]</local-name>
             <parent-name>[hotel_master_kpis]</parent-name>
-            <remote-alias>adr</remote-alias>
+            <remote-alias>overallADR</remote-alias>
             <local-type>real</local-type>
             <aggregation>Sum</aggregation>
             <contains-null>true</contains-null>
@@ -192,24 +283,26 @@
         </metadata-records>
       </connection>
       <aliases enabled='yes' />
-      <column caption='Total Omsætning (DKK)' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[totalRevenue]' role='measure' type='quantitative' />
-      <column caption='Værelsesomsætning (DKK)' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[roomRevenue]' role='measure' type='quantitative' />
-      <column caption='Baromsætning (DKK)' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[barRevenue]' role='measure' type='quantitative' />
+      <column caption='Værelsestype' datatype='string' name='[roomTypeName]' role='dimension' type='nominal' />
+      <column caption='År' datatype='integer' name='[year]' role='dimension' type='ordinal' />
+      <column caption='Sæson' datatype='string' name='[season]' role='dimension' type='nominal' />
+      <column caption='Værelsesomsætning' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[roomRevenue]' role='measure' type='quantitative' />
+      <column caption='Total Hotelomsætning' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[totalRevenue]' role='measure' type='quantitative' />
+      <column caption='Total Værelsesindtægt' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[totalHotelRoomRevenue]' role='measure' type='quantitative' />
+      <column caption='Total Baromsætning' datatype='real' default-format='C1030kr. #,##0;kr. -#,##0' name='[barRevenue]' role='measure' type='quantitative' />
       <column caption='Værelsesandel (%)' datatype='real' name='[roomRevenuePercentage]' role='measure' type='quantitative' />
       <column caption='Barandel (%)' datatype='real' name='[barRevenuePercentage]' role='measure' type='quantitative' />
-      <column caption='Average Daily Rate (ADR)' datatype='real' default-format='C1030kr. #,##0.00;kr. -#,##0.00' name='[adr]' role='measure' type='quantitative' />
-      <column caption='Solgte Værelsesnætter' datatype='integer' name='[occupiedRoomNights]' role='measure' type='quantitative' />
-      <column caption='Belægningsgrad (%)' datatype='real' name='[estimatedOverallOccupancyPercent]' role='measure' type='quantitative' />
-      <column caption='Værelseskapacitet (214)' datatype='integer' name='[totalRoomsCapacity]' role='measure' type='quantitative' />
-      <column caption='Antal Bookinger' datatype='integer' name='[bookingsCount]' role='measure' type='quantitative' />
-      <column caption='Antal Bartransaktioner' datatype='integer' name='[barTransactionsCount]' role='measure' type='quantitative' />
+      <column caption='Hotel ADR' datatype='real' default-format='C1030kr. #,##0.00;kr. -#,##0.00' name='[overallADR]' role='measure' type='quantitative' />
+      <column caption='Værelsestype ADR' datatype='real' default-format='C1030kr. #,##0.00;kr. -#,##0.00' name='[adr]' role='measure' type='quantitative' />
+      <column caption='ALOS (Dage)' datatype='real' default-format='#,##0.0' name='[alos]' role='measure' type='quantitative' />
       <column caption='Cocktail Omsætning' datatype='real' name='[cocktailRevenue]' role='measure' type='quantitative' />
       <column caption='Kaffe Omsætning' datatype='real' name='[coffeeRevenue]' role='measure' type='quantitative' />
       <column caption='Cocktail Salgsandel (%)' datatype='real' name='[cocktailSalesPercent]' role='measure' type='quantitative' />
       <column caption='Kaffe Salgsandel (%)' datatype='real' name='[coffeeSalesPercent]' role='measure' type='quantitative' />
-      <column caption='Tidspunkt' datatype='string' name='[generatedAt]' role='dimension' type='nominal' />
+      <column caption='Belægningsgrad (%)' datatype='real' name='[estimatedOverallOccupancyPercent]' role='measure' type='quantitative' />
     </datasource>
   </datasources>
+
   <worksheets>
     <!-- Sheet 1: Executive KPI Scorecards -->
     <worksheet name='1. Hovednøgletal'>
@@ -223,17 +316,17 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='Kong Arthur - Hovednøgletal (REST API)' name='federated.hotel_master_kpis' />
+            <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
           </datasources>
           <datasource-dependencies datasource='federated.hotel_master_kpis'>
             <column datatype='real' name='[totalRevenue]' role='measure' type='quantitative' />
-            <column datatype='real' name='[roomRevenue]' role='measure' type='quantitative' />
+            <column datatype='real' name='[totalHotelRoomRevenue]' role='measure' type='quantitative' />
             <column datatype='real' name='[barRevenue]' role='measure' type='quantitative' />
-            <column datatype='real' name='[adr]' role='measure' type='quantitative' />
-            <column-instance column='[totalRevenue]' derivation='Sum' name='[sum:totalRevenue:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[barRevenue]' derivation='Sum' name='[sum:barRevenue:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[adr]' derivation='Sum' name='[sum:adr:qk]' pivot='key' type='quantitative' />
+            <column datatype='real' name='[overallADR]' role='measure' type='quantitative' />
+            <column-instance column='[totalRevenue]' derivation='Avg' name='[avg:totalRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[totalHotelRoomRevenue]' derivation='Avg' name='[avg:totalHotelRoomRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[barRevenue]' derivation='Avg' name='[avg:barRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[overallADR]' derivation='Avg' name='[avg:overallADR:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
           <aggregation value='true' />
         </view>
@@ -252,9 +345,9 @@
           </pane>
         </panes>
         <rows />
-        <cols>([federated.hotel_master_kpis].[sum:totalRevenue:qk] / [federated.hotel_master_kpis].[sum:roomRevenue:qk] / [federated.hotel_master_kpis].[sum:barRevenue:qk] / [federated.hotel_master_kpis].[sum:adr:qk])</cols>
+        <cols>([federated.hotel_master_kpis].[avg:totalRevenue:qk] / [federated.hotel_master_kpis].[avg:totalHotelRoomRevenue:qk] / [federated.hotel_master_kpis].[avg:barRevenue:qk] / [federated.hotel_master_kpis].[avg:overallADR:qk])</cols>
       </table>
-      <simple-id uuid='{698B4CAD-7C81-4731-8580-40A83D4F928E}' />
+      <simple-id uuid='{89AD95DE-AD11-45FD-8FEF-19D8DDB2CEDA}' />
     </worksheet>
 
     <!-- Sheet 2: Omsætningsfordeling Værelser vs Bar -->
@@ -269,13 +362,13 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='Kong Arthur - Hovednøgletal (REST API)' name='federated.hotel_master_kpis' />
+            <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
           </datasources>
           <datasource-dependencies datasource='federated.hotel_master_kpis'>
-            <column datatype='real' name='[roomRevenue]' role='measure' type='quantitative' />
+            <column datatype='real' name='[totalHotelRoomRevenue]' role='measure' type='quantitative' />
             <column datatype='real' name='[barRevenue]' role='measure' type='quantitative' />
-            <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[barRevenue]' derivation='Sum' name='[sum:barRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[totalHotelRoomRevenue]' derivation='Avg' name='[avg:totalHotelRoomRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[barRevenue]' derivation='Avg' name='[avg:barRevenue:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
           <aggregation value='true' />
         </view>
@@ -294,9 +387,9 @@
           </pane>
         </panes>
         <rows />
-        <cols>([federated.hotel_master_kpis].[sum:roomRevenue:qk] / [federated.hotel_master_kpis].[sum:barRevenue:qk])</cols>
+        <cols>([federated.hotel_master_kpis].[avg:totalHotelRoomRevenue:qk] / [federated.hotel_master_kpis].[avg:barRevenue:qk])</cols>
       </table>
-      <simple-id uuid='{A0DD9D50-3A37-4793-AC55-9EED7ABC7F76}' />
+      <simple-id uuid='{2D97F7A4-F2B1-471E-A6FF-934D7B8C3ECE}' />
     </worksheet>
 
     <!-- Sheet 3: Cocktails vs Kaffe -->
@@ -311,13 +404,13 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='Kong Arthur - Hovednøgletal (REST API)' name='federated.hotel_master_kpis' />
+            <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
           </datasources>
           <datasource-dependencies datasource='federated.hotel_master_kpis'>
             <column datatype='real' name='[cocktailRevenue]' role='measure' type='quantitative' />
             <column datatype='real' name='[coffeeRevenue]' role='measure' type='quantitative' />
-            <column-instance column='[cocktailRevenue]' derivation='Sum' name='[sum:cocktailRevenue:qk]' pivot='key' type='quantitative' />
-            <column-instance column='[coffeeRevenue]' derivation='Sum' name='[sum:coffeeRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[cocktailRevenue]' derivation='Avg' name='[avg:cocktailRevenue:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[coffeeRevenue]' derivation='Avg' name='[avg:coffeeRevenue:qk]' pivot='key' type='quantitative' />
           </datasource-dependencies>
           <aggregation value='true' />
         </view>
@@ -336,13 +429,151 @@
           </pane>
         </panes>
         <rows />
-        <cols>([federated.hotel_master_kpis].[sum:cocktailRevenue:qk] / [federated.hotel_master_kpis].[sum:coffeeRevenue:qk])</cols>
+        <cols>([federated.hotel_master_kpis].[avg:cocktailRevenue:qk] / [federated.hotel_master_kpis].[avg:coffeeRevenue:qk])</cols>
       </table>
-      <simple-id uuid='{C673ADA0-9E64-4411-BAC1-EF9580C85A1C}' />
+      <simple-id uuid='{A01E9AE3-78E5-435D-B88E-F00DA2C39D9E}' />
+    </worksheet>
+
+    <!-- Sheet 4: Omsætning pr. Værelsestype (US-14, US-15) -->
+    <worksheet name='4. Omsætning pr. Værelsestype'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run fontcolor='#1e293b' fontname='Arial' fontsize='16' bold='true'>Omsætning pr. Værelsestype (De 8 officielle typer)</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
+          </datasources>
+          <datasource-dependencies datasource='federated.hotel_master_kpis'>
+            <column datatype='string' name='[roomTypeName]' role='dimension' type='nominal' />
+            <column datatype='integer' name='[year]' role='dimension' type='ordinal' />
+            <column datatype='real' name='[roomRevenue]' role='measure' type='quantitative' />
+            <column-instance column='[roomTypeName]' derivation='None' name='[none:roomTypeName:nk]' pivot='key' type='nominal' />
+            <column-instance column='[year]' derivation='None' name='[none:year:ok]' pivot='key' type='ordinal' />
+            <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Bar' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>[federated.hotel_master_kpis].[none:roomTypeName:nk]</rows>
+        <cols>[federated.hotel_master_kpis].[sum:roomRevenue:qk]</cols>
+      </table>
+      <simple-id uuid='{0DAA3DAF-0317-41FB-A11D-C2F37E65A121}' />
+    </worksheet>
+
+    <!-- Sheet 5: Indtjening pr. Værelsestype & Sæson (US-15) -->
+    <worksheet name='5. Indtjening pr. Sæson'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run fontcolor='#1e293b' fontname='Arial' fontsize='14' bold='true'>Indtjening pr. Værelsestype opdelt på Sæson (Lav, Mellem, Høj)</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
+          </datasources>
+          <datasource-dependencies datasource='federated.hotel_master_kpis'>
+            <column datatype='string' name='[roomTypeName]' role='dimension' type='nominal' />
+            <column datatype='string' name='[season]' role='dimension' type='nominal' />
+            <column datatype='integer' name='[year]' role='dimension' type='ordinal' />
+            <column datatype='real' name='[roomRevenue]' role='measure' type='quantitative' />
+            <column-instance column='[roomTypeName]' derivation='None' name='[none:roomTypeName:nk]' pivot='key' type='nominal' />
+            <column-instance column='[season]' derivation='None' name='[none:season:nk]' pivot='key' type='nominal' />
+            <column-instance column='[year]' derivation='None' name='[none:year:ok]' pivot='key' type='ordinal' />
+            <column-instance column='[roomRevenue]' derivation='Sum' name='[sum:roomRevenue:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Bar' />
+            <encodings>
+              <color column='[federated.hotel_master_kpis].[none:season:nk]' />
+            </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>[federated.hotel_master_kpis].[none:roomTypeName:nk]</rows>
+        <cols>[federated.hotel_master_kpis].[sum:roomRevenue:qk]</cols>
+      </table>
+      <simple-id uuid='{4B4AA03D-E319-445D-B06C-07D8BBC4C60A}' />
+    </worksheet>
+
+    <!-- Sheet 6: Opholdslængde ALOS pr. Værelsestype (US-16) -->
+    <worksheet name='6. Opholdslængde (ALOS) pr. Type'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run fontcolor='#1e293b' fontname='Arial' fontsize='14' bold='true'>Gennemsnitlig Opholdslængde (ALOS i dage) pr. Værelsestype</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
+          </datasources>
+          <datasource-dependencies datasource='federated.hotel_master_kpis'>
+            <column datatype='string' name='[roomTypeName]' role='dimension' type='nominal' />
+            <column datatype='integer' name='[year]' role='dimension' type='ordinal' />
+            <column datatype='real' name='[alos]' role='measure' type='quantitative' />
+            <column-instance column='[roomTypeName]' derivation='None' name='[none:roomTypeName:nk]' pivot='key' type='nominal' />
+            <column-instance column='[year]' derivation='None' name='[none:year:ok]' pivot='key' type='ordinal' />
+            <column-instance column='[alos]' derivation='Avg' name='[avg:alos:qk]' pivot='key' type='quantitative' />
+          </datasource-dependencies>
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Bar' />
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows>[federated.hotel_master_kpis].[none:roomTypeName:nk]</rows>
+        <cols>[federated.hotel_master_kpis].[avg:alos:qk]</cols>
+      </table>
+      <simple-id uuid='{2021F714-D443-464D-806A-DBF9E4537B82}' />
     </worksheet>
   </worksheets>
 
   <dashboards>
+    <!-- Dashboard 1: Executive Management Dashboard -->
     <dashboard enable-sort-zone-taborder='true' name='Executive Dashboard'>
       <layout-options>
         <title>
@@ -354,7 +585,7 @@
       <style />
       <size maxheight='900' maxwidth='1400' minheight='900' minwidth='1400' />
       <datasources>
-        <datasource caption='Kong Arthur - Hovednøgletal (REST API)' name='federated.hotel_master_kpis' />
+        <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
       </datasources>
       <zones>
         <zone h='100000' id='1' type-v2='layout-basic' w='100000' x='0' y='0'>
@@ -377,7 +608,48 @@
           </zones>
         </devicelayout>
       </devicelayouts>
-      <simple-id uuid='{8E03741F-A010-460B-BC17-FBEC23A6E935}' />
+      <simple-id uuid='{01B20AA3-CD3A-40BA-8EF2-96BD0F9B82F3}' />
+    </dashboard>
+
+    <!-- Dashboard 2: Værelses- & Sæsonanalyse Dashboard -->
+    <dashboard enable-sort-zone-taborder='true' name='Værelses- &amp; Sæsonanalyse'>
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run fontcolor='#1e293b' fontname='Arial' fontsize='20' bold='true'>🛏️ Hotel Kong Arthur — Værelses- &amp; Sæsonanalyse (De 8 Værelsestyper)</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <style />
+      <size maxheight='900' maxwidth='1400' minheight='900' minwidth='1400' />
+      <datasources>
+        <datasource caption='Kong Arthur - Master Analytics (REST API)' name='federated.hotel_master_kpis' />
+      </datasources>
+      <zones>
+        <zone h='100000' id='11' type-v2='layout-basic' w='100000' x='0' y='0'>
+          <zone h='10000' id='12' type-v2='title' w='98000' x='1000' y='1000' />
+          <!-- Sheet 4: Omsætning pr Værelsestype -->
+          <zone h='48000' id='14' name='4. Omsætning pr. Værelsestype' w='48000' x='1000' y='12000' />
+          <!-- Sheet 5: Indtjening pr Sæson -->
+          <zone h='48000' id='15' name='5. Indtjening pr. Sæson' w='48000' x='51000' y='12000' />
+          <!-- Sheet 6: ALOS pr Type -->
+          <zone h='38000' id='16' name='6. Opholdslængde (ALOS) pr. Type' w='98000' x='1000' y='61000' />
+        </zone>
+      </zones>
+      <devicelayouts>
+        <devicelayout auto-generated='true' name='Phone'>
+          <size maxheight='900' minheight='900' sizing-mode='vscroll' />
+          <zones>
+            <zone h='100000' id='17' type-v2='layout-basic' w='100000' x='0' y='0'>
+              <zone h='10000' id='12' type-v2='title' w='98000' x='1000' y='1000' />
+              <zone h='48000' id='14' name='4. Omsætning pr. Værelsestype' w='48000' x='1000' y='12000' />
+              <zone h='48000' id='15' name='5. Indtjening pr. Sæson' w='48000' x='51000' y='12000' />
+              <zone h='38000' id='16' name='6. Opholdslængde (ALOS) pr. Type' w='98000' x='1000' y='61000' />
+            </zone>
+          </zones>
+        </devicelayout>
+      </devicelayouts>
+      <simple-id uuid='{C2594128-9445-4DFC-BAC0-A279BBA22F99}' />
     </dashboard>
   </dashboards>
 
@@ -403,7 +675,7 @@
           </strip>
         </edge>
       </cards>
-      <simple-id uuid='{8E4B93E7-CA50-488E-83BC-70F18B2F4575}' />
+      <simple-id uuid='{8DDFA329-8492-439E-A43E-D2F958C3AEEC}' />
     </window>
     <window class='worksheet' name='2. Omsætningsfordeling (Værelser vs Bar)'>
       <cards>
@@ -426,7 +698,7 @@
           </strip>
         </edge>
       </cards>
-      <simple-id uuid='{BEEF5C68-9A59-4745-ACB1-E35267CD7F69}' />
+      <simple-id uuid='{FC50CA9F-FB78-4A17-8E48-7CD9DD2AB3BF}' />
     </window>
     <window class='worksheet' name='3. Helene Christine (Cocktails vs Kaffe)'>
       <cards>
@@ -449,7 +721,76 @@
           </strip>
         </edge>
       </cards>
-      <simple-id uuid='{24A03501-7ADD-4A5A-93AA-C903A163CEB7}' />
+      <simple-id uuid='{6314BC2F-F079-40EA-948E-9F95FA3D5755}' />
+    </window>
+    <window class='worksheet' name='4. Omsætning pr. Værelsestype'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{D5C3E49A-26CF-48A2-81EB-01571CB43A36}' />
+    </window>
+    <window class='worksheet' name='5. Indtjening pr. Sæson'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{F24C7B37-7DD5-429D-9801-DB11C05D3F24}' />
+    </window>
+    <window class='worksheet' name='6. Opholdslængde (ALOS) pr. Type'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{7C99C6DB-7B63-44B3-8D84-F2155F0C5406}' />
     </window>
     <window class='dashboard' maximized='true' name='Executive Dashboard'>
       <viewpoints>
@@ -464,7 +805,22 @@
         </viewpoint>
       </viewpoints>
       <active id='-1' />
-      <simple-id uuid='{24E5716C-8D87-4851-B3D6-A05CA477DDB8}' />
+      <simple-id uuid='{24EDEA5D-9A33-49A3-B1F1-4F80A1BFBDEA}' />
+    </window>
+    <window class='dashboard' name='Værelses- &amp; Sæsonanalyse'>
+      <viewpoints>
+        <viewpoint name='4. Omsætning pr. Værelsestype'>
+          <zoom type='entire-view' />
+        </viewpoint>
+        <viewpoint name='5. Indtjening pr. Sæson'>
+          <zoom type='entire-view' />
+        </viewpoint>
+        <viewpoint name='6. Opholdslængde (ALOS) pr. Type'>
+          <zoom type='entire-view' />
+        </viewpoint>
+      </viewpoints>
+      <active id='-1' />
+      <simple-id uuid='{C913E9E3-5E07-4614-B045-5D21EC2898F0}' />
     </window>
   </windows>
 </workbook>
