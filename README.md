@@ -57,11 +57,10 @@ graph TD
 * [Docker Desktop](https://www.docker.com/products/docker-desktop/) (v24+ med Docker Compose v2)
 * [Git](https://git-scm.com/)
 
-### 1. Klon repositoryet og skift til `development`:
+### 1. Klon repositoryet og gå til mappen:
 ```bash
 git clone https://github.com/Junkersje/Hotel-Kong-Arthur-SCAMM-Tv-rfaglig-Opgave.git
 cd Hotel-Kong-Arthur-SCAMM-Tv-rfaglig-Opgave
-git checkout development
 ```
 
 ### 2. Start hele systemet med én kommando:
